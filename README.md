@@ -42,6 +42,30 @@ Du har nu ett komplett ramverks-skelett med:
 - 7 operativa scripts (graph-query, grep-tics, layered markup, Apple Books-noter, m.fl.)
 - Git initialiserat med första commit
 
+### Uppgradera befintligt bokprojekt
+
+När ramverket utvecklas vidare (nya roller, skärpta briefer, nya scripts) kan ett
+befintligt projekt uppgraderas icke-destruktivt med `upgrade-existing-project.sh`:
+
+```bash
+cd ~/code/programmatic-writing-stack
+git pull
+./upgrade-existing-project.sh ~/projects/min-bok --dry-run    # förhandsgranska
+./upgrade-existing-project.sh ~/projects/min-bok              # på riktigt
+```
+
+Tre kategorier av filer hanteras automatiskt:
+
+| Kategori | Filer | Beteende |
+|---|---|---|
+| **SAFE** | `roles/`, `hantverk/`, `scripts/`, `docs/` | ersätts utan att fråga |
+| **DIFF** | `process.md`, `canon.md`, `tics-katalog.md`, `tools.md` | visar diff, frågar `behåll/ersätt/skippa` |
+| **NEVER** | `CLAUDE.md`, `manuskript/`, `learnings.md`, `koncept/`, `plot/`, `stil/`, `forlag/`, `meta/`, story-graph med content, `*-rapporter/` | rörs aldrig |
+
+Säkerhetskopia skapas i `.cache/upgrade-backup-<datum>/` före varje ändring och en
+rapport landar i `.context/upgrade-rapport-<datum>.md`. Flaggor: `--dry-run`,
+`--force` (auto-ersätt SAFE), `--templates DIR`.
+
 ### Onboarding-flöde (9 steg, ~1-2h)
 
 Se `docs/PRD.md` sektion 9 för komplett guide. Kort:
