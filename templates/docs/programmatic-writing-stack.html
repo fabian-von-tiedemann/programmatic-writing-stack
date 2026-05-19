@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programmatic Writing Stack — Ett ramverk för att skriva böcker</title>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --bg-card: #ffffff;
+    --bg-dark: #1a1612;
+    --ink: #1a1612;
+    --ink-soft: #4a4438;
+    --ink-mute: #8a8478;
+    --line: #e6e1d8;
+    --accent: #8b1a1a;
+    --accent-soft: #b85454;
+    --gold: #b88b2c;
+    --green: #4a6b3c;
+    --code-bg: #f4f0e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 17px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  /* Sidebar */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 48px 24px 32px 32px;
+    border-right: 1px solid var(--line);
+    background: var(--bg);
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  nav.toc .brand {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    margin-bottom: 24px;
+    font-family: 'SF Mono', 'Monaco', monospace;
+  }
+  nav.toc ol {
+    list-style: none;
+    counter-reset: section;
+  }
+  nav.toc li {
+    counter-increment: section;
+    margin: 10px 0;
+  }
+  nav.toc li::before {
+    content: counter(section, decimal-leading-zero) " ";
+    color: var(--ink-mute);
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    margin-right: 6px;
+  }
+  nav.toc a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  nav.toc a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  /* Main */
+  main {
+    padding: 64px 64px 96px 64px;
+    max-width: 880px;
+  }
+  header.hero {
+    margin-bottom: 64px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .kicker {
+    font-family: 'SF Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+  .subtitle {
+    font-size: 21px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    margin-bottom: 32px;
+    max-width: 640px;
+  }
+  .meta {
+    display: flex;
+    gap: 32px;
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin: 48px 0 32px 0;
+  }
+  .stat {
+    padding: 24px 0;
+    border-top: 2px solid var(--ink);
+  }
+  .stat-num {
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .stat-label {
+    font-family: 'SF Mono', monospace;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    line-height: 1.3;
+  }
+  /* Sections */
+  section {
+    margin: 80px 0;
+    scroll-margin-top: 32px;
+  }
+  section h2 {
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  section .sectkicker {
+    font-family: 'SF Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  section .leadtext {
+    font-size: 19px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 16px 0 32px 0;
+    max-width: 720px;
+  }
+  section h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 40px 0 12px 0;
+    color: var(--ink);
+  }
+  section h4 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 24px 0 8px 0;
+  }
+  p {
+    margin: 16px 0;
+    max-width: 720px;
+  }
+  ul, ol {
+    margin: 16px 0;
+    padding-left: 24px;
+    max-width: 720px;
+  }
+  li {
+    margin: 8px 0;
+  }
+  /* Emphasized first letter / pullquote */
+  .pullquote {
+    border-left: 3px solid var(--accent);
+    padding: 8px 0 8px 24px;
+    margin: 32px 0;
+    font-size: 21px;
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 720px;
+  }
+  /* Cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .card-grid.two { grid-template-columns: 1fr 1fr; }
+  .card-grid.three { grid-template-columns: repeat(3, 1fr); }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 24px;
+    border-radius: 4px;
+  }
+  .card.accent {
+    border-left: 3px solid var(--accent);
+  }
+  .card.exists {
+    border-left: 3px solid var(--green);
+  }
+  .card.proposed {
+    border-left: 3px solid var(--gold);
+    background: #fffbf0;
+  }
+  .card .tag {
+    display: inline-block;
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .card .tag.exists {
+    background: var(--green);
+    color: white;
+  }
+  .card .tag.proposed {
+    background: var(--gold);
+    color: white;
+  }
+  .card h4 {
+    font-size: 18px;
+    margin: 0 0 8px 0;
+  }
+  .card .role-fn {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .card p {
+    font-size: 15px;
+    margin: 8px 0;
+  }
+  .card ul {
+    font-size: 14px;
+    padding-left: 18px;
+  }
+  /* Code */
+  code {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+  pre {
+    background: var(--bg-dark);
+    color: #e8e4d8;
+    padding: 24px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 24px 0;
+  }
+  pre code {
+    background: transparent;
+    color: #e8e4d8;
+    padding: 0;
+  }
+  /* Pipeline diagram */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin: 32px 0;
+    align-items: stretch;
+  }
+  .pipeline-stage {
+    text-align: center;
+    padding: 16px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    position: relative;
+    font-size: 13px;
+  }
+  .pipeline-stage:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-mute);
+    font-size: 16px;
+    z-index: 2;
+  }
+  .pipeline-stage .num {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pipeline-stage strong {
+    display: block;
+    font-size: 13px;
+    margin: 4px 0;
+  }
+  .pipeline-stage span {
+    color: var(--ink-mute);
+    font-size: 11px;
+  }
+  /* Comparison Tom Clancy */
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 15px;
+  }
+  table.compare th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--bg-dark);
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  table.compare td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.compare tr:last-child td {
+    border-bottom: none;
+  }
+  table.compare td:first-child {
+    font-weight: 600;
+    width: 180px;
+  }
+  /* Roadmap */
+  .roadmap {
+    border-left: 2px solid var(--ink);
+    margin: 24px 0;
+    padding-left: 24px;
+  }
+  .roadmap-item {
+    margin: 24px 0;
+    position: relative;
+  }
+  .roadmap-item::before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 8px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .roadmap-item .when {
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .roadmap-item h4 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+  }
+  .roadmap-item p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: var(--ink-soft);
+  }
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--line);
+    margin-top: 80px;
+    padding-top: 32px;
+    color: var(--ink-mute);
+    font-size: 13px;
+    font-family: 'SF Mono', monospace;
+  }
+  /* Mobile */
+  @media (max-width: 880px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { display: none; }
+    main { padding: 32px 24px 64px 24px; }
+    h1 { font-size: 36px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .card-grid.two, .card-grid.three { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .pipeline-stage::after { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <div class="brand">Writing Stack 2026</div>
+  <ol>
+    <li><a href="#hero">Översikt</a></li>
+    <li><a href="#vad-vi-lart">Vad vi lärt oss</a></li>
+    <li><a href="#nuvarande-roller">De tretton rollerna</a></li>
+    <li><a href="#nio-lager">De nio lagren</a></li>
+    <li><a href="#nya-roller">Övriga övervägda</a></li>
+    <li><a href="#verktyg">Verktygsstacken</a></li>
+    <li><a href="#process">Process-loopen</a></li>
+    <li><a href="#hantverk">Hantverkstekniker</a></li>
+    <li><a href="#tom-clancy">Tom Clancy-modellen</a></li>
+    <li><a href="#minimal">Minimal start</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#principer">Principer</a></li>
+    <li><a href="#hemligheten">Den verkliga hemligheten</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="hero" id="hero">
+  <div class="kicker">En reflektion efter <em>Marken under marken</em></div>
+  <h1>Ett <em>ramverk</em> för att skriva böcker.</h1>
+  <p class="subtitle">
+    Det visade sig att ett romanprojekt är ett mjukvaruprojekt.
+    Med versionkontroll, automatiserade tester, code review, architecture decision records
+    och refactoring. Skillnaden är att kod kompileras till exekvering.
+    Prosa kompileras till läsare.
+  </p>
+  <div class="meta">
+    <span>2026-05-19</span>
+    <span>v1.2 — Komplett plattform</span>
+    <span>Fabian von Tiedemann + Claude</span>
+  </div>
+
+  <div class="stats" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="stat">
+      <div class="stat-num">13</div>
+      <div class="stat-label">roller aktiva<br>(komplett ramverk)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">9</div>
+      <div class="stat-label">lager artefakter<br>(koncept → meta)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">~50</div>
+      <div class="stat-label">artefakt-templates<br>(komplett plattform)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">9.13</div>
+      <div class="stat-label">snittbetyg / 10<br>över hela boken</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">673</div>
+      <div class="stat-label">noder i kunskapsgrafen<br>(canon)</div>
+    </div>
+  </div>
+</header>
+
+<section id="vad-vi-lart">
+  <div class="sectkicker">Sektion 01</div>
+  <h2>Vad vi lärt oss</h2>
+  <p class="leadtext">
+    Fem insikter som ändrar hur jag tänker på författarskap.
+  </p>
+
+  <h3>1. Kunskapsgrafen är inte ett bilag — den är <em>canon</em></h3>
+  <p>
+    När du skriver 22 kapitel utan en central sanningskälla driftar karaktärerna, miljöerna, vetskapen.
+    Anna fick olika telefoner i olika kapitel. Lars var levande i ett kapitel, död i ett annat.
+    "Donnerska huset slog klockan" i två kapitel — huset har inget tornur.
+    Grafen löser detta. Men <em>bara</em> om alla roller läser den.
+  </p>
+
+  <h3>2. Self-grading-bias är reell — och NAGELFAREN bryter den</h3>
+  <p>
+    Redaktören gav 9.5 på Logik. Läsaren hittade 37 problem. Det är inte slarv — det är LLM:s
+    grundbias mot godkännande. Lösningen är inte bättre redaktör. Det är en <em>adversarial roll</em>
+    vars enda framgångsmetrik är att hitta vad redaktören missade.
+  </p>
+  <p>
+    När vi mätte kalibreringsdrift sjönk gapet från <strong>2.1 → 1.2 → 0.7 → &lt;0.5</strong> på fyra rundor.
+  </p>
+  <div class="pullquote">
+    Default-betyg ska vara 7. 9+ kräver dokumentation. 10 finns inte.
+  </div>
+
+  <h3>3. Förebyggande beats spackling</h3>
+  <p>
+    Fabians egen instinkt tidigt: <em>"Det blir sällan bättre av att spackla på fler lager.
+    Viktigt att den som skriver har rätt instruktioner."</em>
+  </p>
+  <p>
+    Det visade sig vara den enskilt mest värdefulla observationen. Vi skärpte writer-briefen
+    med tre discipliner (introduktion, genre, repetition) och såg att kap 4 — första kapitlet
+    skrivet <em>med</em> deepening + skärpta brief — redan från redaktörens första pass hade
+    karaktärs-quirks korrekt använda. Tidigare kapitel saknade detta helt.
+  </p>
+
+  <h3>4. Mekanisk + AI är inte antingen-eller</h3>
+  <p>
+    En AI-redaktör som läser ett kapitel ser inte att "nickade" finns 101 gånger över boken.
+    En grep-script ser det på 50 millisekunder. Layered markup-pipelinen fångade en datum-typo
+    som ingen redaktör märkt — för redaktörer läser prosa, inte JSON.
+  </p>
+  <p>
+    Mekaniska pass <em>kompletterar</em> AI-pass. Grep-tics fångar frekvens. AI fångar mening.
+    Båda behövs.
+  </p>
+
+  <h3>5. Per-roll separation > monolitisk brief</h3>
+  <p>
+    CLAUDE.md började på 250 rader och fick fötter — alla roller, all process, all canon, alla preferenser.
+    Konsekvens: varje agent fick <em>allt</em> info, inte bara det relevanta.
+  </p>
+  <p>
+    Efter att vi splittade till <code>roles/</code>, <code>process.md</code>, <code>canon.md</code>,
+    <code>tools.md</code> sjönk per-agent context ~70%. Fokus skarpare. Lärdomar landade på
+    rätt fil och spillde inte ut.
+  </p>
+</section>
+
+<section id="nuvarande-roller">
+  <div class="sectkicker">Sektion 02 — 13 av 13 aktiva</div>
+  <h2>De tretton rollerna</h2>
+  <p class="leadtext">
+    Komplett ramverk. Var och en med separat brief. Var och en dispatchad som egen subagent.
+    Detta är ekosystemet som lyfter snitt 6 → 9 och hanterar hela vägen från plot-design till pitch-pack.
+  </p>
+
+  <h3>FAS 0 — Innan skrivande</h3>
+  <div class="card-grid two">
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Plot-arkitekt</h4>
+      <div class="role-fn">FAS 0 — Före writer · Lager 1, 4</div>
+      <p>Designar plot-bågen: cliffhangers, mid-points, false summit, reveal-sekvens.
+      Verifierar trådar via <code>graph-query.py thread</code>. Producerar scenkort,
+      klocka, clue-economy, antagonist-tidslinje, tension-tracker — hela lager 4.</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Researcher</h4>
+      <div class="role-fn">FAS 0 + on-demand · Lager 2</div>
+      <p>Verifierar fakta-claims innan de hamnar i texten. Producerar
+      <code>.context/research-dossier/X.md</code>-filer med källor. Skiljer
+      <em>canon-research</em> (i grafen) från <em>writer-bakgrund</em> (textur).</p>
+    </div>
+  </div>
+
+  <h3>FAS 2 — Skrivande</h3>
+  <div class="card-grid two">
+    <div class="card exists" style="grid-column: 1 / -1;">
+      <div class="tag exists">Aktiv</div>
+      <h4>Writer</h4>
+      <div class="role-fn">FAS 2 — Förebyggande disciplin · Lager 7 (läser 1-6)</div>
+      <p>Skriver kapitel-utkast. Läser scenkort, character-deepening, grafen, stilcanon, hantverk-tekniker (A-G, K)
+      <em>innan</em> hen skriver. Discipliner: introduktion, genre, repetition.</p>
+    </div>
+  </div>
+
+  <h3>FAS 3 — Granska kapitel</h3>
+  <div class="card-grid two">
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Redaktör</h4>
+      <div class="role-fn">FAS 3 — Mening-för-mening + helhet · Lager 7, 8</div>
+      <p>12 mening-för-mening-tester, 5 helhetskontroller, 8 axlar med kalibrerade betyg.
+      Default 7, 9+ kräver dokumentation. Läser hela hantverk/ + I.5-grinden.</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Prosa-städ (Naiv läsare)</h4>
+      <div class="role-fn">FAS 3 — BLOCKERANDE · Lager 7</div>
+      <p>Läser som svensk förstagångsläsare. Inget CLAUDE.md, ingen graf. 6 frågor per mening:
+      Fattar jag? Vad syftas det på? Är det här rimligt? Pausar jag?</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Dialog-coach</h4>
+      <div class="role-fn">FAS 3 — POV-veto · Lager 3, 6, 7</div>
+      <p>Röst-vakt. Lyssnar BARA på dialog + POV-tankespråk. Verifierar mot
+      character-deepening (talspråk, rytm, signum-quirks, förbjudna konstruktioner).
+      <strong>Veto på POV-axeln</strong> vid ≥3 läckage-flaggor.</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>NAGELFAREN</h4>
+      <div class="role-fn">FAS 3 — Adversarial meta · Lager 5, 7, 8</div>
+      <p>Granskar inte boken. Granskar <em>redaktörens rapport</em>. Måste hitta minst 5 missar
+      eller får inte lämna in. Veto-rätt på redaktör-betyg. Verifierar hantverk-grindar.</p>
+    </div>
+  </div>
+
+  <h3>FAS 4 — Hela boken</h3>
+  <div class="card-grid two">
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Förläggare</h4>
+      <div class="role-fn">FAS 4 — Helhets-A/B/C · Lager 7, 8</div>
+      <p>Läser hela boken som helhet. Frekvens-mönster över alla kapitel (kaffe x4, Volvo x5).
+      Genre-register-stickprov. Karaktärsbåge-konsekvens. Kör I.6-grinden (boggrind).</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Sensitivity-läsare</h4>
+      <div class="role-fn">FAS 4 — Publikation-veto · Lager 1, 3, 7</div>
+      <p>Granskar hela boken för representation, könade beskrivningar, klassförakt,
+      otidsenligt språk, makt-asymmetrier, kulturell + lokal autenticitet.
+      <strong>Veto på publikation</strong> vid allvarliga representations-fel.</p>
+    </div>
+  </div>
+
+  <h3>Löpande + separat</h3>
+  <div class="card-grid two">
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Graf-vakt</h4>
+      <div class="role-fn">LÖPANDE · Lager 5 (skriver), 7 (läser)</div>
+      <p>"DBA för bokens canon." Aktiveras efter varje writer/redaktör/prosa-städ/dialog-coach/NAGELFAREN/fix-pass.
+      Två produkter: säker auto-fix (stub-noder, kebab-case) + flagg-rapport (dubbletter,
+      broken references, schema-drift). Konservativ med merges.</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Världsbyggare</h4>
+      <div class="role-fn">Före bok 1 / Efter / Före N+1 · Lager 1, 2, 9</div>
+      <p>Världs-arkitekt. Enda rollen som tänker BORTOM enskild bok. Klassificerar
+      entiteter som världs-canon vs bok-canon. Producerar <code>world-bible.md</code>,
+      <code>series-bible.md</code>. Kör I.1 + I.7-grinder.</p>
+    </div>
+  </div>
+
+  <h3>FAS 8-9 — Efter publikation-godkännande</h3>
+  <div class="card-grid two">
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Audiobook-direktör</h4>
+      <div class="role-fn">FAS 8 — TTS-förberedelse · Lager 6, 7, 8</div>
+      <p>Läser texten <em>genom örat</em>. Producerar uttalslexikon
+      (<code>pronunciations.json</code>) + voiceProfiles per POV
+      (<code>character-voices.json</code>) + regianvisningar. Integrerar med
+      audiobook-pipen (Gemini Director + TTS).</p>
+    </div>
+
+    <div class="card exists">
+      <div class="tag exists">Aktiv</div>
+      <h4>Marknadsförare</h4>
+      <div class="role-fn">FAS 9 — Pitch + positionering · Lager 1, 3, 8</div>
+      <p>Den absolut sista rollen. Läser boken <em>som någon som ska sälja den</em>.
+      Pitch-mening, jämförelsetitlar, målgrupp, baksidestext, författarpresentation,
+      pressmaterial, cover-direction, genre-positionering. Ingen veto, bara förslag.</p>
+    </div>
+  </div>
+</section>
+
+<section id="nio-lager">
+  <div class="sectkicker">Sektion 03</div>
+  <h2>De nio lagren av artefakter</h2>
+  <p class="leadtext">
+    Komplett plattform med ~50 artefakt-templates från koncept till marknad. Lagren är inte strikt sekventiella — de utvecklas parallellt — men har en övergripande ordning: koncept → värld → karaktär → plot → kontinuitet → röst → prosa → editorial → meta.
+  </p>
+
+  <div class="card-grid two">
+    <div class="card accent">
+      <div class="role-fn">Lager 1</div>
+      <h4>Koncept · <code>.context/koncept/</code></h4>
+      <p>Bokens hela idé innan något skrivs.
+      Premiss, logline, genre, form, genre-kontrakt, central fråga, teman, series-promise.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 2</div>
+      <h4>Värld · <code>story-graph/ + varld/ + research-dossier/</code></h4>
+      <p>Tidsperiod, tidslinje (single source of truth), geografi,
+      real-world references, forskningsnoter per ämne.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 3</div>
+      <h4>Karaktärer · <code>story-graph/character-deepening/ + relationships.json</code></h4>
+      <p>Djup karaktärsdokumentation, bipersons-katalog,
+      relationskarta, röstprofil per karaktär.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 4</div>
+      <h4>Plot · <code>.context/plot/</code></h4>
+      <p>Through-line, tematiska bågar, struktur, inciting incident,
+      kapitelplan, <strong>scenkort</strong>, spänningsdiagram, <strong>clue-economy</strong>,
+      <strong>tension-tracker</strong>, <strong>klocka</strong>, informationsflöde,
+      <strong>antagonist-tidslinje</strong>, try-fail-cykler, cold open, two-track.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 5</div>
+      <h4>Kontinuitet · <code>story-graph/ + foreshadowing/</code></h4>
+      <p>Continuity-tracker, foreshadowing/payoff-tracker, fact-check-databas,
+      dödslista, secrets.known_to. Det svåraste lagret i fler-böckers-serier.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 6</div>
+      <h4>Röst &amp; stil · <code>.context/stil/ + style-guide.md + tics-katalog.md</code></h4>
+      <p>Stylesheet, undvik-lista, motiv &amp; symboler, röstprofiler,
+      inspirations-prov, scene description bank, meningsrytm, dialog-konvention,
+      POV-strategi, återkommande element.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 7</div>
+      <h4>Skrivande · <code>manuskript/ + prosa-anteckningar/</code></h4>
+      <p>Själva prosan. Utkast, anteckningar till nästa version, versioner.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">Lager 8</div>
+      <h4>Editorial · <code>rapporter + .context/forlag/</code></h4>
+      <p>Redaktör/prosa-städ/NAGELFAREN/dialog-coach/förläggar/sensitivity-rapporter,
+      lektörsbrev, fix-lista, författarrespons, revisions-tracker, beta-läsar-feedback,
+      manuskriptformatering, baksidestext, marketing copy, audiobook-output, pitch-pack.</p>
+    </div>
+
+    <div class="card accent" style="grid-column: 1 / -1;">
+      <div class="role-fn">Lager 9</div>
+      <h4>Meta · <code>.context/meta/ + docs/adr/</code></h4>
+      <p>Beslutslogg, öppna frågor, parkering, bruttolistor, canonical events,
+      hantverksstandarder, ambition, ADR:er, <strong><code>learnings.md</code></strong> (compounding tillgång).</p>
+    </div>
+  </div>
+</section>
+
+<section id="nya-roller">
+  <div class="sectkicker">Sektion 03</div>
+  <h2>Övriga roller övervägda</h2>
+  <p class="leadtext">
+    Ramverket är komplett med 13 roller (sektion 2). Detta är roller som övervägdes
+    men avvisades — och varför.
+  </p>
+
+  <ul>
+    <li><strong>Litteraturkritiker.</strong> Avvisad. Risk för stil-imitation av befintliga svenska
+    thriller-författare. Skapar inte unik röst.</li>
+    <li><strong>Översättare.</strong> Inte i denna fas. När boken sålt internationellt
+    blir det aktuellt — som extern roll, inte agent.</li>
+    <li><strong>Lektör/copyeditor.</strong> Avvisad. Täcks av redaktör + prosa-städ.
+    Mer av samma roll är slöseri.</li>
+    <li><strong>Skrivcoach.</strong> Avvisad. Författare behöver verktyg, inte motivation.</li>
+    <li><strong>Genre-specialist (separat per genre).</strong> Avvisad. Genre-disciplin
+    är writers ansvar via brief och canon. Separat agent skapar mer drift än värde.</li>
+  </ul>
+
+  <h3>Eventuella framtida roller (för utvärdering)</h3>
+  <ul>
+    <li><strong>Översättnings-direktör</strong> — om/när boken översätts till engelska/tyska,
+    kunde en roll som motsvarar audiobook-direktören men för översättning bli relevant.</li>
+    <li><strong>Continuity-detective</strong> — proaktiv agent som söker kontinuitetsfel
+    över hela boken. Eventuellt redundant mot graf-vakt + förläggare.</li>
+    <li><strong>Reader-prediction-modell</strong> — försöker förutspå läsarreaktioner.
+    Spekulativ; läsar-feedback via Apple Books är verkligheten.</li>
+  </ul>
+</section>
+
+<section id="verktyg">
+  <div class="sectkicker">Sektion 04</div>
+  <h2>Verktygsstacken</h2>
+  <p class="leadtext">
+    Allt git-vänligt. Allt diff:bart. Inga databaser, inga lock-in-effekter.
+    Detta är hela poängen.
+  </p>
+
+  <h3>Källan (canon)</h3>
+  <pre><code>project/
+├── CLAUDE.md                          # 150 rader: index + huvudregler
+├── manuskript/                        # kapitlen som markdown (Lager 7)
+├── docs/adr/                          # arkitekturbeslut (Lager 9)
+└── .context/
+    ├── process.md                     # FAS 0-9 flödet
+    ├── canon.md                       # fakta-fällor + verklig-person-blacklist
+    ├── tools.md                       # script-användning
+    ├── learnings.md                   # compounding tillgång (Lager 9)
+    ├── tics-katalog.md                # mekaniska grep-mönster (Lager 6)
+    │
+    ├── koncept/                       # Lager 1 — KONCEPT
+    │   ├── premiss.md
+    │   ├── logline.md
+    │   ├── genre.md
+    │   ├── form.md
+    │   ├── genre-kontrakt.md
+    │   ├── central-fraga.md
+    │   ├── teman.md
+    │   └── series-promise.md
+    │
+    ├── varld/                         # Lager 2 — VÄRLD (kompl. story-graph)
+    │   ├── tidsperiod.md
+    │   └── geografi.md
+    ├── research-dossier/              # Lager 2 — research per ämne
+    │
+    ├── plot/                          # Lager 4 — PLOT
+    │   ├── through-line.md
+    │   ├── bagar.md
+    │   ├── trilogi.md
+    │   └── bok-N/
+    │       ├── struktur.md
+    │       ├── inciting-incident.md
+    │       ├── kapitelplan.md
+    │       ├── spanning.md
+    │       ├── clue-economy.md
+    │       ├── tension-tracker.md
+    │       ├── klocka.md
+    │       ├── informationsflode.md
+    │       ├── antagonist-tidslinje.md
+    │       ├── try-fail.md
+    │       ├── cold-open.md
+    │       ├── two-track.md
+    │       └── scenkort/
+    │           └── kap-NN-scen-Y.md
+    │
+    ├── foreshadowing/                 # Lager 5 — kontinuitet
+    │   └── payoff-tracker.md
+    │
+    ├── stil/                          # Lager 6 — RÖST &amp; STIL
+    │   ├── undvik.md
+    │   ├── motiv.md
+    │   ├── rytm.md
+    │   ├── dialog.md
+    │   ├── pov-bok-N.md
+    │   ├── aterkommande.md
+    │   ├── roster/<namn>.md
+    │   ├── inspiration/<forfattare>.md
+    │   └── platser/<plats>.md
+    │
+    ├── prosa-anteckningar/            # Lager 7 — writer-anteckningar
+    │
+    ├── forlag/                        # Lager 8 — EDITORIAL
+    │   ├── lektorsbrev-bok-N.md
+    │   ├── fixes-bok-N.md
+    │   ├── respons-bok-N.md
+    │   ├── revisions-tracker.md
+    │   ├── beta/
+    │   ├── sensitivity/
+    │   ├── manuskriptformatering.md
+    │   ├── baksidestext.md
+    │   └── loglinetest.md
+    ├── marknadsforing/                # Lager 8 — pitch-pack
+    ├── audiobook/                     # Lager 8 — direktör-output
+    │
+    ├── meta/                          # Lager 9 — META
+    │   ├── beslutslogg.md
+    │   ├── oppna-fragor.md
+    │   ├── parkering.md
+    │   ├── bruttolistor/
+    │   ├── canon.md
+    │   ├── hantverksstandarder.md
+    │   └── ambition.md
+    │
+    ├── hantverk/                      # Del III — TEKNIKER (statisk ref)
+    │   ├── tekniker.md                # A-K
+    │   ├── kvalitetsgrindar.md       # I.1-I.7
+    │   ├── snabb-checklista.md       # L
+    │   └── anti-monster.md           # J
+    │
+    ├── roles/                         # 13 roller
+    │   ├── plot-arkitekt.md
+    │   ├── researcher.md
+    │   ├── writer.md
+    │   ├── redaktor.md
+    │   ├── prosa-stad.md
+    │   ├── dialog-coach.md
+    │   ├── nagelfaren.md
+    │   ├── forlaggare.md
+    │   ├── sensitivity-lasare.md
+    │   ├── graf-vakt.md
+    │   ├── varldsbyggare.md
+    │   ├── audiobook-direktor.md
+    │   └── marknadsforare.md
+    │
+    └── story-graph/                   # KUNSKAPSGRAFEN = bokens canon
+        ├── characters.json
+        ├── events.json
+        ├── locations.json
+        ├── secrets.json
+        ├── relationships.json
+        ├── objects.json
+        ├── documents.json
+        ├── organizations.json
+        ├── timeline.json
+        ├── knowledge-matrix.md
+        ├── threads.md
+        ├── themes.md
+        ├── style-guide.md
+        ├── consistency-checks.md
+        └── character-deepening/
+            ├── char-X.md
+            └── ...
+</code></pre>
+
+  <h3>Verktygslagret</h3>
+  <pre><code>scripts/
+├── books-annotations.sh           # hämtar läsarnoter från Apple Books
+├── grep-tics.sh                   # mekanisk frekvens-validator
+├── graph-query.py                 # 3 queries mot kunskapsgrafen
+├── render-manuscript.py           # layered markup → ren prosa
+├── validate-manuscript.py         # validator-rapporter
+└── tag-manuscript.py              # semi-auto graf-länkning
+</code></pre>
+
+  <h3>De tre query-typerna</h3>
+  <div class="card-grid three">
+    <div class="card accent">
+      <div class="role-fn">Query 1</div>
+      <h4>who-knows</h4>
+      <p>"Vad visste Anna kl 19:00 23 juni?" → 13 säkra + 9 anade secrets, datumfiltrerade.</p>
+      <p style="color:var(--ink-mute);font-size:13px">Använd av: writer, redaktör, NAGELFAREN</p>
+    </div>
+    <div class="card accent">
+      <div class="role-fn">Query 2</div>
+      <h4>who-was-where</h4>
+      <p>"Vem var i Visby 08:00 23 juni ±3h?" → 3 events med deltagar-listor.</p>
+      <p style="color:var(--ink-mute);font-size:13px">Använd av: writer, plot-arkitekt</p>
+    </div>
+    <div class="card accent">
+      <div class="role-fn">Query 3</div>
+      <h4>thread</h4>
+      <p>"Visa Daniel-tråden kronologiskt" → 52 events 2019→2026 i tidsordning.</p>
+      <p style="color:var(--ink-mute);font-size:13px">Använd av: plot-arkitekt, förläggare</p>
+    </div>
+  </div>
+</section>
+
+<section id="process">
+  <div class="sectkicker">Sektion 05</div>
+  <h2>Process-loopen</h2>
+  <p class="leadtext">
+    Tio faser (FAS 0-9) per kapitel/bok. Plus löpande graf-vakt och separat världsbyggare. Får aldrig hoppas över. Disciplin är skydd.
+  </p>
+
+  <div class="pipeline" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="pipeline-stage">
+      <div class="num">FAS 0</div>
+      <strong>Plot + Research</strong>
+      <span>Plot-arkitekt + Researcher</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 1</div>
+      <strong>Förbered</strong>
+      <span>Graf complete, lärdomar uppdaterad</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 2</div>
+      <strong>Skriv</strong>
+      <span>Writer producerar utkast</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 3</div>
+      <strong>Granska</strong>
+      <span>Redaktör → Prosa-städ → Dialog-coach → NAGELFAREN</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 4</div>
+      <strong>Förlägg + Sensitivity</strong>
+      <span>A/B/C + publikation-veto</span>
+    </div>
+  </div>
+
+  <div class="pipeline" style="grid-template-columns: repeat(5, 1fr); margin-top: 16px;">
+    <div class="pipeline-stage">
+      <div class="num">FAS 5</div>
+      <strong>Lär</strong>
+      <span>Lärdomar in i learnings.md</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 6</div>
+      <strong>Graf</strong>
+      <span>Verifiera canon (graf-vakt löpande)</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 7</div>
+      <strong>Nästa</strong>
+      <span>Iterera till FAS 0</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 8</div>
+      <strong>Audiobook</strong>
+      <span>Direktör + TTS-pipen</span>
+    </div>
+    <div class="pipeline-stage">
+      <div class="num">FAS 9</div>
+      <strong>Marknad</strong>
+      <span>Pitch-pack + positionering</span>
+    </div>
+  </div>
+
+  <p style="margin-top: 24px;">
+    <strong>Löpande + separat:</strong> Graf-vakt aktiveras efter varje pass som ändrar text eller graf.
+    Världsbyggare körs tre gånger — före bok 1, efter bok 1, före bok N+1.
+  </p>
+
+  <p>
+    Hårda regler (12 totalt — se <code>.context/process.md</code>):
+  </p>
+  <ul>
+    <li><strong>Förläggaren är vetoröst.</strong> Inget kap N+1 förrän A.</li>
+    <li><strong>NAGELFAREN är vetoröst på redaktör.</strong> Inget 9+ utan godkännande.</li>
+    <li><strong>Dialog-coach är vetoröst på POV-axeln.</strong> ≥3 läckage-flaggor blockerar.</li>
+    <li><strong>Sensitivity-läsare är vetoröst på publikation.</strong> Allvarliga representations-fel måste adresseras.</li>
+    <li><strong>Prosa-städ är BLOCKERANDE.</strong> Inget kapitel godkänns utan rapport.</li>
+    <li><strong>Plot-arkitekt körs FÖRE writer.</strong> Förebyggande &gt; spackling.</li>
+    <li><strong>Graf-vakt körs LÖPANDE.</strong> Efter varje pass.</li>
+    <li><strong>Aldrig dispatcha writer för kap N+1 om FAS 5+6 för kap N inte är klara.</strong></li>
+  </ul>
+
+  <h3>Kvalitetsgrindar mellan faserna (I.1-I.7)</h3>
+  <p>Sju grindar måste passas innan processen flyttar vidare. Specifikation i <code>.context/hantverk/kvalitetsgrindar.md</code>.</p>
+  <table class="compare">
+    <thead>
+      <tr><th>Grind</th><th>Var</th><th>Fråga</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>I.1 Karaktär</td><td>Innan FAS 0/1</td><td>Kan jag namnge varje huvudkaraktärs önskan, rädsla, blinda fläck, språkliga signatur?</td></tr>
+      <tr><td>I.2 Plot</td><td>FAS 0</td><td>Kan jag besvara central-fråga utan synopsis? Vet jag inciting incident, mid-point, klimax?</td></tr>
+      <tr><td>I.3 Scenkort</td><td>Innan FAS 2</td><td>Har varje scen mål, konflikt, vändpunkt? POV, plats, närvarande, agenda?</td></tr>
+      <tr><td>I.4 Stil</td><td>Innan FAS 2</td><td>Har jag exempel-stycken? Karaktärs-röstprov? Undvik-listan?</td></tr>
+      <tr><td>I.5 Prosa</td><td>FAS 3</td><td>Kan jag stryka tre stycken utan att förlora något? Dölja attribuering &amp; ändå veta vem som talar?</td></tr>
+      <tr><td>I.6 Bok</td><td>Innan FAS 4</td><td>Är alla clues skördade? Setups paid off? Continuity konsistent?</td></tr>
+      <tr><td>I.7 Serie</td><td>Innan nästa bok</td><td>Bryter inget canonical? Avancerar tematiska bågar? Öppning för N+1?</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="hantverk">
+  <div class="sectkicker">Sektion 06 — Del III integration</div>
+  <h2>Hantverkstekniker</h2>
+  <p class="leadtext">
+    Detta är inte artefakter. Detta är <em>tekniker</em> — saker som skribenten ska göra (eller inte göra) på meningsnivå, scennivå, kapitelnivå. Alla roller pekar mot <code>.context/hantverk/</code>.
+  </p>
+
+  <div class="card-grid two">
+    <div class="card accent">
+      <div class="role-fn">tekniker.md</div>
+      <h4>A-K · meningsnivå till genre</h4>
+      <ul>
+        <li><strong>A. Meningsnivå</strong> — specificitet, verbet gör jobbet, konkret över abstrakt, sensorisk grund, meningsrytm, förbjudna hedging-ord</li>
+        <li><strong>B. Scennivå</strong> — scen-fråga, scene &amp; sequel, iceberg, in sent / out early, subtext &gt; text, negativrum</li>
+        <li><strong>C. Karaktär</strong> — karaktären ÄR plotten, agenda, distinkt språk, visa genom handling, blinda fläckar</li>
+        <li><strong>D. Tid</strong> — tidskompression, tidsdilation, white space, tense-disciplin</li>
+        <li><strong>E. POV</strong> — POV-disciplin, free indirect discourse, ingen headhopping</li>
+        <li><strong>F. Struktur</strong> — Tjechovs gevär, setup-payoff, inga heliga scener, fraktal tre-akt</li>
+        <li><strong>G. Thriller</strong> — tickande klockor, plant/pay-off i tempo, two-track, Hitchcocks ticking suspicion, cold open</li>
+        <li><strong>H. AI-prosa-fällor</strong> — metaberättarröst, lila prosa, exposition dumps, telegrafering, generisk dialog</li>
+        <li><strong>K. Svensk genre</strong> — thriller-traditionen, samhälls-detaljer, talstreck-konvention, titel-tradition</li>
+      </ul>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">kvalitetsgrindar.md</div>
+      <h4>I.1-I.7 · sju grindar</h4>
+      <p>Karaktär · Plot · Scenkort · Stil · Prosa · Bok · Serie.
+      Varje grind ställer specifika frågor; om svaret är "inte ännu" → tillbaka till föregående fas.</p>
+      <p>Körs av plot-arkitekt (I.2, I.3), redaktör/prosa-städ/dialog-coach (I.4, I.5),
+      förläggare (I.6), världsbyggare (I.1, I.7). NAGELFAREN verifierar.</p>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">snabb-checklista.md</div>
+      <h4>L · 17 kontroller per kapitel (~15 min)</h4>
+      <ul>
+        <li>Scen-fråga ställd + besvarad?</li>
+        <li>Sensorisk detalj som inte är visuell?</li>
+        <li>POV konsekvent?</li>
+        <li>Varje karaktär har en agenda?</li>
+        <li>Subtext &gt; text i dialog?</li>
+        <li>Meningsrytm varierad?</li>
+        <li>Inga adverb-svaga-verb?</li>
+        <li>Inget exposition-dump?</li>
+        <li>Karaktärsdistinkt språk?</li>
+        <li>Klocka/threat synlig?</li>
+        <li>Continuity inte bruten?</li>
+        <li>Slut driver läsaren vidare?</li>
+      </ul>
+    </div>
+
+    <div class="card accent">
+      <div class="role-fn">anti-monster.md</div>
+      <h4>J · åtta anti-mönster</h4>
+      <ol>
+        <li>Karaktär upptäcker info ensam i rum</li>
+        <li>Plötslig förvandling utan plantering</li>
+        <li>Tillfälligheter som löser plot</li>
+        <li>Missförstånd-plot som löses av samtal</li>
+        <li>Tidsglapp som ursäkt</li>
+        <li>Ondskan-utan-skäl</li>
+        <li>Sidekick som dör för pathos</li>
+        <li>Författarens favoriter (murder your darlings)</li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    <strong>Integration:</strong> Writer läser A-G + K + anti-monster. Redaktör läser hela hantverk/ + I.5. Prosa-städ läser A, B, H. Dialog-coach läser B.5-6, C, E, H. NAGELFAREN verifierar att andra roller faktiskt applicerat teknikerna. Förläggare kör I.6-grinden. Plot-arkitekt arbetar med B, F, G + I.2-I.3.
+  </p>
+</section>
+
+<section id="tom-clancy">
+  <div class="sectkicker">Sektion 06</div>
+  <h2>Tom Clancy-modellen — författare som företag</h2>
+  <p class="leadtext">
+    Du frågade om Clancy. Här är vad hans franchise lär oss — och var vi redan är.
+  </p>
+
+  <p>
+    Tom Clancy började själv som ensam författare med <em>The Hunt for Red October</em> (1984).
+    Vid 1990-talet hade hans namn blivit en franchise: <em>Tom Clancy's Op-Center</em>,
+    <em>Net Force</em>, <em>Splinter Cell</em>, <em>Ghost Recon</em>. Alla skrivna av
+    olika författare under hans varumärke. Det fungerade för att han hade ett
+    <em>institutionellt minne</em> i form av:
+  </p>
+
+  <table class="compare">
+    <thead>
+      <tr>
+        <th>Clancy-franchise hade</th>
+        <th>Vi har</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Continuity bible</td>
+        <td>✓ story-graph/ (673 noder canon) + Graf-vakt (löpande DBA)</td>
+      </tr>
+      <tr>
+        <td>Karaktärsbiblar</td>
+        <td>✓ character-deepening/ (9 djupa profiler) + Dialog-coach (röst-vakt)</td>
+      </tr>
+      <tr>
+        <td>Tekniska konsulter (militära, marina, IT)</td>
+        <td>✓ Researcher-roll (<code>.context/roles/researcher.md</code>)</td>
+      </tr>
+      <tr>
+        <td>Continuity editors</td>
+        <td>✓ Redaktör + Prosa-städ + NAGELFAREN + Förläggare</td>
+      </tr>
+      <tr>
+        <td>Ghostwriters (Clancy "designar", andra skriver)</td>
+        <td>✓ Writer-subagent följer Clancys roll</td>
+      </tr>
+      <tr>
+        <td>Plot-outlines per bok (Clancy skrev översikt, ghostwriter prosan)</td>
+        <td>✓ Plot-arkitekt-roll (<code>.context/roles/plot-arkitekt.md</code>)</td>
+      </tr>
+      <tr>
+        <td>Marketing/pitch-team</td>
+        <td>✓ Marknadsförar-roll (<code>.context/roles/marknadsforare.md</code>)</td>
+      </tr>
+      <tr>
+        <td>Legal &amp; sensitivity granskning</td>
+        <td>✓ Sensitivity-läsare (<code>.context/roles/sensitivity-lasare.md</code>)</td>
+      </tr>
+      <tr>
+        <td>Serieövergripande continuity (bok N+1)</td>
+        <td>✓ Världsbyggare (<code>.context/roles/varldsbyggare.md</code>)</td>
+      </tr>
+      <tr>
+        <td>Audiobook-produktion</td>
+        <td>✓ Audiobook-direktör (<code>.context/roles/audiobook-direktor.md</code>) + TTS-pipeline</td>
+      </tr>
+      <tr>
+        <td>—</td>
+        <td>✓ <strong>9 lager artefakter</strong> (~50 templates) — koncept till meta. Mer än Clancy hade.</td>
+      </tr>
+      <tr>
+        <td>—</td>
+        <td>✓ <strong>Hantverkstekniker A-K + grindar I.1-I.7 + anti-mönster J</strong> som agent-prompts. Mer än Clancy hade.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <em>Med 13 aktiva roller, 9 lager artefakter och Del III-tekniker integrerade har vi 100%+ av Clancy-stacken.</em>
+    Plot-arkitekt designar med scenkort, klocka, clue-economy, antagonist-tidslinje. Researcher verifierar.
+    Writer prosar med hantverk-tekniker A-G + K som agent-prompt. Redaktör + prosa-städ + dialog-coach +
+    NAGELFAREN granskar mot kvalitetsgrindar I.4-I.5. Förläggare kör boggrinden I.6. Sensitivity-läsare bedömer
+    representation. Graf-vakt håller canon synkad löpande. Världsbyggare kör I.1 + I.7 över serien.
+    Audiobook-direktör förbereder för uppläsning. Marknadsförare positionerar.
+    En enskild författare kan operera som mer än en franchise — utan att delegera till andra människor.
+  </p>
+
+  <p>
+    Den interessanta jämförelsen är inte om vi <em>är</em> en Clancy-franchise.
+    Den är att en enskild författare med dessa verktyg kan operera som en franchise —
+    utan att behöva delegera till andra människor. Subagenterna är dina ghostwriters.
+    Grafen är ditt bibel. Du behåller upphovsrätten och rösten.
+  </p>
+
+  <div class="pullquote">
+    En enskild författare med ett ramverk producerar lika strukturerat
+    som ett team utan. Och behåller hela copyrighten.
+  </div>
+</section>
+
+<section id="minimal">
+  <div class="sectkicker">Sektion 07</div>
+  <h2>Minimal start — för någon som börjar bok 1</h2>
+  <p class="leadtext">
+    Inte alla behöver allt vi byggt. Här är vad jag skulle ge en författare som börjar idag.
+  </p>
+
+  <pre><code># Minimal-stack — bok 1
+project/
+├── CLAUDE.md                  # projektregler
+├── manuskript/                # markdown-kapitel
+├── .context/
+│   ├── learnings.md          # compounding tillgång
+│   ├── canon.md              # fakta-fällor
+│   ├── roles/
+│   │   ├── writer.md
+│   │   ├── redaktor.md
+│   │   └── nagelfaren.md     # adversarial — kritiskt
+│   └── story-graph/
+│       ├── characters.json
+│       ├── events.json
+│       └── character-deepening/
+└── scripts/
+    └── grep-tics.sh          # mekanisk första-pass
+</code></pre>
+
+  <p>
+    Det är allt. ~10 filer. Resten — layered markup, query-lager, prosa-städ som
+    separat roll, förläggare — bygger man när behovet uppstår.
+  </p>
+
+  <p>
+    <strong>Kritiskt:</strong> roller måste vara <em>separata</em> agenter. Inte samma
+    agent som byter mindset. NAGELFAREN-separationen är inte förhandlingsbar.
+  </p>
+</section>
+
+<section id="roadmap">
+  <div class="sectkicker">Sektion 08</div>
+  <h2>Roadmap för ramverket</h2>
+  <p class="leadtext">
+    Vad jag skulle bygga härnäst — i prioritetsordning.
+  </p>
+
+  <div class="roadmap">
+    <div class="roadmap-item">
+      <div class="when">v1.1 — Klar (2026-05-19)</div>
+      <h4>Komplett ramverk — 13 aktiva roller</h4>
+      <p>Alla roller skrivna och dispatchbara. FAS 0-9 + löpande graf-vakt + separat världsbyggare.</p>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="when">v1.2 — Klar (2026-05-19)</div>
+      <h4>Komplett plattform — 9 lager artefakter + Del III tekniker</h4>
+      <p>~50 artefakt-templates från koncept till marknad. Hantverkstekniker A-K,
+      kvalitetsgrindar I.1-I.7, snabb-checklista L, anti-mönster J integrerade
+      i alla 13 roll-briefer. Mappar tillagda: <code>koncept/</code>, <code>varld/</code>,
+      <code>plot/</code>, <code>stil/</code>, <code>forlag/</code>, <code>meta/</code>,
+      <code>hantverk/</code>, <code>prosa-anteckningar/</code>, <code>foreshadowing/</code>.</p>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="when">v1.3 — Verktygsintegration</div>
+      <h4>Plot-arkitekt v2 + Researcher v2 + Query-lagret v2</h4>
+      <p>Automatiserad outline-generering, proaktiva web-queries med source-validering,
+      nya queries (<code>relationships</code>, <code>place-tracking</code>,
+      <code>plot-skeleton</code>) som auto-anrop i briefer.</p>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="when">v1.4 — Cross-bok</div>
+      <h4>Cross-bok learnings-bibliotek + Världsbyggare v2</h4>
+      <p>Delat bibliotek mellan projekt + strukturerad multi-bok-graf som kan queryas
+      över serien — vilka events är canon i alla böcker, vilka är tolkningsbara.</p>
+    </div>
+
+    <div class="roadmap-item">
+      <div class="when">v2.0 — Långsiktigt</div>
+      <h4>Mall-projekt + extern integration</h4>
+      <p>Template-repo som kan klonas för ny bok. Eventuell publikation-integration
+      (förlagsystem, agent-portaler). Multi-författar-collaboration om relevant.</p>
+    </div>
+  </div>
+</section>
+
+<section id="principer">
+  <div class="sectkicker">Sektion 09</div>
+  <h2>Tio principer som hänger ihop</h2>
+  <p class="leadtext">
+    Om du tappar bort allt annat — håll fast vid dessa.
+  </p>
+
+  <ol>
+    <li><strong>Grafen är canon.</strong> Inte ett bilag. Alla roller läser den.</li>
+    <li><strong>NAGELFAREN är vetoröst.</strong> Adversarial separation är inte förhandlingsbar.</li>
+    <li><strong>Default-betyg 7.</strong> 9 kräver dokumentation. 10 finns inte.</li>
+    <li><strong>Förebyggande > spackling.</strong> Skarpa writer-instruktioner före korrigerande pass.</li>
+    <li><strong>Mekanisk + AI i kombination.</strong> Grep fångar frekvens, AI fångar mening.</li>
+    <li><strong>Per-roll separata briefer.</strong> Fokus skarpare. Context mindre.</li>
+    <li><strong>Lärdomar persisteras.</strong> learnings.md är hjärtat. Bok 2 är 5x snabbare med detta.</li>
+    <li><strong>Iterativt > big-bang.</strong> Pilot på en enhet, mät, sen propagera.</li>
+    <li><strong>Författar-beslut väntar på författaren.</strong> Plot, karaktärsbåge, juridik — flaggas, applicieras inte autonomt.</li>
+    <li><strong>Git är arkivet.</strong> Allt diff:bart. Allt revert:bart. Allt sökbart.</li>
+  </ol>
+</section>
+
+<section id="hemligheten">
+  <div class="sectkicker">Sektion 10 — Del III.M</div>
+  <h2>Den verkliga hemligheten</h2>
+
+  <div class="pullquote" style="font-size: 23px; line-height: 1.5;">
+    Bra prosa är inte <em>tekniker</em>. Bra prosa är <em>uppmärksamhet</em>.
+  </div>
+
+  <p>
+    Det som tekniker gör är att frigöra författaren från att tänka på saker som kan bli vana.
+    När man inte längre tänker på meningsrytm eller specificitet eller subtext, då kan man
+    tänka på det som inte kan reduceras till teknik: människan, situationen, ögonblicket.
+  </p>
+
+  <p>
+    Tekniker är hantverkets nedre nittio procent. Den övre tio är vad som inte kan läras.
+    Men nittio procent är värt att lära.
+  </p>
+
+  <p>
+    Det är dit ramverket siktar. Automatisera de nittio — så att författaren har tankeutrymme
+    för de tio. Plot-arkitekten räknar setups. Graf-vakten håller continuity. Dialog-coachen
+    vaktar röst. NAGELFAREN bryter self-grading-bias. Hantverk-checklistan kontrollerar
+    de sjutton sakerna som annars kräver disciplin per kapitel.
+  </p>
+
+  <p>
+    Då kan författaren göra det enda som inte kan delegeras: <em>se människan i scenen</em>.
+  </p>
+</section>
+
+<footer>
+  <p>
+    Programmatic Writing Stack v1.2 (komplett plattform, 13 roller, 9 lager, Del III integrerad) — <em>Marken under marken</em><br>
+    Fabian von Tiedemann + Claude Opus 4.7 (1M context)<br>
+    2026-05-19
+  </p>
+</footer>
+
+</main>
+</div>
+</body>
+</html>
