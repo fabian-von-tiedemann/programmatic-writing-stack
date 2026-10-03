@@ -6,6 +6,8 @@ listor `[a, "b, c"]` och dictar `{a: 8, b: 7}`. Värden som börjar med `{{`
 
 from __future__ import annotations
 
+import re
+
 from bok.rot import BokFel
 
 
@@ -94,9 +96,10 @@ def _scalar(s: str):
         return True
     if s == "false":
         return False
-    for typ in (int, float):
-        try:
-            return typ(s)
-        except ValueError:
-            pass
+    # Only convert to int if it matches -?\d+ pattern
+    if re.match(r'^-?\d+$', s):
+        return int(s)
+    # Only convert to float if it matches -?\d+\.\d+ pattern
+    if re.match(r'^-?\d+\.\d+$', s):
+        return float(s)
     return s

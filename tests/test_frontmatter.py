@@ -51,3 +51,12 @@ def test_bom_crlf_och_tomrader_fore():
 
 def test_frontmatter_utan_body():
     assert split("---\nx: 1\n---") == ({"x": 1}, "")
+
+
+def test_nan_inf_underscores_stay_text():
+    """Special values nan, inf and numbers with underscores should stay as text."""
+    meta, _ = split("---\nid: nan\nvalue: inf\nnegative: -inf\nlarge: 1_000\n---\n")
+    assert meta["id"] == "nan"
+    assert meta["value"] == "inf"
+    assert meta["negative"] == "-inf"
+    assert meta["large"] == "1_000"

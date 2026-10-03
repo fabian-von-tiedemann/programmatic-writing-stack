@@ -34,28 +34,60 @@ def render_new(titel: str, version: str) -> str:
     return f'[bok]\ntitel = "{t}"\ngenre = ""\nramverk = "{version}"\nmoduler = []\n'
 
 
-def _set_line(root: Path, key: str, pattern: str, line: str) -> bool:
+def _set_line(root: Path, key: str, pattern: str, line: str, expected_value=None) -> bool:
     path = _path(root)
     text = path.read_text(encoding="utf-8")
     new, n = re.subn(pattern, line, text, count=1, flags=re.M)
     if n == 0:
-        new = text.replace("[bok]\n", f"[bok]\n{line}\n", 1)
+        # Key not found; try to insert after [bok] header
+        header_match = re.search(r'(?m)^\[bok\][^\n]*\n', text)
+        if not header_match:
+            raise BokTomlFel(f"{path} saknar tabellen [bok]. Rätta filen och försök igen.")
+        # Check if key already exists (maybe with different format)
+        if key not in text or not re.search(rf'(?m)^{re.escape(key)}\s*=', text):
+            insert_pos = header_match.end()
+            new = text[:insert_pos] + line + "\n" + text[insert_pos:]
+        else:
+            # Key exists but pattern didn't match; this is an error
+            new = text
+
     if new == text:
         return False
+
     path.write_text(new, encoding="utf-8")
+
+    # Verify the write
+    try:
+        bok = read(root)
+        if expected_value is not None and bok.get(key) != expected_value:
+            path.write_text(text, encoding="utf-8")
+            raise BokTomlFel(f"Kunde inte uppdatera {key} i {path}. Ändra raden för hand och försök igen.")
+    except BokTomlFel:
+        # Restore original if reading failed or value mismatch
+        path.write_text(text, encoding="utf-8")
+        raise
+
     return True
 
 
 def set_ramverk(root: Path, version: str) -> bool:
     if read(root).get("ramverk") == version:
         return False
-    return _set_line(root, "ramverk", r'^ramverk\s*=\s*"[^"]*"', f'ramverk = "{version}"')
+    # Pattern accepts both single and double quoted strings
+    pattern = r'^ramverk\s*=\s*["\'][^"\']*["\']'
+    return _set_line(root, "ramverk", pattern, f'ramverk = "{version}"', expected_value=version)
 
 
 def add_modul(root: Path, modul: str) -> None:
-    moduler = list(read(root).get("moduler", []))
+    bok = read(root)
+    moduler = list(bok.get("moduler", []))
     if modul in moduler:
         return
+    # Verify moduler is actually a list
+    if "moduler" in bok and not isinstance(bok["moduler"], list):
+        raise BokTomlFel(f"Kunde inte uppdatera moduler. 'moduler' är inte en lista. Ändra raden för hand och försök igen.")
     moduler.append(modul)
     lista = "[" + ", ".join(f'"{m}"' for m in moduler) + "]"
-    _set_line(root, "moduler", r"^moduler\s*=\s*\[[^\]]*\]", f"moduler = {lista}")
+    # Pattern accepts any valid list
+    pattern = r'^moduler\s*=\s*\[[^\]]*\]'
+    _set_line(root, "moduler", pattern, f"moduler = {lista}", expected_value=moduler)
