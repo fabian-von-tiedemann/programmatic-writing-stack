@@ -162,3 +162,4 @@ def test_skillen_tar_emot_forslag():
     assert "bok forslag skicka -" in text
     assert "typ: lardom" in text
     assert "Aldrig text ur boken" in text
+    assert "bok forslag installning" in text

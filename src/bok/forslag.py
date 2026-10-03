@@ -6,6 +6,7 @@ nyckel till mottagaren. Allt sparas också lokalt, så att inget går förlorat.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import secrets
@@ -264,7 +265,7 @@ def nyheter(timeout: float = 3.0) -> list[str]:
         nya = [i for i, s in aktuella.items() if s.get("status") == "infort" and sedda.get(i) != "infort"]
         inst["senast_sedda"] = {i: s.get("status") for i, s in aktuella.items()}
         spara_installningar(inst)
-    except (BokFel, OSError, ValueError, KeyError, TypeError, AttributeError):
+    except (BokFel, OSError, ValueError, KeyError, TypeError, AttributeError, http.client.HTTPException):
         return []
     if not nya:
         return []
@@ -282,6 +283,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     s.add_argument("--igen", action="store_true", help="skicka de förslag som inte kom fram")
     f.add_parser("av", help="stäng av förslag och all nätkontakt")
     f.add_parser("pa", help="slå på förslag igen")
+    f.add_parser("installning", help="se om förslag är påslagna eller avstängda")
     p.set_defaults(func=_kor)
 
 
@@ -293,6 +295,9 @@ def _kor(args: argparse.Namespace) -> int:
         spara_installningar(inst)
         print("Förslag är avstängda: inga erbjudanden och ingen nätkontakt." if kommando == "av"
               else "Förslag är påslagna.")
+        return 0
+    if kommando == "installning":
+        print(installningar().get("forslag", "pa"))
         return 0
     if kommando == "skicka":
         return _kor_skicka(args)

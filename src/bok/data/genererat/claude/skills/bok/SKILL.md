@@ -117,6 +117,7 @@ Det här gäller verktyget, inte boken.
 - **Erbjud en gång per sak:** "Vill du skicka det som förslag till dem som bygger verktyget?" Säger hon nej: släpp det.
 - **Hon kan också själv be om det:** "skicka ett förslag", eller "vad hände med mina förslag?" (kör `bok forslag` och återge listan).
 - **Skriv ett utkast och visa exakt vad som skickas:** typen, hennes ord ordagrant och en mening om situationen. Aldrig text ur boken, aldrig namn på personer eller platser i boken, aldrig filinnehåll.
+- **Innehåller hennes ord namn eller detaljer ur boken:** ersätt dem med till exempel "en person" eller "en plats", och visa henne ändringen innan du frågar om ja.
 - **Skicka bara efter hennes ja:**
 
 ```
@@ -132,7 +133,7 @@ FORSLAG
 
 `typ` är `forbattring`, `problem`, `fraga` eller `lardom`. `roll` är valfri. Version och läge läggs till automatiskt.
 
-- **Säger `bok forslag` att förslag är avstängda:** erbjud inga förslag.
+- **Innan du erbjuder ett förslag första gången i en session:** kör `bok forslag installning`. Svarar den `av`: erbjud inga förslag, inte heller lärdomar som förslag.
 
 ## Lärdomar
 När samma fynd återkommer i två kapitel: föreslå en regel. Vid ja, lägg den under Aktiva regler i `bok/learnings.md`, eller i `bok/roller/<roll>.local.md` om den bara gäller en roll. Gäller regeln skrivande i allmänhet och inte bara den här boken: erbjud också att skicka den som förslag med `typ: lardom`, formulerad utan namn eller detaljer ur boken.

@@ -212,3 +212,28 @@ def test_init_utan_uppgradering_ror_inte_natet(bok, mottagare, monkeypatch):
     antal = len(mottagare.huvuden)
     init_repo(bok, git=False)
     assert len(mottagare.huvuden) == antal
+
+
+def test_installning_pa_som_standard(bok, mottagare, capsys):
+    assert main(["forslag", "installning"]) == 0
+    assert capsys.readouterr().out.strip() == "pa"
+    assert mottagare.huvuden == []
+    path = forslag.katalog() / "nyckel"
+    assert not path.exists()
+
+
+def test_installning_efter_av(bok, mottagare, monkeypatch, capsys):
+    assert main(["forslag", "av"]) == 0
+    capsys.readouterr()
+    assert main(["forslag", "installning"]) == 0
+    assert capsys.readouterr().out.strip() == "av"
+    assert mottagare.huvuden == []
+    path = forslag.katalog() / "nyckel"
+    assert not path.exists()
+
+
+def test_nyheter_tyst_vid_http_exception(bok, monkeypatch):
+    import http.client
+    skicka(monkeypatch)
+    monkeypatch.setattr("bok.forslag._anrop", lambda *a, **kw: (_ for _ in ()).throw(http.client.IncompleteRead(b"")))
+    assert forslag.nyheter() == []
