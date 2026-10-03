@@ -72,8 +72,9 @@ Rösten är det som gör boken till hennes. Kör verkstaden när hon pratar om t
 Andras texter används för att förstå kvaliteter. Återge aldrig formuleringar ur dem, och håll utdragen korta.
 
 ## Innan första kapitlet
+**Verkliga händelser.** Säger `bok status` att verkliga händelser behöver granskas (`Förberedelse: Verkliga händelser – …`): starta `bok-sensitivitet` för planen (uppdraget planen) och spara rapporten med `bok rapport spara -`. Vid `atgarda`: gå igenom fynden med henne, justera planen och kör sensitivitetsläsaren igen tills utfallet är `godkand`.
+
 När `bok status` visar att allt i förberedelsen är klart utom hennes ja:
-0. Finns det rader i blocket `verkliga-handelser` i `bok/canon.md`: starta `bok-sensitivitet` för planen (uppdraget planen) och spara rapporten. Vid `atgarda`: gå igenom fynden med henne och justera planen innan ni går vidare.
 1. Starta `bok-plot-arkitekt` med uppdraget **grind**. Spara rapporten med `bok rapport spara -`. Om utfallet är `revidera`: gå igenom förslagen med henne.
 2. Visa boken på en skärm: premiss, logline, genre och löfte, POV-karaktärerna med önskan och rädsla, akterna, bågarna och rösten i tre meningar.
 3. Fråga om det är boken hon vill skriva. Vid ja, spara:
@@ -98,7 +99,7 @@ RAPPORT
 | Fackgranskning | Starta `bok-researcher` med uppdraget **fackgranskning** för kapitel N. Spara rapporten med `bok rapport spara - --skriv-over`. |
 | Revision efter fackgranskning | Starta `bok-writer` med fynden ur fackgranskningen, och gå sedan direkt till en ny fackgranskning. |
 | Granskning | Kör `bok validate` och `bok tics` på kapitlet. Starta bara den granskare vars rapport för runda R saknas (status nämner dem); finns ingen ännu, starta `bok-redaktor` och `bok-sprakgranskare` parallellt med kapitel N och runda R. Spara rapporterna med `bok rapport spara -`. |
-| Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. |
+| Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till fackgranskning (om scenkortet har `fack`) och granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. |
 | Du bestämmer | Visa de viktigaste fynden och båda alternativen. Hon godkänner som det är, eller skickar tillbaka med egna kommentarer. Sa en granskare `eskalera` (problemet ligger i planen): erbjud också att `bok-plot-arkitekt` reviderar scenkortet först. Vid ja: visa det nya scenkortet och få hennes ja innan kapitlet skrivs om. |
 | Kontinuitet | Starta `bok-kontinuitet` med kapitel N och runda R (senaste granskningsrundan). Spara rapporten med `bok rapport spara - --skriv-over` (en ny körning i samma runda ersätter den förra). Visa flaggorna. |
 | Hennes läsning | Säg att kapitlet ligger i `manuskript/kapitel-NN.md`, och erbjud en kort sammanfattning först. |

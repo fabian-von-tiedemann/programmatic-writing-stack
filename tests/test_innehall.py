@@ -197,7 +197,8 @@ def _las(rel):
 def test_skillen_2_2():
     text = _las("skills/bok/SKILL.md")
     for fras in ("## Respons utifrån", "bok/revisioner.md", "verkliga-handelser", "bok mall tidslinje",
-                 "fackgranskning", "rost-<id>"):
+                 "fackgranskning", "rost-<id>", "Säger `bok status` att verkliga händelser",
+                 "fackgranskning (om scenkortet har `fack`)"):
         assert fras in text, fras
 
 
