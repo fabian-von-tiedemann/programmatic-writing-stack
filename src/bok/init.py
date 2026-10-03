@@ -1,0 +1,128 @@
+"""bok init: gör en mapp till ett bokrepo, eller uppgradera ramverket i det."""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+from pathlib import Path
+
+from bok import __version__, boktoml
+from bok.genererat import write_generated
+
+DATA = Path(__file__).parent / "data"
+BLOCK_START = "<!-- bok:start -->"
+BLOCK_END = "<!-- bok:end -->"
+
+
+def _generated_files():
+    base = DATA / "genererat"
+    for src in sorted(base.rglob("*.md")):
+        rel = src.relative_to(base)
+        yield Path("." + rel.parts[0], *rel.parts[1:]), src.read_text(encoding="utf-8")
+
+
+def _book_files():
+    base = DATA / "bok"
+    for src in sorted(p for p in base.rglob("*") if p.is_file()):
+        yield src.relative_to(base), src
+
+
+def _block() -> str:
+    body = (DATA / "claude-block.md").read_text(encoding="utf-8").strip()
+    return f"{BLOCK_START}\n{body}\n{BLOCK_END}"
+
+
+def _ensure_claude_md(root: Path, titel: str) -> str | None:
+    path = root / "CLAUDE.md"
+    block = _block()
+    if not path.exists():
+        mall = (DATA / "claude-md.md").read_text(encoding="utf-8")
+        path.write_text(
+            mall.replace("{{BOK_TITEL}}", titel).replace("{{BOK_BLOCK}}", block), encoding="utf-8"
+        )
+        return "Skapade CLAUDE.md."
+    text = path.read_text(encoding="utf-8")
+    start, end = text.find(BLOCK_START), text.find(BLOCK_END)
+    if start != -1 and end > start:
+        new = text[:start] + block + text[end + len(BLOCK_END) :]
+    else:
+        new = text.rstrip("\n") + "\n\n" + block + "\n"
+    if new == text:
+        return None
+    path.write_text(new, encoding="utf-8")
+    return "Uppdaterade bok-blocket i CLAUDE.md."
+
+
+def _in_git(root: Path) -> bool:
+    try:
+        r = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"], cwd=root, capture_output=True, text=True
+        )
+    except OSError:
+        return False
+    return r.returncode == 0 and r.stdout.strip() == "true"
+
+
+def _git_init(root: Path) -> str:
+    try:
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return "VARNING: git saknas eller git init misslyckades; mappen är inte versionshanterad."
+    subprocess.run(["git", "add", "-A"], cwd=root, check=False)
+    r = subprocess.run(["git", "commit", "-q", "-m", "bok init"], cwd=root, capture_output=True)
+    if r.returncode != 0:
+        return "Initierade git. Första commit misslyckades (är git user.name och user.email satta?)."
+    return "Initierade git och gjorde första commit."
+
+
+def init_repo(path: Path, titel: str | None = None, git: bool = True) -> list[str]:
+    root = Path(path).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    toml = root / "bok.toml"
+    befintlig = boktoml.read(root) if toml.exists() else None  # validerar innan något skrivs
+    titel = titel or (befintlig or {}).get("titel") or root.name
+    var_git = _in_git(root) if git else True
+    actions: list[str] = []
+
+    if befintlig is None:
+        toml.write_text(boktoml.render_new(titel, __version__), encoding="utf-8")
+        actions.append("Skapade bok.toml.")
+    elif boktoml.set_ramverk(root, __version__):
+        actions.append(f"Uppdaterade ramverksversionen i bok.toml till {__version__}.")
+
+    skapade = 0
+    for rel, src in _book_files():
+        target = root / rel
+        if target.exists():
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(src.read_bytes())
+        skapade += 1
+    if skapade:
+        actions.append(f"Skapade {skapade} filer för boken (bok/, manuskript/, inkorg/).")
+
+    if msg := _ensure_claude_md(root, titel):
+        actions.append(msg)
+
+    for rel, content in _generated_files():
+        if msg := write_generated(root, rel, content, __version__):
+            actions.append(msg)
+
+    if not var_git:
+        actions.append(_git_init(root))
+    return actions
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("init", help="gör en mapp till ett bokrepo, eller uppgradera ramverket")
+    p.add_argument("mapp", nargs="?", default=".", help="bokens mapp (standard: den här)")
+    p.add_argument("--titel", help="bokens arbetstitel (standard: mappens namn)")
+    p.add_argument("--no-git", action="store_true", help="kör inte git init")
+    p.set_defaults(func=_kor)
+
+
+def _kor(args: argparse.Namespace) -> int:
+    for rad in init_repo(Path(args.mapp), titel=args.titel, git=not args.no_git):
+        print(rad)
+    print("Klart. Öppna mappen i Claude Code eller Conductor och berätta om din bok.")
+    return 0

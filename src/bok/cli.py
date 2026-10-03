@@ -10,7 +10,9 @@ from bok.rot import BokFel
 
 
 def _moduler() -> list:
-    return []
+    from bok import init
+
+    return [init]
 
 
 def build_parser() -> argparse.ArgumentParser:
