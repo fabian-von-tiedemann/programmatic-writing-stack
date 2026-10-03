@@ -9,6 +9,10 @@ export function skapaLagring(db: D1Database): Lagring {
       const r = await db.prepare("SELECT COUNT(*) AS n FROM forslag WHERE nyckel_hash = ? AND skapad >= ?").bind(h, sedan).first<{ n: number }>();
       return r?.n ?? 0;
     },
+    async antalTotaltSedan(sedan) {
+      const r = await db.prepare("SELECT COUNT(*) AS n FROM forslag WHERE skapad >= ?").bind(sedan).first<{ n: number }>();
+      return r?.n ?? 0;
+    },
     async spara(r) {
       await db.prepare("INSERT INTO forslag (id, nyckel_hash, issue, skapad) VALUES (?, ?, ?, ?)").bind(r.id, r.nyckelHash, r.issue, r.skapad).run();
     },

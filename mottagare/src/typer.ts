@@ -32,6 +32,7 @@ export interface Rad {
 export interface Lagring {
   arSparrad(nyckelHash: string): Promise<boolean>;
   antalSedan(nyckelHash: string, sedan: string): Promise<number>;
+  antalTotaltSedan(sedan: string): Promise<number>;
   spara(rad: Rad): Promise<void>;
   lista(nyckelHash: string, max: number): Promise<Omit<Rad, "nyckelHash">[]>;
 }
@@ -53,6 +54,7 @@ export interface Beroenden {
   lagring: Lagring;
   github: GitHub;
   begransa(nyckelHash: string, ip: string): Promise<boolean>;
+  begransaLasning(nyckelHash: string, ip: string): Promise<boolean>;
   nu(): Date;
   nyttId(): string;
 }

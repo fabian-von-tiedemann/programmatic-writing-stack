@@ -27,7 +27,7 @@ export function validera(data: unknown): Resultat {
     else if (typeof v === "string" && langd(v) > MAX[k]) fel.push(`${k} får vara högst ${MAX[k]} tecken.`);
   }
   if (text(obj.text) === "") fel.push("text får inte vara tom.");
-  if (typeof obj.version !== "string" || !/^\d+\.\d+\.\d+$/.test(obj.version)) fel.push("version måste se ut som 2.0.0.");
+  if (typeof obj.version !== "string" || !/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(obj.version)) fel.push("version måste se ut som 2.0.0.");
   if (fel.length > 0) return { ok: false, fel };
   return {
     ok: true,
