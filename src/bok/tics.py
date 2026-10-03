@@ -42,8 +42,20 @@ def _tak(text: str, kalla: str, namn: str) -> tuple[int | None, int | None]:
     return kap, bok
 
 
+def las_kapitel(fil: Path) -> str:
+    """Läs en kapitelfil; normalisera CRLF och hantera fel."""
+    try:
+        text = fil.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise TicsFel(f"Hittar inte {fil}.") from None
+    except UnicodeDecodeError:
+        raise TicsFel(f"{fil} är inte UTF-8-text.") from None
+    return text.replace("\r\n", "\n")
+
+
 def parse_katalog(text: str, kalla: str) -> list[Tic]:
     tics = []
+    text = text.replace("\r\n", "\n")
     for block in _BLOCK.findall(text):
         for line in block.splitlines():
             if not line.strip() or line.lstrip().startswith("#"):
@@ -65,10 +77,10 @@ def ladda_katalog(root: Path) -> list[Tic]:
     ram = root / ".claude" / "bok" / "tics-katalog.md"
     if not ram.is_file():
         raise TicsFel("Hittar inte .claude/bok/tics-katalog.md. Kör bok init.")
-    tics = parse_katalog(ram.read_text(encoding="utf-8"), ".claude/bok/tics-katalog.md")
+    tics = parse_katalog(las_kapitel(ram), ".claude/bok/tics-katalog.md")
     eget = root / "bok" / "tics-tillagg.md"
     if eget.is_file():
-        tics += parse_katalog(eget.read_text(encoding="utf-8"), "bok/tics-tillagg.md")
+        tics += parse_katalog(las_kapitel(eget), "bok/tics-tillagg.md")
     return tics
 
 
@@ -116,7 +128,7 @@ def _kor(args: argparse.Namespace) -> int:
     totalt: dict[str, int] = {}
     for fil in filer:
         rel = fil.relative_to(root).as_posix() if fil.is_relative_to(root) else str(fil)
-        traffar = scan(fil.read_text(encoding="utf-8"), tics)
+        traffar = scan(las_kapitel(fil), tics)
         resultat[rel] = {}
         for namn, rader in traffar.items():
             antal = sum(a for _, _, a in rader)

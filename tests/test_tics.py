@@ -75,3 +75,32 @@ def test_cli_json(bok, capsys):
 def test_cli_utan_kapitel(bok, capsys):
     assert main(["tics"]) == 0
     assert "Inga kapitel" in capsys.readouterr().out
+
+
+def test_cli_fil_finns_inte(bok, capsys):
+    assert main(["tics", "manuskript/finns-inte.md"]) == 2
+    err = capsys.readouterr().err
+    assert "Hittar inte" in err
+
+
+def test_cli_ej_utf8(bok, capsys):
+    # Create a file with latin-1 encoding
+    fil = bok / "manuskript" / "latin1.md"
+    fil.parent.mkdir(parents=True, exist_ok=True)
+    fil.write_bytes(b"Kaf\xe9 och \xe5\n")  # latin-1 encoded
+    assert main(["tics", "manuskript/latin1.md"]) == 2
+    err = capsys.readouterr().err
+    assert "UTF-8" in err or "inte UTF-8" in err
+
+
+def test_parse_katalog_crlf():
+    tics = parse_katalog("```tics\r\nnickade | \\bnickade\\b | kapitel=2 | x\r\n```\r\n", "x")
+    assert len(tics) == 1
+    assert tics[0].namn == "nickade"
+
+
+def test_cli_tics_tillagg_crlf(bok, capsys):
+    skriv(bok, "bok/tics-tillagg.md", "```tics\r\nkaffe | \\bkaffe\\b | kapitel=1 | x\r\n```\r\n")
+    skriv(bok, "manuskript/kapitel-01.md", "Kaffe.\n")
+    main(["tics"])
+    assert "kaffe: 1" in capsys.readouterr().out
