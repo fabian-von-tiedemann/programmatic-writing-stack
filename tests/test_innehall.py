@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pytest
 
+from bok.frontmatter import split
 from bok.init import DATA
+from bok.rapport import UTFALL
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -88,3 +90,31 @@ def test_inga_dinglande_sokvagar(path):
         if re.search(r"[<{*]|NN|\.local\.md$|-rN|akt-N", sokvag):
             continue
         assert sokvag in kanda, f"{sokvag} i {path.relative_to(DATA)} finns inte"
+
+
+AGENTER = DATA / "genererat/claude/agents"
+TILLATNA_VERKTYG = {"Read", "Write", "Edit", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"}
+GRANSKARE = {"redaktor", "sprakgranskare", "forlaggare", "sensitivitet"}
+ROLLER = {"plot-arkitekt", "writer", "redaktor", "sprakgranskare", "kontinuitet", "forlaggare",
+          "researcher", "varldsbyggare", "sensitivitet", "audiobook", "marknad"}
+
+
+def test_alla_roller_finns():
+    assert {p.stem.removeprefix("bok-") for p in AGENTER.glob("bok-*.md")} == ROLLER
+
+
+@pytest.mark.parametrize("path", sorted(AGENTER.glob("bok-*.md")), ids=lambda p: p.stem)
+def test_agentfil(path):
+    text = path.read_text(encoding="utf-8")
+    meta, body = split(text)
+    roll = path.stem.removeprefix("bok-")
+    assert meta["name"] == path.stem
+    assert len(meta["description"]) > 40
+    verktyg = {v.strip() for v in meta["tools"].split(",")}
+    assert verktyg <= TILLATNA_VERKTYG
+    assert f"`bok/roller/{roll}.local.md`" in body
+    if roll in GRANSKARE:
+        assert not verktyg & {"Write", "Edit"}, "granskare skriver inte filer"
+        assert f"roll: {roll}" in body and roll in UTFALL
+    if roll == "writer":
+        assert meta["model"] == "opus"
