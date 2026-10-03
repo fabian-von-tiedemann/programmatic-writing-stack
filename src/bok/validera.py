@@ -61,10 +61,12 @@ def okanda(text: str, kanda: set[str]) -> list[tuple[int, str]]:
 
 _MENING = re.compile(r"[^.!?…]+[.!?…]?")
 _ALDER = re.compile(
-    r"(?<!\d)(\d{1,3})(?:-årig\w*|\s+år\s+gammal\w*|\s+års\s+ålder)"
-    r"|\bvar\s+(\d{1,3})(?=\s+år\b|\s*[.!?…]|\s*$)"
+    r"(?<!\d)(\d{1,3})(?:\s+år\s+gammal\w*|\s+års\s+ålder)"
+    r"|\bvar\s+(\d{1,3})(?!\s+år\s+(?:sedan|äldre|yngre|tidigare|senare|kvar|till)\b)"
+    r"(?=\s+år\b|\s*[.!?…]|\s*$)"
 )
-_FODD = re.compile(r"\bfödd(?:\s+år)?\s+(\d{4})\b")
+_KANT = r"(?<![\wÅÄÖåäö])"
+_KANTSLUT = r"(?![\wåäö])"
 _KAPNR = re.compile(r"^kapitel-(\d+)\.md$")
 
 
@@ -93,18 +95,23 @@ def aldersvarningar(text: str, personer, kapiteldatum: Datum) -> list[tuple[int,
             if not any(re.search(rf"(?<![\wÅÄÖåäö]){re.escape(f)}(?![\wåäö])", mening) for f in former):
                 continue  # bara nämnd i genitiv ("Sofias mamma"): åldern gäller någon annan
             lagst, hogst = alder(fodd, kapiteldatum)
-            fynd = list(_ALDER.finditer(mening))
-            vardena = [int(next(x for x in m.groups() if x)) for m in fynd]
+            vardena = [int(next(x for x in m.groups() if x)) for m in _ALDER.finditer(mening)]
+            fodda = []
             for f in former:
-                for m in re.finditer(rf"(?<![\wÅÄÖåäö]){re.escape(f)},\s*(\d{{1,3}}),", mening):
+                e = re.escape(f)
+                for m in re.finditer(rf"{_KANT}{e},\s*(\d{{1,3}}),", mening):
                     vardena.append(int(m.group(1)))
+                for m in re.finditer(rf"(?<!\d)(\d{{1,3}})-årig\w*\s+{e}{_KANTSLUT}", mening):
+                    vardena.append(int(m.group(1)))
+                for m in re.finditer(rf"{_KANT}{e}s?(?:,\s*|\s+(?:(?:var|är)\s+)?)född(?:\s+år)?\s+(\d{{4}})\b", mening):
+                    fodda.append(int(m.group(1)))
             for varde in dict.fromkeys(vardena):
                 if varde < lagst - 1 or varde > hogst + 1:
                     ut.append((nr, f"{namn} är {som_text(lagst, hogst)} vid kapitlets datum ({kapiteldatum}), "
                                    f"texten säger {varde}."))
-            for m in _FODD.finditer(mening):
-                if int(m.group(1)) != fodd.ar:
-                    ut.append((nr, f"{namn} är född {fodd.ar} enligt grafen, texten säger {m.group(1)}."))
+            for ar in dict.fromkeys(fodda):
+                if ar != fodd.ar:
+                    ut.append((nr, f"{namn} är född {fodd.ar} enligt grafen, texten säger {ar}."))
     return ut
 
 
@@ -126,7 +133,7 @@ def _kapitel_i_tid(root: Path, graf: Graf) -> list[tuple[int, Datum | None, bool
 
 
 def register(sub: argparse._SubParsersAction) -> None:
-    p = sub.add_parser("validate", help="förbjudna namn och namn som saknas i grafen")
+    p = sub.add_parser("validate", help="förbjudna namn, tidslinjen och namn/åldrar att kontrollera")
     p.add_argument("filer", nargs="*", help="kapitelfiler (standard: alla i manuskript/)")
     p.set_defaults(func=_kor)
 

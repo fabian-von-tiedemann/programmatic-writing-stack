@@ -27,6 +27,16 @@ def _kap(x) -> int:
     return x if isinstance(x, int) and not isinstance(x, bool) else 0
 
 
+def _lista(v) -> list[str]:
+    """Id-lista ur json: bara strängar i en lista; allt annat räknas som tomt."""
+    return [x for x in v if isinstance(x, str)] if isinstance(v, list) else []
+
+
+def _dictar(v) -> list[dict]:
+    """Lista av objekt ur json; allt annat räknas som tomt."""
+    return [x for x in v if isinstance(x, dict)] if isinstance(v, list) else []
+
+
 def ar_oppen(t: dict) -> bool:
     """Är bågen öppen? Status `oppen` (eller `öppen`, oavsett versaler); saknas status räknas den som öppen."""
     status = t.get("status") or "oppen"
@@ -149,12 +159,10 @@ class Graf:
             r.append("Inga daterade händelser i grafen än.")
         for d, e in rader:
             folk = []
-            for cid in e.get("narvarande") or []:
-                if not isinstance(cid, str):
-                    continue
+            for cid in _lista(e.get("narvarande")):
                 a = self.alder_vid(cid, d)
                 folk.append(f"{self.namn(cid)} {a.split(' (')[0]}" if a else self.namn(cid))
-            delar = [str(d), f"kapitel {e.get('kapitel', '?')}", e.get("vad", "")]
+            delar = [str(d), f"kapitel {e.get('kapitel', '?')}", str(e.get("vad", ""))]
             if isinstance(e.get("plats"), str):
                 delar.append(self.namn(e["plats"]))
             if folk:
@@ -169,8 +177,8 @@ class Graf:
             d = tolka(e.get("datum"))
             if d is None:
                 continue
-            for cid in e.get("narvarande") or []:
-                c = self._finns("characters", cid) if isinstance(cid, str) else None
+            for cid in _lista(e.get("narvarande")):
+                c = self._finns("characters", cid)
                 if c is None:
                     continue
                 fodd, dod = tolka(c.get("fodd")), tolka(c.get("dod"))
@@ -185,7 +193,8 @@ class Graf:
                 continue
             if forra is not None and not tillbaka and sakert_fore(d, forra[1]):
                 fel.append(f"Kapitel {nr} ({d}) ligger före kapitel {forra[0]} ({forra[1]}). "
-                           "Är det en tillbakablick? Skriv tillbakablick: true i scenkortet.")
+                           "Är det en tillbakablick? Skriv tillbakablick: true i scenkortet "
+                           "– eller skriv kapitlets datum i scenkortet.")
             if not tillbaka:
                 forra = (nr, d)
         return fel
@@ -203,7 +212,7 @@ class Graf:
         r = [f"# Vem vet: {s.get('vad', hemlighet)}", ""]
         if s.get("sanning"):
             r += [f"Sanning: {s['sanning']}", ""]
-        vet = sorted((v for v in s.get("vet") or [] if isinstance(v, dict)),
+        vet = sorted(_dictar(s.get("vet")),
                      key=lambda v: _kap(v.get("fran_kapitel")))
         if kapitel is not None:
             vet = [v for v in vet if _kap(v.get("fran_kapitel")) <= kapitel]
@@ -221,11 +230,11 @@ class Graf:
         if rel := self._relationer(id_):
             r += ["## Relationer", *(f"- {self.namn(a)}: {relation_vid(x, None)}" for a, x in rel), ""]
         kap = sorted({_kap(e.get("kapitel")) for e in self.lista("events")
-                      if id_ in (e.get("narvarande") or [])} - {0})
+                      if id_ in _lista(e.get("narvarande"))} - {0})
         if kap:
             r += ["## Förekommer i kapitel", ", ".join(map(str, kap)), ""]
         vet = [s for s in self.lista("secrets")
-               if any(isinstance(v, dict) and v.get("karaktar") == id_ for v in s.get("vet") or [])]
+               if any(v.get("karaktar") == id_ for v in _dictar(s.get("vet")))]
         if vet:
             r += ["## Vet", *(f"- {s.get('vad', s.get('id'))}" for s in vet), ""]
         return "\n".join(r)
@@ -241,8 +250,8 @@ class Graf:
         if not ev:
             r.append("Inga.")
         for e in sorted(ev, key=_ordning):
-            vilka = ", ".join(self.namn(n) for n in e.get("narvarande") or [])
-            r.append(f"- Kapitel {e.get('kapitel', '?')}: {e.get('vad', '')} ({vilka})")
+            vilka = ", ".join(self.namn(n) for n in _lista(e.get("narvarande")))
+            r.append(f"- Kapitel {e.get('kapitel', '?')}: {str(e.get('vad', ''))} ({vilka})")
         return "\n".join(r) + "\n"
 
     def bagar(self, oppna: bool = False) -> str:
@@ -276,10 +285,10 @@ class Graf:
                 r.append(f"- Ålder: {a}")
             r += [f"- Relation till {self.namn(a)}: {relation_vid(x, kapitel)}" for a, x in self._relationer(cid)]
             for s in self.lista("secrets"):
-                for v in s.get("vet") or []:
-                    if isinstance(v, dict) and v.get("karaktar") == cid and _kap(v.get("fran_kapitel")) < kapitel:
+                for v in _dictar(s.get("vet")):
+                    if v.get("karaktar") == cid and _kap(v.get("fran_kapitel")) < kapitel:
                         r.append(f"- Vet: {s.get('vad', s.get('id'))}")
-            tidigare = [e for e in self.lista("events") if cid in (e.get("narvarande") or [])
+            tidigare = [e for e in self.lista("events") if cid in _lista(e.get("narvarande"))
                         and 0 < _kap(e.get("kapitel")) < kapitel]
             r += [f"- Senast (kapitel {e['kapitel']}): {e.get('vad', '')}" for e in sorted(tidigare, key=_ordning)[-3:]]
             r.append("")

@@ -78,7 +78,8 @@ def test_tidsfel_kapitelordning(graf):
     d89, d94 = Datum(1989, 11, 9), Datum(1994, 9, 28)
     fel = graf.tidsfel([(1, d94, False), (2, d89, False)])
     assert fel == ["Kapitel 2 (1989-11-09) ligger före kapitel 1 (1994-09-28). "
-                   "Är det en tillbakablick? Skriv tillbakablick: true i scenkortet."]
+                   "Är det en tillbakablick? Skriv tillbakablick: true i scenkortet "
+                   "– eller skriv kapitlets datum i scenkortet."]
     assert graf.tidsfel([(1, d94, False), (2, d89, True), (3, d94, False)]) == []
     assert graf.tidsfel([(1, d94, False), (2, None, False), (3, d94, False)]) == []
 
@@ -109,3 +110,22 @@ def test_cli_context_med_datum_och_rostfil(bok, capsys):
     assert "Kapitlet utspelar sig: 1994-09-28" in out
     assert "- Ålder: 48 år (född 1946-03-14)" in out
     assert "bok/stil/rost-marlene.md" in out
+
+
+def test_trasiga_listvarden_kraschar_inte(bok, capsys):
+    g = copy.deepcopy(TIDGRAF)
+    g["events"].append({"id": "e9", "kapitel": 2, "vad": 42, "datum": "1994-10-01", "plats": "kontoret",
+                        "narvarande": 5})
+    g["events"].append({"id": "e10", "kapitel": 2, "vad": ["a"], "datum": "1994-10-02",
+                        "narvarande": ["marlene", 7, None]})
+    g["secrets"].append({"id": "s1", "vad": "Hemlig", "vet": 5})
+    skriv_tidgraf(bok, g)
+    graf = Graf.load(bok)
+    assert "42" in graf.tidslinje()
+    assert graf.tidsfel([(1, Datum(1989), False), (2, Datum(1994), False)]) == []
+    assert "Underlag för kapitel 3" in graf.context(3, ["marlene"], [], [])
+    assert "Marléne" in graf.karaktar("marlene")
+    assert "Kontoret" in graf.var("kontoret")
+    assert "Hemlig" in graf.vem_vet("s1")
+    skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
+    assert main(["validate"]) == 0

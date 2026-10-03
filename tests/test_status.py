@@ -434,3 +434,13 @@ def test_revisioner_raknas(bok):
     assert s["kapitel"][0]["revisioner"] == 2
     assert s["revisioner_alla"] == 1
     assert main(["status"]) == 0
+
+
+def test_fack_som_text_raknas(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    skriv(bok, "bok/plot/kapitel/kapitel-01.md",
+          "---\nkapitel: 1\npov: anna\nkaraktarer: [anna]\nplatser: []\nbagar: [t-arvet]\n"
+          "fack: medicin\ngodkand: true\n---\n\n# Kapitel 1\n")
+    skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
+    assert compute(bok)["nasta"] == "Kapitel 1: Researcher fackgranskar kapitlet (runda 1)."

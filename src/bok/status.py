@@ -207,7 +207,8 @@ def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dic
     kont = max((r["runda"] for r in egna if r["roll"] == "kontinuitet"), default=0)
     aktuell = _kapitelfil(root / "bok" / "sammanfattningar", nr) is not None and kont >= g
     senaste = {r["roll"]: r for r in granskning if r["runda"] == g}
-    fack = isinstance(meta.get("fack"), list) and bool(meta["fack"])
+    fack_v = meta.get("fack")
+    fack = bool(fack_v.strip()) if isinstance(fack_v, str) else isinstance(fack_v, list) and bool(fack_v)
     fack_r = next((r for r in egna if r["roll"] == "researcher" and r["runda"] == g + 1), None)
     forf = max((r for r in egna if r["roll"] == "forfattare"), key=lambda r: r["runda"], default=None)
     betyg: dict = {}

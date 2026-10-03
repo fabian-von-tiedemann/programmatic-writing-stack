@@ -28,7 +28,10 @@ def test_personer_med_fodd(personer):
                                   "Klockan var 12 när Marléne kom.", "Marléne var 20 minuter sen.",
                                   "Marléne såg att det var 100 meter kvar.",
                                   "Sofias mamma var 52.", "Marlénes mamma var 80 år gammal.",
-                                  "Sofias mamma Marléne var 52.", "Marléne köpte 3 bullar, 7, och gick."])
+                                  "Sofias mamma Marléne var 52.", "Marléne köpte 3 bullar, 7, och gick.",
+                                  "Det var 20 år sedan Marléne gick.", "Marléne var 12 år äldre än hennes bror.",
+                                  "Marléne hade en 30-årig karriär.", "Marléne fick en son, född 1975.",
+                                  "Marléne var 3 år kvar till pensionen."])
 def test_inga_varningar(personer, text):
     assert aldersvarningar(text + "\n", personer, D94) == []
 
@@ -79,3 +82,10 @@ def test_cli_bok_utan_datum_som_forut(bok, capsys):
     assert main(["validate"]) == 0
     out = capsys.readouterr().out
     assert "Tidslinjen" not in out and "Inga anmärkningar." in out
+
+
+@pytest.mark.parametrize("text", ["Marléne var född 1950.", "Marléne, född 1950, kom.", "Marléne född 1950 kom.",
+                                  "Hon mötte den 30-åriga Sofia.",
+                                  "Marléne var 52 år gammal."])
+def test_varningar_kvar_efter_skarpning(personer, text):
+    assert len(aldersvarningar(text + "\n", personer, D94)) == 1
