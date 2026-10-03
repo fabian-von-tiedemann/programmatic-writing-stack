@@ -2,6 +2,27 @@
 
 Alla större ändringar i Programmatic Writing Stack dokumenteras här. Följer [Keep a Changelog](https://keepachangelog.com/)-formatet.
 
+## [2.0.0] — 2026-10-03
+
+**Ramverket blir verktyget `bok`, som dras in i valfritt repo.**
+
+### Lagt till
+- `bok init` (installera och uppgradera), `bok status`, `bok mall`, `bok graph`, `bok tics`, `bok validate`, `bok rapport spara`, `bok annotations`.
+- Skillen `bok`: fritt samtal, inkorg, stilverkstad, grind före första kapitlet och skrivloop.
+- Bågar i grafen (`threads.json`) och kontroll av plan mot utfall.
+- Tillvalsmoduler: spänning, serie, förlag, graf-extra, audiobook, marknad.
+
+### Ändrat
+- Bokens filer ligger i `bok/` i stället för `.context/` (som Conductor git-ignorerar).
+- Tretton roller blir sex i skrivloopen och fem vid behov, som Claude Code-subagenter.
+- Skrivloopen tar slut: godkänt vid minst 8 på varje axel, högst två revisioner, sedan bestämmer författaren.
+- Rollerna läser sammanfattningar och `bok graph context` i stället för hela manuset.
+- Mallar och hantverk är genreneutrala och rensade från tidigare böcker.
+
+### Borttaget
+- `init-writing-stack.sh`, `upgrade-existing-project.sh`, `templates/`, shell-scripten och layered markup (`render`, `tag`).
+- v1.2-dokumentationen är flyttad till `docs/arkiv/v1.2/`.
+
 ## [1.2] — 2026-05-19
 
 **Komplett plattform — 13 roller, 9 lager artefakter, Del III hantverkstekniker integrerade.**

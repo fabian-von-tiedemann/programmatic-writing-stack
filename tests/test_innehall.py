@@ -64,7 +64,6 @@ README_ARV = [t for t in ARVSTERMER if t not in
               {"Anna-signum", "Daniel-exklusiv", "NAGELFAREN", "Prosa-städ", "Dialog-coach", "Graf-vakt", ".context/"}]
 
 
-@pytest.mark.xfail(reason="README skrivs om i Task 14", strict=True)
 def test_readme_utan_arv():
     text = (ROOT / "README.md").read_text(encoding="utf-8")
     for term in README_ARV:

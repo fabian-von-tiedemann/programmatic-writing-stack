@@ -1,0 +1,37 @@
+name: Tester
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tester på ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Python 3.11
+        run: uv python install 3.11
+      - name: pytest
+        run: uv run --python 3.11 pytest -q
+      - name: Installera som verktyg och skapa en bok
+        env:
+          GIT_AUTHOR_NAME: CI
+          GIT_AUTHOR_EMAIL: ci@example.com
+          GIT_COMMITTER_NAME: CI
+          GIT_COMMITTER_EMAIL: ci@example.com
+        run: |
+          uv tool install --python 3.11 .
+          bok init "$RUNNER_TEMP/testbok" --titel "Testbok"
+          cd "$RUNNER_TEMP/testbok"
+          bok status
+          test -f .claude/skills/bok/SKILL.md
+          test -f .claude/agents/bok-writer.md
+          git log --oneline | grep -q "bok init"
