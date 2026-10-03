@@ -6,6 +6,7 @@ import pytest
 from bok.boktoml import BokTomlFel
 from bok.cli import main
 from bok.init import init_repo
+from bok.rot import BokFel
 from helpers import skriv
 
 
@@ -145,3 +146,22 @@ def test_befintligt_repo_far_ingen_commit(tmp_path, git_env):
 def test_cli_init(tmp_path, capsys):
     assert main(["init", str(tmp_path / "b"), "--titel", "X", "--no-git"]) == 0
     assert "Klart." in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "# Mitt\n<!-- bok:start -->\nhalv\n\nMin regel\n",
+        "# Mitt\n<!-- bok:end -->\nMin regel\n<!-- bok:start -->\n",
+        "# Mitt\n<!-- bok:start -->\na\n<!-- bok:start -->\nMin regel\n<!-- bok:end -->\n",
+        "# Mitt\n<!-- bok:start -->\na\n<!-- bok:end -->\nMin regel\n<!-- bok:end -->\n",
+        "# Mitt\nMin regel\n<!-- bok:end -->\n",
+    ],
+)
+def test_trasigt_block_avbryter_utan_att_skriva(tmp_path, text):
+    path = skriv(tmp_path, "CLAUDE.md", text)
+    with pytest.raises(BokFel, match="trasigt bok-block"):
+        init_repo(tmp_path, titel="X", git=False)
+    assert path.read_text() == text
+    assert not (tmp_path / "bok").exists()
+    assert not (tmp_path / "bok.toml").exists()

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from bok import __version__, boktoml
 from bok.genererat import write_generated
+from bok.rot import BokFel
 
 DATA = Path(__file__).parent / "data"
 BLOCK_START = "<!-- bok:start -->"
@@ -32,6 +33,21 @@ def _block() -> str:
     return f"{BLOCK_START}\n{body}\n{BLOCK_END}"
 
 
+def _check_claude_md(root: Path) -> None:
+    path = root / "CLAUDE.md"
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    starter, slut = text.count(BLOCK_START), text.count(BLOCK_END)
+    if (starter, slut) == (0, 0):
+        return
+    if (starter, slut) != (1, 1) or text.find(BLOCK_END) < text.find(BLOCK_START):
+        raise BokFel(
+            f"CLAUDE.md har ett trasigt bok-block ({BLOCK_START} och {BLOCK_END} måste finnas "
+            "en gång var, i den ordningen). Rätta filen och kör bok init igen."
+        )
+
+
 def _ensure_claude_md(root: Path, titel: str) -> str | None:
     path = root / "CLAUDE.md"
     block = _block()
@@ -42,8 +58,9 @@ def _ensure_claude_md(root: Path, titel: str) -> str | None:
         )
         return "Skapade CLAUDE.md."
     text = path.read_text(encoding="utf-8")
-    start, end = text.find(BLOCK_START), text.find(BLOCK_END)
-    if start != -1 and end > start:
+    start = text.find(BLOCK_START)
+    end = text.find(BLOCK_END, start) if start != -1 else -1
+    if end != -1:
         new = text[:start] + block + text[end + len(BLOCK_END) :]
     else:
         new = text.rstrip("\n") + "\n\n" + block + "\n"
@@ -80,6 +97,7 @@ def init_repo(path: Path, titel: str | None = None, git: bool = True) -> list[st
     root.mkdir(parents=True, exist_ok=True)
     toml = root / "bok.toml"
     befintlig = boktoml.read(root) if toml.exists() else None  # validerar innan något skrivs
+    _check_claude_md(root)
     titel = titel or (befintlig or {}).get("titel") or root.name
     var_git = _in_git(root) if git else True
     actions: list[str] = []
