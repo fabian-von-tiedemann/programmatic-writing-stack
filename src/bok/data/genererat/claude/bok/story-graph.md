@@ -9,9 +9,11 @@ Kapitelnummer är bokens tidsaxel. "Från kapitel 3" betyder att något gäller 
 ```json
 {"characters": [
   {"id": "anna", "namn": "Anna Berg", "alias": ["Annie"],
-   "fakta": {"ålder": "34", "yrke": "veterinär"}, "forsta_kapitel": 1}
+   "fodd": "1946-03-14", "fakta": {"yrke": "veterinär"}, "forsta_kapitel": 1}
 ]}
 ```
+
+`fodd` och `dod` är partiella datum: `ÅÅÅÅ`, `ÅÅÅÅ-MM` eller `ÅÅÅÅ-MM-DD`. Åldrar räknas ut av `bok`; skriv aldrig ålder i `fakta`.
 
 Bara fakta som etablerats i texten. Önskan, rädsla och båge står i `bok/karaktarer/<id>.md`.
 
@@ -26,9 +28,12 @@ Bara fakta som etablerats i texten. Önskan, rädsla och båge står i `bok/kara
 ```json
 {"events": [
   {"id": "e-012", "kapitel": 4, "vad": "Erik visar testamentet",
-   "plats": "garden", "narvarande": ["anna", "erik"], "tid": "en söndag i mars"}
+   "plats": "garden", "narvarande": ["anna", "erik"], "tid": "en söndag i mars",
+   "datum": "1994-09-28"}
 ]}
 ```
+
+`datum` är ett partiellt datum; `tid` är fritext för nyanser.
 
 ## secrets.json
 
@@ -62,6 +67,12 @@ Bara fakta som etablerats i texten. Önskan, rädsla och båge står i `bok/kara
 
 Bågarnas faktiska rörelse. Planen för bågen står i `bok/plot/bagar.md` med samma `id`. `typ` är `intrig`, `karaktar` eller `tema`. `status` är `oppen` eller `stangd`, skrivet exakt så (utan å och ö). En plantering är något som läsaren ska minnas och som måste lösas (`loses_i` = kapitlet där det sker).
 
+## Datum och åldrar
+
+Scenkortet kan ha `datum` (när kapitlet utspelar sig) och `tillbakablick: true` (kapitlet ligger före det förra i tid). Saknar scenkortet datum används den tidigaste daterade händelsen i kapitlet.
+
+`bok graph context` visar kapitlets datum och varje persons ålder. `bok validate` stoppar händelser där någon är med före sin födelse eller efter sin död, och kapitel som går bakåt i tid utan `tillbakablick: true`. Åldrar i texten som inte stämmer visas som varningar.
+
 ## Tillval
 
 `bok mall graf-extra` lägger till `objects.json`, `organizations.json` och `documents.json` med samma form (`{"objects": [{"id", "namn", "fakta"}]}`).
@@ -75,3 +86,4 @@ Bågarnas faktiska rörelse. Planen för bågen står i `bok/plot/bagar.md` med 
 | `bok graph bagar [--oppna]` | bågarna med senaste kapitel och olösta planteringar |
 | `bok graph karaktar <id>` | fakta, relationer och kapitel där personen förekommer |
 | `bok graph var <plats> [--kapitel N]` | händelser på en plats |
+| `bok graph tidslinje [--fran ÅR] [--till ÅR]` | daterade händelser i tidsordning med kapitel, plats och åldrar |

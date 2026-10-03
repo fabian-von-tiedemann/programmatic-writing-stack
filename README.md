@@ -55,8 +55,8 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 |---|---|
 | `bok init` | gör en mapp till ett bokrepo, eller uppgradera ramverket |
 | `bok status` | var boken står och nästa steg |
-| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad` |
-| `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var` |
+| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad`, `tidslinje` |
+| `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var`, `tidslinje` |
 | `bok tics` | ord och vändningar som blivit vana |
 | `bok validate` | förbjudna namn och namn som saknas i grafen |
 | `bok rapport spara` | sparar granskningar och godkännanden |

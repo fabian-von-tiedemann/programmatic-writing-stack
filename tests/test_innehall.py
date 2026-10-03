@@ -185,3 +185,48 @@ def test_skillen_valkomnar_forsta_gangen():
     avsnitt = text.split("## Första gången")[1].split("\n## ")[0]
     for fras in ("inkorg/", "Var är vi?", "bestämmer"):
         assert fras in avsnitt, fras
+
+
+GEN = DATA / "genererat/claude"
+
+
+def _las(rel):
+    return (GEN / rel).read_text(encoding="utf-8")
+
+
+def test_skillen_2_2():
+    text = _las("skills/bok/SKILL.md")
+    for fras in ("## Respons utifrån", "bok/revisioner.md", "verkliga-handelser", "bok mall tidslinje",
+                 "fackgranskning", "rost-<id>"):
+        assert fras in text, fras
+
+
+def test_process_2_2():
+    text = _las("bok/process.md")
+    for fras in ("Fackgranskning", "Verkliga händelser", "bok/revisioner.md", "rost-<pov>", "researcher"):
+        assert fras in text, fras
+
+
+def test_story_graph_2_2():
+    text = _las("bok/story-graph.md")
+    for fras in ("fodd", "dod", "\"datum\"", "bok graph tidslinje", "tillbakablick"):
+        assert fras in text, fras
+
+
+def test_roller_2_2():
+    assert "roll: researcher" in _las("agents/bok-researcher.md")
+    assert "omfang: forberedelse" in _las("agents/bok-sensitivitet.md")
+    assert "bok/revisioner.md" in _las("agents/bok-writer.md")
+    assert "rost-<pov>" in _las("agents/bok-writer.md") and "rost-<pov>" in _las("agents/bok-sprakgranskare.md")
+    kont = _las("agents/bok-kontinuitet.md")
+    assert "fodd" in kont and "bok/revisioner.md" in kont
+    plot = _las("agents/bok-plot-arkitekt.md")
+    assert "fack" in plot and "tillbakablick" in plot and "datum" in plot
+
+
+def test_mallar_2_2():
+    mall = (DATA / "bok/bok/plot/kapitel/MALL.md").read_text(encoding="utf-8")
+    assert "datum:\n" in mall and "fack: []" in mall and "tillbakablick: false" in mall
+    assert "```verkliga-handelser" in (DATA / "bok/bok/canon.md").read_text(encoding="utf-8")
+    assert (DATA / "bok/bok/revisioner.md").is_file()
+    assert (DATA / "moduler/tidslinje/bok/plot/tidslinje.md").is_file()

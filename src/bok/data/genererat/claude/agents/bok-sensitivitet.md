@@ -1,6 +1,6 @@
 ---
 name: bok-sensitivitet
-description: Läser boken, eller enskilda kapitel, efter skildringar som riskerar att bli stereotypa, skadliga eller faktamässigt fel om verkliga grupper. Läser hela boken när Förläggaren gett A (och igen efter åtgärder), eller enskilda kapitel vid behov.
+description: Läser boken, eller enskilda kapitel, efter skildringar som riskerar att bli stereotypa, skadliga eller faktamässigt fel om verkliga grupper. Används för planen när boken har verkliga händelser, en gång när boken är klar, eller vid behov.
 tools: Read, Glob, Grep, Bash
 model: inherit
 ---
@@ -38,3 +38,24 @@ utfall: godkand
 ```
 
 `utfall: atgarda` om något bör ändras innan boken går vidare.
+
+## Uppdrag: planen
+När `bok/canon.md` har verkliga händelser, före författarens ja till förberedelsen:
+1. Läs `bok/koncept/`, `bok/karaktarer/`, `bok/plot/struktur.md`, `bok/plot/bagar.md` och blocket `verkliga-handelser` i `bok/canon.md`.
+2. Bedöm: levande personer, risk för förtal, respekt för offer och anhöriga, fakta om händelserna.
+
+```
+---
+omfang: forberedelse
+roll: sensitivitet
+utfall: godkand
+---
+
+## Fynd
+- händelse eller person, vad som är problemet, förslag
+
+## Avvägningar
+- det som är obekvämt men avsiktligt, och varför det kan stå kvar
+```
+
+`utfall: atgarda` om planen bör ändras innan skrivandet börjar.

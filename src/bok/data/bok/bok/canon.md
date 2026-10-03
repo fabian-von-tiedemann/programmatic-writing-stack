@@ -19,3 +19,10 @@ Namn som får förekomma utan att finnas i grafen: orter, varumärken, historisk
 
 ```kanda-namn
 ```
+
+## Verkliga händelser
+
+Verkliga händelser som boken använder. Finns det rader här läser sensitivitetsläsaren planen innan du ger ditt ja. En per rad: `datum | händelse | vad boken lägger till`.
+
+```verkliga-handelser
+```

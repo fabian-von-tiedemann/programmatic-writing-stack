@@ -2,6 +2,16 @@
 
 Alla större ändringar i Programmatic Writing Stack dokumenteras här. Följer [Keep a Changelog](https://keepachangelog.com/)-formatet.
 
+## [2.2.0] — 2026-10-03
+
+### Lagt till
+- Datum och åldrar: `fodd`, `dod` och `datum` i grafen, `datum` och `tillbakablick` i scenkortet. `bok graph context` visar åldrar; `bok validate` stoppar tidsfel och varnar för åldrar i texten som inte stämmer.
+- `bok graph tidslinje` och modulen `tidslinje`.
+- Respons utifrån: lektörsbrev och betaläsare blir beslut och rader i `bok/revisioner.md`; `bok status` visar öppna revisioner.
+- Verkliga händelser i `canon.md`; sensitivitetsläsning av planen innan första kapitlet.
+- Fackgranskning för kapitel med `fack` i scenkortet.
+- En röst per POV-person (`bok/stil/rost-<id>.md`).
+
 ## [2.1.1] — 2026-10-03
 
 ### Lagt till

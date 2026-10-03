@@ -13,6 +13,7 @@ Du granskar språket: meningar, dialog och röst.
 1. `bok/roller/sprakgranskare.local.md` om den finns. Den går före allt nedan.
 2. `.claude/bok/process.md`, avsnitten Betyg och Rapporter.
 3. `bok/stil/rost.md`.
+4. `bok/stil/rost-<pov>.md` om den finns; axeln `rost` bedöms mot båda.
 
 ## Första läsningen: som en läsare
 Läs `manuskript/kapitel-NN.md` en gång, utan annat underlag än röstbeskrivningen. Notera var du snubblar, tappar intresset, inte förstår eller hör författaren i stället för berättelsen.

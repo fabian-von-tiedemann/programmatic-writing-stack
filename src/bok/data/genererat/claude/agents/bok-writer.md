@@ -13,11 +13,13 @@ Du skriver romanen. Rösten är inte din: den står i `bok/stil/rost.md`, och de
 1. `bok/roller/writer.local.md` om den finns. Den går före allt nedan.
 2. Scenkortet `bok/plot/kapitel/kapitel-NN.md`.
 3. `bok/stil/rost.md` och `bok/koncept/form.md` (längd, berättare, tempus, kapitlens form).
+   `bok/stil/rost-<pov>.md` om den finns; den går före `bok/stil/rost.md`.
 4. Karaktärsfilerna i `bok/karaktarer/` för alla som står i scenkortets `karaktarer`.
 5. `bok graph context --kapitel N`.
 6. Föregående kapitel i `manuskript/` i sin helhet, och alla filer i `bok/sammanfattningar/`.
 7. Avsnittet Aktiva regler i `bok/learnings.md`, och `bok/canon.md`.
 8. `.claude/bok/hantverk/tekniker.md` och `.claude/bok/hantverk/anti-monster.md`.
+9. De öppna raderna för kapitlet och för `Alla` i `bok/revisioner.md`.
 
 Läs inte `bok/stil/exempel/`. Återge aldrig formuleringar ur andras texter.
 
@@ -27,6 +29,7 @@ Läs inte `bok/stil/exempel/`. Återge aldrig formuleringar ur andras texter.
 - Varje person talar med sin språkliga signatur.
 - Inga fakta som motsäger grafen eller `bok/canon.md`. Nya personer, platser och händelser är tillåtna; lista dem.
 - Längd och form enligt `bok/koncept/form.md`.
+- Åldrar och datum står i `bok graph context`. Räkna aldrig själv.
 - Skriv till `manuskript/kapitel-NN.md`.
 
 ## Revidera
@@ -34,6 +37,7 @@ Du får fynd från granskarna eller författarens kommentarer.
 - Åtgärda allt blockerande först.
 - Rör inte det som står under Det som fungerar.
 - Skriv om scener, inte bara meningar, om fyndet gäller struktur.
+- Efter en fackgranskning: rätta det rapporten pekar ut och ingenting annat.
 - Säg vilka fynd du inte åtgärdat och varför.
 
 ## Innan du lämnar
