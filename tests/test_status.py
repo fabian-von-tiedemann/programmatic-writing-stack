@@ -64,6 +64,31 @@ def test_kapitelplan(bok):
     assert kapitelplan(bok) == {1: 1, 2: 1, 3: 2}
 
 
+def kapitelplan_del(root):
+    return next(d for d in compute(root)["forberedelse"] if d["namn"] == "Kapitelplan")
+
+
+def test_kapitelplan_med_bara_rubrik_ar_inte_klar(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/plot/kapitelplan.md",
+          "# Kapitelplan\n\n| Kapitel | Akt | POV | Funktion | Bågar |\n|---|---|---|---|---|\n")
+    d = kapitelplan_del(bok)
+    assert not d["klar"] and d["saknas"] == ["ingen rad för akt 1 i kapitelplan.md"]
+
+
+def test_kapitelplan_med_akt_ett_och_kvarglomd_mallrad_ar_klar(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/plot/kapitelplan.md",
+          "# Kapitelplan\n\n| Kapitel | Akt | POV | Funktion | Bågar |\n|---|---|---|---|---|\n"
+          "| 1 | 1 | anna | Start | t-arvet |\n| {{2}} | {{2}} | {{id}} | {{x}} | {{t-id}} |\n")
+    assert kapitelplan_del(bok)["klar"]
+
+
+def test_orord_kapitelplan_fran_init_ar_inte_klar(bok):
+    d = kapitelplan_del(bok)
+    assert not d["klar"] and d["saknas"] == ["ingen rad för akt 1 i kapitelplan.md"]
+
+
 def test_loopen_for_ett_kapitel(bok):
     fyll_forberedelse(bok)
     ja_pa_forberedelse(bok)
@@ -75,7 +100,9 @@ def test_loopen_for_ett_kapitel(bok):
     skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
     assert "Redaktör och Språkgranskare (runda 1)" in compute(bok)["nasta"]
     granska(bok, 1, 1, red="revidera", red_betyg={**BRA_RED, "tema": 6})
-    assert compute(bok)["nasta"].startswith("Kapitel 1: Writer reviderar efter fynden i runda 1")
+    nasta = compute(bok)["nasta"]
+    assert nasta.startswith("Kapitel 1: Writer reviderar efter fynden i runda 1")
+    assert "Redaktören: tema 6" in nasta
     granska(bok, 1, 2)
     assert compute(bok)["nasta"].startswith("Kapitel 1: Kontinuitet")
     skriv(bok, "bok/sammanfattningar/kapitel-01.md", "Sammanfattning.\n")

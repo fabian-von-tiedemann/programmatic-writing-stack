@@ -17,6 +17,7 @@ PLOT = ("bok/plot/struktur.md", "bok/plot/bagar.md")
 ROST = ("bok/stil/rost.md",)
 KAPITELPLAN = "bok/plot/kapitelplan.md"
 MAX_RUNDOR = 3
+PASSERAT = 8
 GRANSKARE = tuple(GRANSKARE_AXLAR)
 NAMN = {"redaktor": "Redaktören", "sprakgranskare": "Språkgranskaren"}
 _RAD = re.compile(r"^\|\s*(\d+)\s*\|\s*(\d+)\s*\|", re.M)
@@ -30,6 +31,11 @@ def ofylld(path: Path) -> bool:
 def _del(namn: str, filer: tuple[str, ...], root: Path) -> dict:
     saknas = [f"{Path(f).name} är inte ifylld" for f in filer if ofylld(root / f)]
     return {"namn": namn, "klar": not saknas, "saknas": saknas}
+
+
+def _kapitelplan_del(root: Path) -> dict:
+    klar = 1 in kapitelplan(root).values()
+    return {"namn": "Kapitelplan", "klar": klar, "saknas": [] if klar else ["ingen rad för akt 1 i kapitelplan.md"]}
 
 
 def _karaktarer(root: Path) -> dict:
@@ -113,11 +119,22 @@ def _lage(nr, scenkort, plan_ok, utkast, sammanfattning, g, senaste, forf) -> tu
         return "du bestämmer", (f"Kapitel {nr}: granskarna är inte nöjda efter runda {g}. "
                                 "Visa fynden; hon godkänner eller skickar tillbaka.")
     if "revidera" in utfall:
-        return "revision", f"Kapitel {nr}: Writer reviderar efter fynden i runda {g}, sedan granskning runda {g + 1}."
+        return "revision", (f"Kapitel {nr}: Writer reviderar efter fynden i runda {g}, "
+                            f"sedan granskning runda {g + 1}." + _vill_ha_revision(senaste))
     if not sammanfattning:
         return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen."
     return "väntar på din läsning", (f"Kapitel {nr}: be henne läsa manuskript/kapitel-{nr:02d}.md "
                                      "och godkänna eller skicka tillbaka.")
+
+
+def _vill_ha_revision(senaste: dict) -> str:
+    delar = []
+    for roll in GRANSKARE:
+        r = senaste.get(roll)
+        if r and r["utfall"] == "revidera":
+            lagt = [f"{a} {v}" for a, v in (r.get("betyg") or {}).items() if isinstance(v, int) and v < PASSERAT]
+            delar.append(f" {NAMN[roll]}" + (f": {', '.join(lagt)}." if lagt else "."))
+    return "".join(delar)
 
 
 def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dict:
@@ -205,10 +222,10 @@ def _bagar(root: Path, kapitel: list[dict]) -> dict:
 def compute(root: Path) -> dict:
     bok = boktoml.read(root)
     forb = [_del("Koncept", KONCEPT, root), _karaktarer(root), _del("Plot", PLOT, root),
-            _del("Röst", ROST, root), _del("Kapitelplan", (KAPITELPLAN,), root)]
+            _del("Röst", ROST, root), _kapitelplan_del(root)]
     rapporter = las_alla(root)
-    ja = _senaste(rapporter, omfang="forberedelse", roll="forfattare") is not None and \
-        _senaste(rapporter, omfang="forberedelse", roll="forfattare")["utfall"] == "godkand"
+    forb_ja = _senaste(rapporter, omfang="forberedelse", roll="forfattare")
+    ja = forb_ja is not None and forb_ja["utfall"] == "godkand"
     plan = kapitelplan(root)
     kapitel = [_kapitel(root, nr, plan.get(nr), rapporter) for nr in _kapitelnummer(root, plan)]
     return {
