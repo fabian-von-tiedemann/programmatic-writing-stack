@@ -11,7 +11,7 @@ from bok.rot import find_root
 from bok.tics import kapitelfiler, las_kapitel
 
 _NAMN = re.compile(r"(?<![\wÅÄÖåäö])([A-ZÅÄÖ][a-zåäöéü]+(?:[ -][A-ZÅÄÖ][a-zåäöéü]+)*)")
-MENINGSSTART = {'.', '!', '?', '…', ':', '–', '—', '-', '“', '”', '»', '«', '(', '‘', '’'}
+MENINGSSTART = set('.!?…:–—-"(«»') | {'“', '”', '‘', '’'}
 
 
 def block(text: str, namn: str) -> list[str]:

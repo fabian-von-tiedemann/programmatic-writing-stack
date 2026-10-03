@@ -28,6 +28,20 @@ def test_okanda_hoppar_over_meningsstart_och_kanda():
     assert ut == [(1, "Märta"), (2, "Gustav")]
 
 
+def test_okanda_med_straight_quotes():
+    # Straight double quotes should also work as sentence starters
+    text = '"Nej", sa Märta till Gustav.\n'
+    ut = okanda(text, {"Märta"})
+    assert ut == [(1, "Gustav")]
+
+
+def test_okanda_sentence_start_after_straight_quote_and_period():
+    # After straight quote and period, the word is at sentence start
+    text = '"Nej." Märta log.\n'
+    ut = okanda(text, set())
+    assert ut == []
+
+
 def test_okanda_med_curly_quotes():
     # Swedish dialogue with curly quotes
     text = '“Nej”, sa Märta till Gustav.\n'
