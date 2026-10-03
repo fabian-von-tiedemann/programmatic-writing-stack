@@ -12,7 +12,11 @@ mkdir min-bok && cd min-bok
 bok init --titel "Arbetstitel"
 ```
 
+Du behöver Python 3.11 eller senare; uv hämtar det åt dig om det saknas.
+
 Öppna mappen i Claude Code eller Conductor och börja prata: om en idé, en person, en scen eller hur boken ska låta. Har du redan chattat om boken: lägg chattarna i `inkorg/` och be Claude gå igenom dem.
+
+**Med Conductor.** `bok init` gör mappen till ett git-repo med en första commit. Lägg sedan till bokens mapp som ett repository i Conductor. Varje workspace är en egen gren: slå ihop godkänt arbete tillbaka till main.
 
 Uppgradera ramverket i en befintlig bok:
 
@@ -27,7 +31,7 @@ Bokens egna filer rörs aldrig. Ramverkets filer i `.claude/` skrivs om.
 
 1. **Förberedelse i fritt samtal.** Koncept, karaktärer, plot, röst och kapitelplan, i vilken ordning som helst. I **stilverkstaden** visar du texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer.
 2. **Skrivloopen per kapitel.** Scenkort (du säger ja), utkast, granskning av Redaktör och Språkgranskare, högst två revisioner, kontinuitet, och till sist din läsning.
-3. **Aktgränser.** Förläggaren läser varje akt och hela boken.
+3. **Aktgränser.** Förläggaren läser varje akt och hela boken. När boken fått A läser Sensitivitetsläsaren den.
 
 `bok status` säger alltid var boken står och vad som är nästa steg.
 
@@ -58,13 +62,15 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 
 ## Roller
 
-Plot-arkitekt, Writer, Redaktör, Språkgranskare, Kontinuitet och Förläggare i skrivloopen. Researcher, Världsbyggare, Sensitivitetsläsare, Audiobook-regissör och Marknadsförare vid behov. Vill du ändra hur en roll arbetar i din bok: skriv `bok/roller/<roll>.local.md`.
+Plot-arkitekt, Writer, Redaktör, Språkgranskare, Kontinuitet och Förläggare i skrivloopen. Sensitivitetsläsaren när boken fått A. Researcher, Världsbyggare, Audiobook-regissör och Marknadsförare vid behov. Vill du ändra hur en roll arbetar i din bok: skriv `bok/roller/<roll>.local.md`.
 
 ## Utveckling
 
 ```sh
 uv run pytest
 ```
+
+Ändringar i de genererade filerna (`src/bok/data/genererat/`) når befintliga böcker först när versionen i `src/bok/__init__.py` höjs.
 
 Design: `docs/superpowers/specs/2026-10-03-bok-cli-design.md`. Den tidigare versionen ligger i `docs/arkiv/v1.2/`.
 
