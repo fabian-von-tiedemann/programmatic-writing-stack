@@ -59,6 +59,15 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 | `bok validate` | förbjudna namn och namn som saknas i grafen |
 | `bok rapport spara` | sparar granskningar och godkännanden |
 | `bok annotations` | läsarnoter från Apple Böcker (macOS) |
+| `bok forslag` | skicka förslag till dem som bygger verktyget och se vad som hänt med dem |
+
+## Förslag
+
+Märker du något som kunde vara bättre, säg det till Claude i samtalet ("det här var krångligt", "jag önskar att…"). Du får se exakt vad som skickas och säga ja eller nej. Ingen text ur din bok skickas, och du behöver inget konto.
+
+- `bok forslag` visar dina förslag och vad som hänt med dem.
+- `bok forslag av` stänger av förslag och all nätkontakt.
+- `bok forslag installning` visar om förslag är på eller av.
 
 ## Roller
 

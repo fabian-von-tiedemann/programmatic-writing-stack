@@ -3,6 +3,7 @@ import tomllib
 
 import pytest
 
+from bok import __version__
 from bok.boktoml import BokTomlFel
 from bok.cli import main
 from bok.init import init_repo
@@ -34,7 +35,7 @@ def test_tom_mapp(tmp_path):
     ]:
         assert (root / rel).is_file(), rel
     skill = (root / ".claude/skills/bok/SKILL.md").read_text()
-    assert "<!-- bok-version: 2.0.0 " in skill
+    assert f"<!-- bok-version: {__version__} " in skill
     claude = (root / "CLAUDE.md").read_text()
     assert claude.startswith("# Testbok\n")
     assert claude.count("<!-- bok:start -->") == 1
@@ -81,9 +82,9 @@ def test_bokens_filer_skrivs_aldrig_over(tmp_path):
 def test_aldre_genererad_fil_uppgraderas(tmp_path):
     init_repo(tmp_path, titel="X", git=False)
     path = tmp_path / ".claude/skills/bok/SKILL.md"
-    path.write_text(path.read_text().replace("bok-version: 2.0.0", "bok-version: 1.0.0"))
+    path.write_text(path.read_text().replace(f"bok-version: {__version__}", "bok-version: 1.0.0"))
     actions = init_repo(tmp_path, git=False)
-    assert "bok-version: 2.0.0" in path.read_text()
+    assert f"bok-version: {__version__}" in path.read_text()
     assert any(a.startswith("Uppgraderade .claude/skills/bok/SKILL.md") for a in actions)
 
 

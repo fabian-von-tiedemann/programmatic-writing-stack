@@ -1,3 +1,3 @@
 """bok: en skrivharness för romaner som dras in i valfritt repo."""
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"

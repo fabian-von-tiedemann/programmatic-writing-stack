@@ -163,3 +163,11 @@ def test_skillen_tar_emot_forslag():
     assert "typ: lardom" in text
     assert "Aldrig text ur boken" in text
     assert "bok forslag installning" in text
+
+
+def test_underhallsskillen():
+    text = (ROOT / ".claude/skills/forslag/SKILL.md").read_text(encoding="utf-8")
+    assert "fabian-von-tiedemann/bok-forslag" in text
+    assert "citeras aldrig" in text
+    for etikett in ("status:planerad", "status:avbojd", "infort:", "Svar:"):
+        assert etikett in text

@@ -2,6 +2,12 @@
 
 Alla större ändringar i Programmatic Writing Stack dokumenteras här. Följer [Keep a Changelog](https://keepachangelog.com/)-formatet.
 
+## [2.1.0] — 2026-10-03
+
+### Lagt till
+- Förslag från användarna: skillen fångar förslag om verktyget i samtalet, `bok forslag` skickar dem och visar deras status, och `bok init` berättar vilka som införts.
+- Mottagare för förslagen (`mottagare/`, Cloudflare Worker) och en underhållsskill som gör förslag till ändringar och releaser.
+
 ## [2.0.0] — 2026-10-03
 
 **Ramverket blir verktyget `bok`, som dras in i valfritt repo.**
