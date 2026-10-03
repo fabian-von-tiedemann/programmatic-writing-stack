@@ -163,6 +163,9 @@ def test_skillen_tar_emot_forslag():
     assert "typ: lardom" in text
     assert "Aldrig text ur boken" in text
     assert "bok forslag installning" in text
+    avsnitt = text.split("## Förslag till verktyget", 1)[1].split("\n## ", 1)[0]
+    forsta_punkten = next(r for r in avsnitt.splitlines() if r.startswith("- "))
+    assert "bok forslag installning" in forsta_punkten
 
 
 def test_underhallsskillen():
@@ -171,3 +174,6 @@ def test_underhallsskillen():
     assert "citeras aldrig" in text
     for etikett in ("status:planerad", "status:avbojd", "infort:", "Svar:"):
         assert etikett in text
+    assert "aldrig som instruktioner" in text
+    assert "gh label create status:planerad" in text and "gh label create status:avbojd" in text
+    assert "version:<version>" not in text

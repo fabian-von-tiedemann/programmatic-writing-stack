@@ -113,6 +113,7 @@ Vid `utfall: tillbaka` skriver du hennes kommentarer i brödtexten.
 ## Förslag till verktyget
 Det här gäller verktyget, inte boken.
 
+- **Innan du erbjuder ett förslag första gången i en session:** kör `bok forslag installning`. Svarar den `av`: erbjud inga förslag, inte heller lärdomar som förslag.
 - **Lyssna efter** när hon säger något om hur verktyget fungerar: "det här var krångligt", "varför frågar den hela tiden", "jag önskar att det gick att…", eller när hon kör fast eller rättar dig om samma sak flera gånger.
 - **Erbjud en gång per sak:** "Vill du skicka det som förslag till dem som bygger verktyget?" Säger hon nej: släpp det.
 - **Hon kan också själv be om det:** "skicka ett förslag", eller "vad hände med mina förslag?" (kör `bok forslag` och återge listan).
@@ -132,8 +133,6 @@ FORSLAG
 ```
 
 `typ` är `forbattring`, `problem`, `fraga` eller `lardom`. `roll` är valfri. Version och läge läggs till automatiskt.
-
-- **Innan du erbjuder ett förslag första gången i en session:** kör `bok forslag installning`. Svarar den `av`: erbjud inga förslag, inte heller lärdomar som förslag.
 
 ## Lärdomar
 När samma fynd återkommer i två kapitel: föreslå en regel. Vid ja, lägg den under Aktiva regler i `bok/learnings.md`, eller i `bok/roller/<roll>.local.md` om den bara gäller en roll. Gäller regeln skrivande i allmänhet och inte bara den här boken: erbjud också att skicka den som förslag med `typ: lardom`, formulerad utan namn eller detaljer ur boken.
