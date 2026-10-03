@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { hantera, ipNyckel } from "../src/hantera";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { GitHubFel } from "../src/github";
+import { hantera, hmacHex, ipNyckel } from "../src/hantera";
 import type { Beroenden, Issue, Rad } from "../src/typer";
 import { validera } from "../src/validera";
 
@@ -13,6 +14,8 @@ function fejk(over: Partial<Beroenden> = {}) {
   const issues = new Map<number, Issue>();
   const svar = new Map<number, string>();
   const sparrade = new Set<string>();
+  const ipDag = new Map<string, { dag: string; antal: number }>();
+  const hamtningar: number[][] = [];
   let tillat = true;
   let tillatLasning = true;
   const begransadeIp: string[] = [];
@@ -23,6 +26,8 @@ function fejk(over: Partial<Beroenden> = {}) {
       antalTotaltSedan: async (sedan) => rader.filter((r) => r.skapad >= sedan).length,
       spara: async (r) => void rader.push(r),
       lista: async (h, max) => rader.filter((r) => r.nyckelHash === h).slice(0, max).map(({ id, issue, skapad }) => ({ id, issue, skapad })),
+      antalIpIdag: async (ipHash, dag) => (ipDag.get(ipHash)?.dag === dag ? ipDag.get(ipHash)!.antal : 0),
+      raknaIp: async (ipHash, dag) => void ipDag.set(ipHash, { dag, antal: (ipDag.get(ipHash)?.antal ?? 0) + 1 }),
     },
     github: {
       skapaIssue: async (rubrik, text, etiketter) => {
@@ -31,25 +36,30 @@ function fejk(over: Partial<Beroenden> = {}) {
         issues.set(nummer, { nummer, rubrik, oppen: true, etiketter });
         return nummer;
       },
-      hamtaIssue: async (n) => issues.get(n)!,
-      hamtaSvar: async (n) => svar.get(n) ?? null,
+      hamtaManga: async (nummer) => {
+        hamtningar.push(nummer);
+        return new Map(nummer.map((n) => [n, issues.has(n) ? { issue: issues.get(n)!, svar: svar.get(n) ?? null } : null]));
+      },
     },
     begransa: async (_h, ip) => (begransadeIp.push(ip), tillat),
     begransaLasning: async () => tillatLasning,
+    ipHash: async (ip, dag) => `${dag}:${ip}`,
     nu: () => new Date("2026-10-03T12:00:00Z"),
     nyttId: () => `id-${rader.length + 1}`,
     ...over,
   };
-  return { d, rader, skapade, issues, svar, sparrade, begransadeIp, stoppa: () => (tillat = false), stoppaLasning: () => (tillatLasning = false) };
+  return { d, rader, skapade, issues, svar, sparrade, begransadeIp, ipDag, hamtningar, stoppa: () => (tillat = false), stoppaLasning: () => (tillatLasning = false) };
 }
 
-const post = (kropp: unknown, nyckel = NYCKEL) =>
+const post = (kropp: unknown, nyckel = NYCKEL, ip = "203.0.113.7") =>
   new Request(URL_, {
     method: "POST",
-    headers: { Authorization: `Bearer ${nyckel}`, "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.7" },
+    headers: { Authorization: `Bearer ${nyckel}`, "Content-Type": "application/json", "CF-Connecting-IP": ip },
     body: typeof kropp === "string" ? kropp : JSON.stringify(kropp),
   });
 const get = (nyckel = NYCKEL) => new Request(URL_, { headers: { Authorization: `Bearer ${nyckel}` } });
+
+afterEach(() => vi.restoreAllMocks());
 
 describe("POST /v1/forslag", () => {
   it("skapar ett issue och sparar bara en hash av nyckeln", async () => {
@@ -62,7 +72,8 @@ describe("POST /v1/forslag", () => {
     expect(issue.text).toContain("Det var krångligt 😅\nmed betygen");
     expect(issue.text).toContain("I granskningen.");
     expect(issue.text).toContain("kapitel 3: revision");
-    expect(issue.etiketter).toEqual(["forslag", "typ:problem", "version:2.0.0"]);
+    expect(issue.etiketter).toEqual(["forslag", "typ:problem"]);
+    expect(issue.text).toContain("- Version: 2.0.0");
     expect(f.rader[0].nyckelHash).toMatch(/^[0-9a-f]{64}$/);
     expect(f.rader[0].nyckelHash).not.toBe(NYCKEL);
     expect(issue.text).not.toContain(NYCKEL);
@@ -99,6 +110,12 @@ describe("POST /v1/forslag", () => {
     const f = fejk();
     await hantera(post({ ...GILTIG, text: "Hej\u202E\u0007   du\n@alla" }), f.d);
     expect(f.skapade[0].rubrik).toBe("Hej du");
+  });
+
+  it("tom rubrik efter rensning blir Förslag", async () => {
+    const f = fejk();
+    expect((await hantera(post({ ...GILTIG, text: "\u202E\nmer text" }), f.d)).status).toBe(201);
+    expect(f.skapade[0].rubrik).toBe("Förslag");
   });
 
   it("kortar långa rubriker", async () => {
@@ -202,13 +219,41 @@ describe("POST /v1/forslag", () => {
     expect((await hantera(post(GILTIG), f.d)).status).toBe(403);
   });
 
-  it("GitHub-fel sparar inget", async () => {
+  it("GitHub-fel sparar inget och loggar bara statuskoden", async () => {
     const f = fejk();
+    const logg = vi.spyOn(console, "error").mockImplementation(() => {});
     f.d.github.skapaIssue = async () => {
-      throw new Error("GitHub 500");
+      throw new GitHubFel(401);
     };
     expect((await hantera(post(GILTIG), f.d)).status).toBe(502);
     expect(f.rader).toHaveLength(0);
+    expect(f.ipDag.size).toBe(0);
+    expect(logg.mock.calls).toEqual([["GitHub 401"]]);
+  });
+
+  it("högst 30 per dag från samma IP, även med olika nycklar", async () => {
+    const f = fejk();
+    for (let i = 0; i < 30; i++) {
+      const nyckel = `k${String(i).padStart(2, "0")}`.padEnd(43, "x");
+      expect((await hantera(post(GILTIG, nyckel), f.d)).status).toBe(201);
+    }
+    const res = await hantera(post(GILTIG, "y".repeat(43)), f.d);
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ fel: "För många förslag på kort tid. Vänta en stund och försök igen." });
+    expect(f.skapade).toHaveLength(30);
+    expect((await hantera(post(GILTIG, "z".repeat(43), "198.51.100.9"), f.d)).status).toBe(201);
+  });
+
+  it("räknar IP per dag med hash av dag och /64-prefix", async () => {
+    const f = fejk();
+    await hantera(post(GILTIG, NYCKEL, "2001:db8::1"), f.d);
+    expect([...f.ipDag.entries()]).toEqual([["2026-10-03:2001:db8:0:0", { dag: "2026-10-03", antal: 1 }]]);
+  });
+
+  it("ett avvisat förslag räknas inte mot IP-taket", async () => {
+    const f = fejk();
+    await hantera(post({ ...GILTIG, typ: "klagomal" }), f.d);
+    expect(f.ipDag.size).toBe(0);
   });
 });
 
@@ -230,6 +275,16 @@ describe("GET /v1/forslag", () => {
     expect(per[102].status).toBe("planerat");
     expect(per[103]).toMatchObject({ status: "infort", version: "2.1.0" });
     expect(per[104]).toMatchObject({ status: "avbojt", svar: "Det passar inte verktyget, men tack!" });
+    // Ett enda anrop till GitHub för hela listan.
+    expect(f.hamtningar).toHaveLength(1);
+    expect([...f.hamtningar[0]].sort()).toEqual([101, 102, 103, 104]);
+  });
+
+  it("utan förslag anropas inte GitHub", async () => {
+    const f = fejk();
+    const res = await hantera(get(), f.d);
+    expect(await res.json()).toEqual([]);
+    expect(f.hamtningar).toHaveLength(0);
   });
 
   it("stoppar för tät läsning", async () => {
@@ -238,23 +293,31 @@ describe("GET /v1/forslag", () => {
     expect((await hantera(get(), f.d)).status).toBe(429);
   });
 
-  it("ett fel på en rad förstör inte listan", async () => {
+  it("ett saknat issue blir okänt utan att förstöra listan", async () => {
     const f = fejk();
     for (let i = 0; i < 3; i++) await hantera(post(GILTIG), f.d);
     f.issues.set(102, { ...f.issues.get(102)!, etiketter: ["forslag", "status:planerad"] });
-    const ordinarie = f.d.github.hamtaIssue;
-    f.d.github.hamtaIssue = async (n) => {
-      if (n === 101) throw new Error("GitHub 500");
-      return ordinarie(n);
-    };
+    f.issues.delete(101);
     const res = await hantera(get(), f.d);
     expect(res.status).toBe(200);
     const lista = (await res.json()) as { issue: number; rubrik: string; status: string; version: string | null; svar: string | null }[];
     const per = Object.fromEntries(lista.map((s) => [s.issue, s]));
     expect(lista).toHaveLength(3);
-    expect(per[101]).toMatchObject({ rubrik: "", status: "mottaget", version: null, svar: null });
+    expect(per[101]).toMatchObject({ rubrik: "", status: "okand", version: null, svar: null });
     expect(per[102].status).toBe("planerat");
     expect(per[103].rubrik).toBe("Det var krångligt 😅");
+  });
+
+  it("ger 502 när GitHub inte svarar", async () => {
+    const f = fejk();
+    const logg = vi.spyOn(console, "error").mockImplementation(() => {});
+    await hantera(post(GILTIG), f.d);
+    f.d.github.hamtaManga = async () => {
+      throw new GitHubFel(503);
+    };
+    const res = await hantera(get(), f.d);
+    expect(res.status).toBe(502);
+    expect(logg.mock.calls).toEqual([["GitHub 503"]]);
   });
 
   it("listar högst 20", async () => {
@@ -276,6 +339,14 @@ async function sha256hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+describe("hmacHex", () => {
+  it("är HMAC-SHA256 i hex", async () => {
+    expect(await hmacHex("key", "The quick brown fox jumps over the lazy dog")).toBe(
+      "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8",
+    );
+  });
+});
 
 describe("ipNyckel", () => {
   it.each([

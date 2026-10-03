@@ -1,15 +1,23 @@
+import { diagnos } from "./github";
 import type { Beroenden, Forslag, ForslagStatus, Issue } from "./typer";
 import { MAX_KROPP, nyckelFranHuvud, validera } from "./validera";
 
 const PER_TIMME = 5;
 const TOTALT_PER_TIMME = 60;
 const MAX_LISTA = 20;
+const PER_IP_OCH_DAG = 30;
 
 const json = (status: number, data: unknown): Response =>
   new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json; charset=utf-8" } });
 
 export async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function hmacHex(salt: string, text: string): Promise<string> {
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(salt), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const buf = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
@@ -37,9 +45,10 @@ const rens = (s: string): string => s.replace(/[\p{Cc}‪-‮⁦-⁩]/gu, " ").r
 // "@namn" pingar personer på GitHub; ett osynligt tecken (U+200B) efter @ hindrar det. Används bara i rubriken.
 const tyst = (s: string): string => s.replace(/@(?=[A-Za-z0-9])/g, "@​");
 
-// Kortas på tecken (kodpunkter), så att en emoji aldrig klyvs mitt i.
+// Kortas på tecken (kodpunkter), så att en emoji aldrig klyvs mitt i. Blir inget kvar: "Förslag".
 function rubrik(text: string): string {
   const forsta = [...tyst(rens(text.split("\n")[0]))];
+  if (forsta.length === 0) return "Förslag";
   return forsta.length > 70 ? `${forsta.slice(0, 69).join("")}…` : forsta.join("");
 }
 
@@ -100,6 +109,10 @@ async function taEmot(req: Request, hash: string, d: Beroenden): Promise<Respons
   if ((await d.lagring.antalTotaltSedan(timmeSedan)) >= TOTALT_PER_TIMME) {
     return json(429, { fel: "Mottagaren tar inte emot fler förslag just nu. Försök igen om en stund." });
   }
+  // Tak per IP och dag utan att spara IP:n: bara en HMAC av dag och IP räknas.
+  const dag = d.nu().toISOString().slice(0, 10);
+  const ipHash = await d.ipHash(ip, dag);
+  if ((await d.lagring.antalIpIdag(ipHash, dag)) >= PER_IP_OCH_DAG) return json(429, forMycket);
   if (Number(req.headers.get("Content-Length")) > MAX_KROPP) return json(413, { fel: "Förslaget är för stort." });
   const ra = await req.text();
   if (new TextEncoder().encode(ra).length > MAX_KROPP) return json(413, { fel: "Förslaget är för stort." });
@@ -114,12 +127,20 @@ async function taEmot(req: Request, hash: string, d: Beroenden): Promise<Respons
   const f = v.forslag;
   let issue: number;
   try {
-    issue = await d.github.skapaIssue(rubrik(f.text), issueText(f), ["forslag", `typ:${f.typ}`, `version:${f.version}`]);
-  } catch {
+    // Ingen version-etikett: värden från klienten skulle kunna skapa hur många etiketter som helst.
+    issue = await d.github.skapaIssue(rubrik(f.text), issueText(f), ["forslag", `typ:${f.typ}`]);
+  } catch (fel) {
+    console.error(diagnos(fel));
     return json(502, { fel: "Kunde inte spara förslaget just nu. Försök igen senare." });
   }
   const id = d.nyttId();
   await d.lagring.spara({ id, nyckelHash: hash, issue, skapad: d.nu().toISOString() });
+  try {
+    await d.lagring.raknaIp(ipHash, dag);
+  } catch (fel) {
+    // Förslaget är redan sparat; ett missat steg i räkningen ska inte få klienten att skicka det igen.
+    console.error(diagnos(fel));
+  }
   return json(201, { id, issue });
 }
 
@@ -129,16 +150,20 @@ async function lista(hash: string, req: Request, d: Beroenden): Promise<Response
     return json(429, { fel: "För många förfrågningar på kort tid. Vänta en stund och försök igen." });
   }
   const rader = await d.lagring.lista(hash, MAX_LISTA);
-  const ut: ForslagStatus[] = await Promise.all(
-    rader.map(async (r): Promise<ForslagStatus> => {
-      try {
-        const [issue, svar] = await Promise.all([d.github.hamtaIssue(r.issue), d.github.hamtaSvar(r.issue)]);
-        return { id: r.id, issue: r.issue, rubrik: issue.rubrik, skapad: r.skapad, ...status(issue), svar };
-      } catch {
-        // Ett fel på en rad ska inte stoppa hela listan.
-        return { id: r.id, issue: r.issue, rubrik: "", skapad: r.skapad, status: "mottaget", version: null, svar: null };
-      }
-    }),
-  );
+  if (rader.length === 0) return json(200, []);
+  let hamtade: Awaited<ReturnType<Beroenden["github"]["hamtaManga"]>>;
+  try {
+    // Ett enda anrop till GitHub, hur många förslag det än gäller.
+    hamtade = await d.github.hamtaManga(rader.map((r) => r.issue));
+  } catch (fel) {
+    console.error(diagnos(fel));
+    return json(502, { fel: "Kunde inte hämta status just nu. Försök igen senare." });
+  }
+  const ut = rader.map((r): ForslagStatus => {
+    const h = hamtade.get(r.issue);
+    // Ett saknat issue ska inte stoppa hela listan.
+    if (!h) return { id: r.id, issue: r.issue, rubrik: "", skapad: r.skapad, status: "okand", version: null, svar: null };
+    return { id: r.id, issue: r.issue, rubrik: h.issue.rubrik, skapad: r.skapad, ...status(h.issue), svar: h.svar };
+  });
   return json(200, ut);
 }

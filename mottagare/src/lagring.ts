@@ -23,5 +23,17 @@ export function skapaLagring(db: D1Database): Lagring {
         .all<{ id: string; issue: number; skapad: string }>();
       return results;
     },
+    async antalIpIdag(ipHash, dag) {
+      const r = await db.prepare("SELECT antal FROM ip_dag WHERE ip_hash = ? AND dag = ?").bind(ipHash, dag).first<{ antal: number }>();
+      return r?.antal ?? 0;
+    },
+    async raknaIp(ipHash, dag) {
+      // Gamla dagar behövs inte; städas bort i förbifarten.
+      await db.prepare("DELETE FROM ip_dag WHERE dag < ?").bind(dag).run();
+      await db
+        .prepare("INSERT INTO ip_dag (ip_hash, dag, antal) VALUES (?, ?, 1) ON CONFLICT(ip_hash) DO UPDATE SET antal = antal + 1")
+        .bind(ipHash, dag)
+        .run();
+    },
   };
 }

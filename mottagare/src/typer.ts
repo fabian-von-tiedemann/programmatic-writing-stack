@@ -10,7 +10,8 @@ export interface Forslag {
   roll: string;
 }
 
-export type Status = "mottaget" | "planerat" | "infort" | "avbojt";
+// "okand": issuet gick inte att läsa (till exempel borttaget).
+export type Status = "mottaget" | "planerat" | "infort" | "avbojt" | "okand";
 
 export interface ForslagStatus {
   id: string;
@@ -35,6 +36,8 @@ export interface Lagring {
   antalTotaltSedan(sedan: string): Promise<number>;
   spara(rad: Rad): Promise<void>;
   lista(nyckelHash: string, max: number): Promise<Omit<Rad, "nyckelHash">[]>;
+  antalIpIdag(ipHash: string, dag: string): Promise<number>;
+  raknaIp(ipHash: string, dag: string): Promise<void>;
 }
 
 export interface Issue {
@@ -46,8 +49,8 @@ export interface Issue {
 
 export interface GitHub {
   skapaIssue(rubrik: string, text: string, etiketter: string[]): Promise<number>;
-  hamtaIssue(nummer: number): Promise<Issue>;
-  hamtaSvar(nummer: number): Promise<string | null>;
+  // Ett enda anrop för alla nummer; null för issues som saknas.
+  hamtaManga(nummer: number[]): Promise<Map<number, { issue: Issue; svar: string | null } | null>>;
 }
 
 export interface Beroenden {
@@ -55,6 +58,8 @@ export interface Beroenden {
   github: GitHub;
   begransa(nyckelHash: string, ip: string): Promise<boolean>;
   begransaLasning(nyckelHash: string, ip: string): Promise<boolean>;
+  // ip är redan avkortad (ipNyckel); dag är UTC-datumet "ÅÅÅÅ-MM-DD".
+  ipHash(ip: string, dag: string): Promise<string>;
   nu(): Date;
   nyttId(): string;
 }

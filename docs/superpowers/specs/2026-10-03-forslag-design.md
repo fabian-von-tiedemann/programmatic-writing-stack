@@ -108,13 +108,13 @@ Båda kräver `Authorization: Bearer <nyckel>` (minst 32 tecken).
 **`POST /v1/forslag`** med JSON `{typ, text, sammanhang, version, lage, roll}`:
 
 1. Validera: kända fält, `typ` i den tillåtna mängden, längdgränser, högst 16 kB, `version` som `\d+\.\d+\.\d+`.
-2. Takbegränsa med Cloudflares rate limiting: 5 förslag per timme per nyckel, 30 per dygn per IP. Svar 429 med svensk text.
+2. Takbegränsa med Cloudflares rate limiting: 5 förslag per timme per nyckel, 30 per dygn per IP (räknas i D1 på en HMAC av datum och IP med hemligheten `IP_SALT`; IP:n sparas aldrig). Svar 429 med svensk text.
 3. Är nyckeln spärrad (D1) → 403.
-4. Skapa issue i `bok-forslag`: rubrik = första raden av `text` (max 70 tecken), brödtext med fälten under rubriker, etiketterna `forslag`, `typ:<typ>`, `version:<version>`.
+4. Skapa issue i `bok-forslag`: rubrik = första raden av `text` (max 70 tecken), brödtext med fälten under rubriker, etiketterna `forslag`, `typ:<typ>` (versionen står i brödtexten; en etikett per version skulle låta klienten skapa hur många etiketter som helst).
 5. Spara i D1: `forslag(id, nyckel_hash, issue, skapad)`. `nyckel_hash` = SHA-256 av nyckeln. Ingen IP sparas. Nyckeln och hashen syns aldrig i issuet.
 6. Svara `201 {id, issue}`.
 
-**`GET /v1/forslag`**: hämta användarens issues (via D1 → GitHub) och svara med en lista `{id, issue, rubrik, skapad, status, version, svar}`:
+**`GET /v1/forslag`**: hämta användarens issues (via D1 → ett enda GraphQL-anrop till GitHub; takbegränsat per nyckel och per IP) och svara med en lista `{id, issue, rubrik, skapad, status, version, svar}`:
 
 | I GitHub | `status` |
 |---|---|
@@ -122,14 +122,16 @@ Båda kräver `Authorization: Bearer <nyckel>` (minst 32 tecken).
 | `status:planerad` | `planerat` |
 | etikett `infort:<version>` | `infort` (med `version`) |
 | stängt med `status:avbojd` | `avbojt` |
+| issuet går inte att läsa (till exempel borttaget) | `okand` (klienten visar "skickat") |
 
 `svar` = den senaste kommentaren som börjar med `Svar:` (utan prefixet).
 
 ### 4.3 Hemligheter och data
 
 - `GITHUB_TOKEN`: finkornig token som bara får läsa och skriva issues i `bok-forslag`. Sätts med `wrangler secret put`.
-- D1-tabeller: `forslag(id TEXT PK, nyckel_hash TEXT, issue INTEGER, skapad TEXT)`, `sparr(nyckel_hash TEXT PK, skal TEXT)`.
-- Loggar innehåller inga förslagstexter.
+- `IP_SALT`: slumpad hemlighet för taket per IP och dag. Sätts med `wrangler secret put`.
+- D1-tabeller: `forslag(id TEXT PK, nyckel_hash TEXT, issue INTEGER, skapad TEXT)`, `sparr(nyckel_hash TEXT PK, skal TEXT)`, `ip_dag(ip_hash TEXT PK, dag TEXT, antal INTEGER)`.
+- Loggar innehåller inga förslagstexter. Vid fel loggas bara felets namn och GitHubs statuskod.
 
 ### 4.4 Engångssteg för utvecklaren
 
@@ -137,7 +139,7 @@ Planen skriver ut stegen; inget av dem görs utan utvecklarens ja:
 
 1. Skapa privata repot `fabian-von-tiedemann/bok-forslag` med etiketterna ovan.
 2. Skapa token med rätt behörighet.
-3. `wrangler whoami` → bekräfta privat konto → `wrangler d1 create`, migrera, `wrangler secret put GITHUB_TOKEN`, `wrangler deploy`.
+3. `wrangler whoami` → bekräfta privat konto → `wrangler d1 create`, migrera, `wrangler secret put GITHUB_TOKEN`, `wrangler secret put IP_SALT`, `wrangler deploy`.
 4. Lägg in den riktiga adressen som konstant i `bok` och höj versionen.
 
 ## 5. Från förslag till förbättring
