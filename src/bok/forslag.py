@@ -6,11 +6,13 @@ nyckel till mottagaren. Allt sparas också lokalt, så att inget går förlorat.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import http.client
 import json
 import os
 import secrets
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 import uuid
@@ -28,6 +30,8 @@ MAX_SAMMANHANG = 2000
 MAX_ROLL = 40
 MAX_LAGE = 200
 STATUSTEXT = {"mottaget": "mottaget", "planerat": "planerat", "infort": "infört i {version}", "avbojt": "avböjt"}
+# Svar som betyder att just det här förslaget aldrig kommer att tas emot; skickas inte igen.
+SLUTGILTIGA = (400, 401, 403, 413)
 
 
 class ForslagFel(BokFel):
@@ -49,12 +53,28 @@ def _url() -> str:
     return os.environ.get("BOK_FORSLAG_URL", STANDARD_URL).rstrip("/") + "/v1/forslag"
 
 
+def _skapa_katalog(path: Path) -> None:
+    ny = not path.exists()
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    if ny:
+        os.chmod(path, 0o700)
+
+
 def _skriv_privat(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as fh:
-        fh.write(text)
-    os.chmod(path, 0o600)
+    """Skriver hela filen eller inget: först till en tillfällig fil bredvid, sedan byts den in."""
+    _skapa_katalog(path.parent)
+    fd, tillfallig = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            os.chmod(tillfallig, 0o600)
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tillfallig, path)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(tillfallig)
+        raise
 
 
 def _las(path: Path) -> str:
@@ -154,6 +174,17 @@ def _lage() -> str:
     return "alla kapitel klara"
 
 
+class _IngenOmdirigering(urllib.request.HTTPRedirectHandler):
+    """Följer aldrig en omdirigering: nyckeln ska bara gå till mottagarens egen adress."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        fp.close()
+        raise MottagarFel(None, "Mottagaren svarade oväntat.")
+
+
+_OPPNARE = urllib.request.build_opener(_IngenOmdirigering)
+
+
 def _anrop(metod: str, data: dict | None, timeout: float):
     kropp = json.dumps(data, ensure_ascii=False).encode("utf-8") if data is not None else None
     req = urllib.request.Request(_url(), data=kropp, method=metod, headers={
@@ -162,16 +193,20 @@ def _anrop(metod: str, data: dict | None, timeout: float):
         "User-Agent": f"bok/{__version__}",
     })
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as svar:
-            return json.loads(svar.read().decode("utf-8") or "null")
+        with _OPPNARE.open(req, timeout=timeout) as svar:
+            resultat = json.loads(svar.read().decode("utf-8") or "null")
     except urllib.error.HTTPError as exc:
         try:
             fel = json.loads(exc.read().decode("utf-8")).get("fel", "")
         except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
             fel = ""
         raise MottagarFel(exc.code, fel or f"Mottagaren svarade {exc.code}.") from exc
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError, UnicodeDecodeError,
+            http.client.HTTPException) as exc:
         raise MottagarFel(None, "Kunde inte nå mottagaren just nu.") from exc
+    if not isinstance(resultat, dict if metod == "POST" else list):
+        raise MottagarFel(None, "Mottagaren svarade oväntat.")
+    return resultat
 
 
 def _skicka_rad(rad: dict) -> None:
@@ -179,7 +214,7 @@ def _skicka_rad(rad: dict) -> None:
     try:
         svar = _anrop("POST", data, timeout=10)
     except MottagarFel as exc:
-        if exc.kod == 400:
+        if exc.kod in SLUTGILTIGA:
             rad["avvisat"] = str(exc)
         raise
     rad.update(skickat=True, id=svar.get("id"), issue=svar.get("issue"))
@@ -242,8 +277,8 @@ def lista() -> tuple[list[dict], bool]:
             text = f"avvisat: {rad['avvisat']}"
         elif not rad.get("skickat"):
             text = "inte skickat än"
-        elif s:
-            text = STATUSTEXT.get(s.get("status"), "mottaget").format(version=s.get("version") or "")
+        elif s and s.get("status") in STATUSTEXT:
+            text = STATUSTEXT[s["status"]].format(version=s.get("version") or "")
         else:
             text = "skickat"
         ut.append({"datum": rad.get("tid", "")[:10], "rubrik": rad["text"].splitlines()[0][:60],
@@ -263,7 +298,14 @@ def nyheter(timeout: float = 3.0) -> list[str]:
         inst = installningar()
         sedda = inst["senast_sedda"]
         nya = [i for i, s in aktuella.items() if s.get("status") == "infort" and sedda.get(i) != "infort"]
-        inst["senast_sedda"] = {i: s.get("status") for i, s in aktuella.items()}
+        # Okänd status (till exempel "okand" när issuet inte gick att läsa) ändrar inget: annars
+        # skulle ett infört förslag meddelas igen när det väl går att läsa.
+        nya_sedda = {}
+        for i, s in aktuella.items():
+            varde = s.get("status") if s.get("status") in STATUSTEXT else sedda.get(i)
+            if varde is not None:
+                nya_sedda[i] = varde
+        inst["senast_sedda"] = nya_sedda
         spara_installningar(inst)
     except (BokFel, OSError, ValueError, KeyError, TypeError, AttributeError, http.client.HTTPException):
         return []
@@ -331,7 +373,10 @@ def _kor_skicka(args: argparse.Namespace) -> int:
     try:
         rad = skicka_utkast(text)
     except MottagarFel as exc:
-        print(f"Förslaget är sparat men inte skickat: {exc} Försök igen med bok forslag skicka --igen.")
+        if exc.kod in SLUTGILTIGA:
+            print(f"Förslaget skickades inte: {exc}")
+        else:
+            print(f"Förslaget är sparat men inte skickat: {exc} Försök igen med bok forslag skicka --igen.")
         return 1
     print(f"Tack! Förslaget är skickat (nummer {rad['issue']}). Med bok forslag ser du vad som händer med det.")
     return 0

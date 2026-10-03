@@ -24,6 +24,9 @@ class Mottagare:
         self.status_post = 201
         self.lista = []
         self.sov = 0.0
+        self.ra = None  # råa byte som svar i stället för JSON
+        self.omdirigera = False
+        self.omdirigerade = []
 
 
 @pytest.fixture
@@ -42,8 +45,35 @@ def mottagare(monkeypatch):
             self.end_headers()
             self.wfile.write(kropp)
 
+        def _omdirigering(self):
+            if self.path != "/v1/forslag":
+                m.omdirigerade.append(dict(self.headers))
+                self._svara(201 if self.command == "POST" else 200,
+                            {"id": "x", "issue": 1} if self.command == "POST" else [])
+                return True
+            if m.omdirigera:
+                m.huvuden.append(dict(self.headers))
+                self.send_response(302)
+                self.send_header("Location", "/annan")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return True
+            return False
+
+        def _svara_ra(self, kod):
+            self.send_response(kod)
+            self.send_header("Content-Length", str(len(m.ra)))
+            self.end_headers()
+            self.wfile.write(m.ra)
+
         def do_POST(self):
             data = json.loads(self.rfile.read(int(self.headers["Content-Length"])).decode("utf-8"))
+            if self._omdirigering():
+                return
+            if m.ra is not None:
+                m.huvuden.append(dict(self.headers))
+                self._svara_ra(201)
+                return
             m.huvuden.append(dict(self.headers))
             m.mottagna.append(data)
             if m.status_post != 201:
@@ -53,7 +83,12 @@ def mottagare(monkeypatch):
 
         def do_GET(self):
             time.sleep(m.sov)
+            if self._omdirigering():
+                return
             m.huvuden.append(dict(self.headers))
+            if m.ra is not None:
+                self._svara_ra(200)
+                return
             self._svara(200, m.lista)
 
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Hanterare)
@@ -129,12 +164,102 @@ def test_igen_skickar_det_som_inte_kom_fram(bok, monkeypatch, capsys, request):
     assert len(m.mottagna) == 1 and forslag.las_lokala()[0]["skickat"] is True
 
 
-def test_avvisat_forslag_skickas_inte_igen(bok, mottagare, monkeypatch):
-    mottagare.status_post = 400
+@pytest.mark.parametrize("kod", [400, 401, 403, 413])
+def test_avvisat_forslag_skickas_inte_igen(bok, mottagare, monkeypatch, capsys, kod):
+    mottagare.status_post = kod
     assert skicka(monkeypatch) == 1
+    ut = capsys.readouterr().out
+    assert "Förslaget skickades inte: Mottagaren sa nej." in ut
+    assert "--igen" not in ut and "sparat men inte skickat" not in ut
     assert forslag.las_lokala()[0]["avvisat"] == "Mottagaren sa nej."
     main(["forslag", "skicka", "--igen"])
     assert len(mottagare.mottagna) == 1
+
+
+@pytest.mark.parametrize("kod", [429, 500, 502])
+def test_tillfalligt_fel_kan_skickas_igen(bok, mottagare, monkeypatch, capsys, kod):
+    mottagare.status_post = kod
+    assert skicka(monkeypatch) == 1
+    ut = capsys.readouterr().out
+    assert "sparat men inte skickat" in ut and "--igen" in ut
+    assert "avvisat" not in forslag.las_lokala()[0]
+    mottagare.status_post = 201
+    assert main(["forslag", "skicka", "--igen"]) == 0
+    assert forslag.las_lokala()[0]["skickat"] is True
+
+
+def test_trasigt_svar_ger_ingen_krasch(bok, mottagare, monkeypatch, capsys):
+    import http.client
+    def trasig(*a, **kw):
+        raise http.client.IncompleteRead(b"")
+    monkeypatch.setattr(forslag._OPPNARE, "open", trasig)
+    assert skicka(monkeypatch) == 1
+    assert "Kunde inte nå mottagaren just nu." in capsys.readouterr().out
+    assert forslag.las_lokala()[0]["skickat"] is False
+
+
+def test_svar_som_inte_ar_utf8(bok, mottagare, monkeypatch, capsys):
+    mottagare.ra = b"\xff\xfe"
+    assert skicka(monkeypatch) == 1
+    assert "Kunde inte nå mottagaren just nu." in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("ra", [b"[]", b"null", b'"text"'])
+def test_ovantat_svar_pa_post(bok, mottagare, monkeypatch, capsys, ra):
+    mottagare.ra = ra
+    assert skicka(monkeypatch) == 1
+    assert "Mottagaren svarade oväntat." in capsys.readouterr().out
+    assert forslag.las_lokala()[0]["skickat"] is False
+
+
+def test_ovantat_svar_pa_get(bok, mottagare, monkeypatch, capsys):
+    skicka(monkeypatch)
+    mottagare.ra = b'{"id": "id-1"}'
+    with pytest.raises(forslag.MottagarFel, match="oväntat"):
+        forslag._anrop("GET", None, timeout=5)
+    capsys.readouterr()
+    assert main(["forslag"]) == 0
+    assert "Kunde inte hämta status" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("metod", ["POST", "GET"])
+def test_nyckeln_foljer_inte_med_vid_omdirigering(bok, mottagare, monkeypatch, metod):
+    mottagare.omdirigera = True
+    data = {"typ": "problem", "text": "x", "sammanhang": "", "version": __version__, "lage": "", "roll": ""}
+    with pytest.raises(forslag.MottagarFel):
+        forslag._anrop(metod, data if metod == "POST" else None, timeout=5)
+    assert len(mottagare.huvuden) == 1
+    assert mottagare.omdirigerade == []
+
+
+def test_omdirigering_skickar_inte_forslaget(bok, mottagare, monkeypatch):
+    mottagare.omdirigera = True
+    assert skicka(monkeypatch) == 1
+    assert mottagare.omdirigerade == []
+    assert forslag.las_lokala()[0]["skickat"] is False
+
+
+def test_privata_filer_och_katalog(bok, mottagare, monkeypatch):
+    skicka(monkeypatch)
+    main(["forslag", "av"])
+    kat = forslag.katalog()
+    assert stat.S_IMODE(os.stat(kat).st_mode) == 0o700
+    for namn in ("nyckel", "forslag.jsonl", "installningar.json"):
+        assert stat.S_IMODE(os.stat(kat / namn).st_mode) == 0o600
+    assert sorted(p.name for p in kat.iterdir()) == ["forslag.jsonl", "installningar.json", "nyckel"]
+
+
+def test_avbruten_skrivning_lamnar_gamla_filen(bok, monkeypatch):
+    path = forslag.katalog() / "installningar.json"
+    forslag.spara_installningar({"forslag": "pa", "senast_sedda": {}})
+    fore = path.read_text(encoding="utf-8")
+    def fel(fd):
+        raise OSError("disken är full")
+    monkeypatch.setattr(forslag.os, "fsync", fel)
+    with pytest.raises(OSError):
+        forslag.spara_installningar({"forslag": "av", "senast_sedda": {}})
+    assert path.read_text(encoding="utf-8") == fore
+    assert [p.name for p in forslag.katalog().iterdir()] == ["installningar.json"]
 
 
 def test_avstangt_skickar_inget(bok, mottagare, monkeypatch, capsys):
@@ -155,6 +280,28 @@ def test_lista_visar_status_och_svar(bok, mottagare, monkeypatch, capsys):
     ut = capsys.readouterr().out
     assert "infört i 2.1.0" in ut and "Svar: Tack, nu är det enklare." in ut
     assert "Det var krångligt" in ut
+
+
+@pytest.mark.parametrize("status", ["okand", "nagot-nytt"])
+def test_lista_visar_okand_status_som_skickat(bok, mottagare, monkeypatch, capsys, status):
+    skicka(monkeypatch)
+    mottagare.lista = [{"id": "id-1", "issue": 101, "rubrik": "", "skapad": "2026-10-03T10:00:00Z",
+                        "status": status, "version": None, "svar": None}]
+    capsys.readouterr()
+    assert main(["forslag"]) == 0
+    assert "[skickat]" in capsys.readouterr().out
+
+
+def test_avstangt_ror_inte_natet_i_lista_och_nyheter(bok, mottagare, monkeypatch, capsys):
+    skicka(monkeypatch)
+    mottagare.lista = [{"id": "id-1", "issue": 101, "status": "infort", "version": "2.1.0", "svar": None}]
+    main(["forslag", "av"])
+    mottagare.huvuden.clear()
+    rader, ok = forslag.lista()
+    assert rader and ok
+    assert main(["forslag"]) == 0
+    assert forslag.nyheter() == []
+    assert mottagare.huvuden == []
 
 
 def test_lista_utan_forslag(bok, capsys):
@@ -182,6 +329,18 @@ def test_nyheter_en_gang(bok, mottagare, monkeypatch):
     rader = forslag.nyheter()
     assert rader[0] == "Ett av dina förslag finns med i den här versionen:"
     assert "Det var krångligt" in rader[1]
+    assert forslag.nyheter() == []
+
+
+def test_okand_status_upprepar_inte_nyheten(bok, mottagare, monkeypatch):
+    skicka(monkeypatch)
+    infort = {"id": "id-1", "issue": 101, "status": "infort", "version": "2.1.0", "svar": None}
+    mottagare.lista = [infort]
+    assert forslag.nyheter()
+    mottagare.lista = [{**infort, "status": "okand", "version": None}]
+    assert forslag.nyheter() == []
+    assert forslag.installningar()["senast_sedda"]["id-1"] == "infort"
+    mottagare.lista = [infort]
     assert forslag.nyheter() == []
 
 
