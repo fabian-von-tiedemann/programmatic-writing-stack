@@ -118,3 +118,17 @@ def test_agentfil(path):
         assert f"roll: {roll}" in body and roll in UTFALL
     if roll == "writer":
         assert meta["model"] == "opus"
+
+
+def test_skillen():
+    text = (DATA / "genererat/claude/skills/bok/SKILL.md").read_text(encoding="utf-8")
+    meta, body = split(text)
+    assert meta["name"] == "bok"
+    assert "bok.toml" in meta["description"]
+    for roll in ROLLER:
+        if roll not in {"researcher", "varldsbyggare", "sensitivitet", "audiobook", "marknad"}:
+            assert f"bok-{roll}" in body, roll
+    for avsnitt in ("## Fritt samtal", "## Inkorgen", "## Stilverkstaden", "## Innan första kapitlet",
+                    "## Skriva kapitel", "## Gör inte"):
+        assert avsnitt in body, avsnitt
+    assert "bok status --json" in body
