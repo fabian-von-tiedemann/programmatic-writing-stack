@@ -89,3 +89,13 @@ def test_titel_genre_preserved(tmp_path):
     assert bok["titel"] == "Mitt verk"
     assert bok["genre"] == "roman"
     assert bok["ramverk"] == "2.0.0"
+
+
+def test_set_ramverk_unquoted_raises(tmp_path):
+    """ramverk as unquoted int should raise, not silently fail."""
+    original = '[bok]\ntitel = "X"\ngenre = ""\nramverk = 1\nmoduler = []\n'
+    (tmp_path / "bok.toml").write_text(original)
+    with pytest.raises(BokTomlFel, match="Kunde inte uppdatera"):
+        set_ramverk(tmp_path, "2.0.0")
+    # File must be unchanged
+    assert (tmp_path / "bok.toml").read_text(encoding="utf-8") == original

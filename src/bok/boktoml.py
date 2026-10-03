@@ -39,17 +39,19 @@ def _set_line(root: Path, key: str, pattern: str, line: str, expected_value=None
     text = path.read_text(encoding="utf-8")
     new, n = re.subn(pattern, line, text, count=1, flags=re.M)
     if n == 0:
+        # Pattern didn't match
+        # Check if key already exists (maybe with different format)
+        key_exists = re.search(rf'(?m)^{re.escape(key)}\s*=', text)
+        if key_exists:
+            # Key exists but pattern didn't match; this is an error
+            raise BokTomlFel(f"Kunde inte uppdatera {key} i {path}. Ändra raden för hand och försök igen.")
+
         # Key not found; try to insert after [bok] header
         header_match = re.search(r'(?m)^\[bok\][^\n]*\n', text)
         if not header_match:
             raise BokTomlFel(f"{path} saknar tabellen [bok]. Rätta filen och försök igen.")
-        # Check if key already exists (maybe with different format)
-        if key not in text or not re.search(rf'(?m)^{re.escape(key)}\s*=', text):
-            insert_pos = header_match.end()
-            new = text[:insert_pos] + line + "\n" + text[insert_pos:]
-        else:
-            # Key exists but pattern didn't match; this is an error
-            new = text
+        insert_pos = header_match.end()
+        new = text[:insert_pos] + line + "\n" + text[insert_pos:]
 
     if new == text:
         return False
@@ -79,13 +81,14 @@ def set_ramverk(root: Path, version: str) -> bool:
 
 
 def add_modul(root: Path, modul: str) -> None:
+    path = _path(root)
     bok = read(root)
     moduler = list(bok.get("moduler", []))
     if modul in moduler:
         return
     # Verify moduler is actually a list
     if "moduler" in bok and not isinstance(bok["moduler"], list):
-        raise BokTomlFel(f"Kunde inte uppdatera moduler. 'moduler' är inte en lista. Ändra raden för hand och försök igen.")
+        raise BokTomlFel(f"Kunde inte uppdatera moduler i {path}. 'moduler' är inte en lista. Ändra raden för hand och försök igen.")
     moduler.append(modul)
     lista = "[" + ", ".join(f'"{m}"' for m in moduler) + "]"
     # Pattern accepts any valid list
