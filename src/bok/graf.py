@@ -26,6 +26,12 @@ def _kap(x) -> int:
     return x if isinstance(x, int) and not isinstance(x, bool) else 0
 
 
+def ar_oppen(t: dict) -> bool:
+    """Är bågen öppen? Status `oppen` (eller `öppen`, oavsett versaler); saknas status räknas den som öppen."""
+    status = t.get("status") or "oppen"
+    return isinstance(status, str) and status.strip().casefold() in ("oppen", "öppen")
+
+
 def _ordning(e: dict) -> tuple:
     return (_kap(e.get("kapitel")), str(e.get("id", "")))
 
@@ -165,7 +171,7 @@ class Graf:
         return "\n".join(r) + "\n"
 
     def bagar(self, oppna: bool = False) -> str:
-        tr = [t for t in self.lista("threads") if not oppna or t.get("status", "oppen") == "oppen"]
+        tr = [t for t in self.lista("threads") if not oppna or ar_oppen(t)]
         r = ["# Bågar", ""]
         if not tr:
             r.append("Inga bågar i threads.json än.")
@@ -206,7 +212,7 @@ class Graf:
                 r.append(f"### {p.get('namn', pid)} ({pid})")
                 r += [f"- {k}: {v}" for k, v in (p.get("fakta") or {}).items()]
                 r.append("")
-        valda = bagar or [t.get("id") for t in self.lista("threads") if t.get("status", "oppen") == "oppen"]
+        valda = bagar or [t.get("id") for t in self.lista("threads") if ar_oppen(t)]
         r += ["## Bågar", ""]
         for tid in valda:
             t = self._finns("threads", tid)

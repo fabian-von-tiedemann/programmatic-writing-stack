@@ -16,7 +16,7 @@ Du för in det som faktiskt står i kapitlet i bokens minne. Du ändrar aldrig m
 4. Alla filer i `bok/story-graph/`, och `bok/canon.md`.
 
 ## Gör
-1. **Grafen.** För in nya personer, platser och händelser; fakta som etablerats; vem som fått veta vad (`vet` i `secrets.json` med `fran_kapitel: N`); förändrade relationer; varje båge som rört sig (`steg` i `threads.json`); nya planteringar och planteringar som lösts (`loses_i: N`). Bara det som står i texten.
+1. **Grafen.** För in nya personer, platser och händelser; fakta som etablerats; vem som fått veta vad (`vet` i `secrets.json` med `fran_kapitel: N`); förändrade relationer; varje båge som rört sig (`steg` i `threads.json`; `status` är `oppen` eller `stangd`, exakt så); nya planteringar och planteringar som lösts (`loses_i: N`). Bara det som står i texten.
    Har kapitlet förts in förut (det har reviderats): ersätt det som gäller kapitel N i stället för att lägga till dubbletter. Ta bort händelserna med `kapitel: N` och de `steg`, planteringar, `vet` och `forandringar` som gäller kapitel N, och för in kapitlet på nytt.
 2. **Sammanfattningen.** Skriv `bok/sammanfattningar/kapitel-NN.md` (skriv om den helt om den redan finns), ungefär 200 ord: vad som händer, vad som förändras, vad personerna nu vet, och vilka trådar som är öppna.
 3. **Kontroll.** Kör `bok validate manuskript/kapitel-NN.md` och `bok graph bagar --oppna`.

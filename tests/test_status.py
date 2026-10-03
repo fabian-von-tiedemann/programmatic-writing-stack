@@ -51,6 +51,35 @@ def test_karaktar_utan_pov(bok):
     assert "ingen POV-karaktär" in compute(bok)["nasta"]
 
 
+def karaktarer_del(root):
+    return next(d for d in compute(root)["forberedelse"] if d["namn"] == "Karaktärer")
+
+
+def test_bikaraktar_med_platshallare_blockerar_inte(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/erik.md", "---\nid: erik\nnamn: Erik\npov: false\n---\n\n## Rädsla\n{{Vad?}}\n")
+    assert karaktarer_del(bok)["klar"]
+
+
+def test_pov_karaktar_med_platshallare_blockerar(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/erik.md", "---\nid: erik\nnamn: Erik\npov: true\n---\n\n## Rädsla\n{{Vad?}}\n")
+    assert karaktarer_del(bok)["saknas"] == ["erik.md är inte ifylld"]
+
+
+@pytest.mark.parametrize("pov", ["pov: {{true om kapitel berättas genom personen, annars false}}\n", ""])
+def test_pov_som_inte_ar_angiven_rapporteras(bok, pov):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/erik.md", f"---\nid: erik\nnamn: Erik\n{pov}---\n")
+    assert karaktarer_del(bok)["saknas"] == ["erik.md: ange pov: true eller false"]
+
+
+def test_mallen_kopierad_rakt_av_saknar_pov(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/ny.md", (bok / "bok/karaktarer/MALL.md").read_text())
+    assert "ny.md: ange pov: true eller false" in karaktarer_del(bok)["saknas"]
+
+
 def test_trasig_karaktarsfil_kraschar_inte(bok):
     fyll_forberedelse(bok)
     skriv(bok, "bok/karaktarer/erik.md", "---\nid: erik\n")
@@ -67,6 +96,14 @@ def test_forberedelse_klar_vantar_pa_ja(bok):
 def test_kapitelplan(bok):
     fyll_forberedelse(bok)
     assert kapitelplan(bok) == {1: 1, 2: 1, 3: 2}
+
+
+def test_kapitelplan_tal_akt_med_ordet_akt(bok):
+    skriv(bok, "bok/plot/kapitelplan.md",
+          "| Kapitel | Akt | POV | Funktion | Bågar |\n|---|---|---|---|---|\n"
+          "| 1 | Akt 1 | anna | Start | t-arvet |\n| 2 | akt 2 | anna | X | t-arvet |\n"
+          "| 3 | AKT3 | anna | Y | t-arvet |\n| 4 | 3 | anna | Z | t-arvet |\n")
+    assert kapitelplan(bok) == {1: 1, 2: 2, 3: 3, 4: 3}
 
 
 def kapitelplan_del(root):
@@ -216,6 +253,17 @@ def test_kapitelfil_med_en_siffra(bok):
     assert "runda 1" in compute(bok)["nasta"]
 
 
+def test_scenkort_med_trasig_frontmatter(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    skriv(bok, "bok/plot/kapitel/kapitel-01.md",
+          "---\nkapitel: 1\npov: anna\nkaraktarer:\n  - anna\ngodkand: true\n---\n\n# Kapitel 1\n")
+    s = compute(bok)
+    assert s["kapitel"][0]["lage"] == "scenkortet har trasig frontmatter"
+    assert s["nasta"] == ("Kapitel 1: scenkortet har trasig frontmatter "
+                          "(Rad 4: förväntade 'nyckel: värde', fick '  - anna'). Rätta det.")
+
+
 def test_ofyllt_scenkort_raknas_som_saknat(bok):
     fyll_forberedelse(bok)
     ja_pa_forberedelse(bok)
@@ -235,6 +283,19 @@ def test_bagar(bok):
     b = compute(bok)["bagar"]
     assert b["ej_paborjade"] == ["t-karlek"]
     assert b["olosta_planteringar"] == [{"bage": "t-arvet", "vad": "Nyckeln i ladan", "kapitel": 1}]
+
+
+def test_stillastaende_bage_med_status_med_a(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    skriv_graf(bok, {"threads": [{"id": "t-x", "namn": "X", "typ": "intrig", "status": "öppen",
+                                  "steg": [{"kapitel": 1, "vad": "Start"}]}]})
+    skriv(bok, "bok/plot/kapitelplan.md",
+          "| Kapitel | Akt | POV | Funktion | Bågar |\n|---|---|---|---|---|\n"
+          + "".join(f"| {n} | 1 | anna | F | t-x |\n" for n in range(1, 5)))
+    for nr in (1, 2, 3, 4):
+        klart_kapitel(bok, nr)
+    assert compute(bok)["bagar"]["stillastaende"] == [{"id": "t-x", "senast": 1}]
 
 
 def test_trasig_graf_visas_men_kraschar_inte(bok):

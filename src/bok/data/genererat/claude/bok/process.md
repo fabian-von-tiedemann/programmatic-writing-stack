@@ -17,7 +17,7 @@ Fritt samtal, i vilken ordning som helst. För att börja skriva kapitel 1 kräv
 | Del | Filer | Klar när |
 |---|---|---|
 | Koncept | `bok/koncept/premiss.md`, `bok/koncept/genre.md`, `bok/koncept/form.md`, `bok/koncept/teman.md` | inga `{{…}}` kvar |
-| Karaktärer (grind I.1) | `bok/karaktarer/<id>.md` | minst en har `pov: true`; varje POV-karaktär har önskan, rädsla, blind fläck och språklig signatur |
+| Karaktärer (grind I.1) | `bok/karaktarer/<id>.md` | varje fil anger `pov: true` eller `false`; minst en har `pov: true`; varje POV-karaktär är helt ifylld, med önskan, rädsla, blind fläck och språklig signatur |
 | Plot (grind I.2) | `bok/plot/struktur.md`, `bok/plot/bagar.md` | central fråga, inciting incident, mittpunkt, klimax och varje akts funktion |
 | Röst | `bok/stil/rost.md` | ifylld och godkänd i stilverkstaden |
 | Kapitelplan | `bok/plot/kapitelplan.md` | åtminstone första akten |

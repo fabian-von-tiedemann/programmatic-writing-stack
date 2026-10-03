@@ -139,3 +139,10 @@ def test_kontinuitet_anger_runda_och_redaktoren_laser_teman():
     kont = (AGENTER / "bok-kontinuitet.md").read_text(encoding="utf-8")
     assert "roll: kontinuitet\nrunda: R\n" in kont
     assert "`bok/koncept/teman.md`" in (AGENTER / "bok-redaktor.md").read_text(encoding="utf-8")
+
+
+def test_bagarnas_status_och_akt_som_siffra_beskrivs():
+    assert "`status` är `oppen` eller `stangd`" in (DATA / "genererat/claude/bok/story-graph.md").read_text(encoding="utf-8")
+    assert "`oppen` eller `stangd`" in (AGENTER / "bok-kontinuitet.md").read_text(encoding="utf-8")
+    assert "Akt: en siffra." in (DATA / "bok/bok/plot/kapitelplan.md").read_text(encoding="utf-8")
+    assert "Akt: en siffra." in (AGENTER / "bok-plot-arkitekt.md").read_text(encoding="utf-8")

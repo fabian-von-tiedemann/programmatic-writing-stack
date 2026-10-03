@@ -1,6 +1,6 @@
 # Kapitelplan
 
-En rad per kapitel. Plot-arkitekten håller den aktuell. Kolumnen Akt avgör när Förläggaren läser.
+En rad per kapitel. Plot-arkitekten håller den aktuell. Kolumnen Akt avgör när Förläggaren läser. Akt: en siffra.
 
 | Kapitel | Akt | POV | Funktion | Bågar |
 |---|---|---|---|---|

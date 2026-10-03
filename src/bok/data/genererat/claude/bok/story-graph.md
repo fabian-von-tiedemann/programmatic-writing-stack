@@ -60,7 +60,7 @@ Bara fakta som etablerats i texten. Önskan, rädsla och båge står i `bok/kara
 ]}
 ```
 
-Bågarnas faktiska rörelse. Planen för bågen står i `bok/plot/bagar.md` med samma `id`. `typ` är `intrig`, `karaktar` eller `tema`. En plantering är något som läsaren ska minnas och som måste lösas (`loses_i` = kapitlet där det sker).
+Bågarnas faktiska rörelse. Planen för bågen står i `bok/plot/bagar.md` med samma `id`. `typ` är `intrig`, `karaktar` eller `tema`. `status` är `oppen` eller `stangd`, skrivet exakt så (utan å och ö). En plantering är något som läsaren ska minnas och som måste lösas (`loses_i` = kapitlet där det sker).
 
 ## Tillval
 

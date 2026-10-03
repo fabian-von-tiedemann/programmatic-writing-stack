@@ -143,3 +143,25 @@ def test_kapitelfalt_som_inte_ar_heltal_kraschar_inte(bok):
     g.karaktar("anna")
     g.var("garden")
     g.vem_vet("s", kapitel=2)
+
+
+@pytest.mark.parametrize("status,oppen", [
+    ("oppen", True), ("öppen", True), (" Öppen ", True), ("OPPEN", True), (None, True),
+    ("stangd", False), ("stängd", False),
+])
+def test_ar_oppen(status, oppen):
+    from bok.graf import ar_oppen
+
+    t = {"id": "t-x"} if status is None else {"id": "t-x", "status": status}
+    assert ar_oppen(t) is oppen
+
+
+def test_oppen_med_a_och_versal_raknas_som_oppen(bok):
+    skriv_graf(bok, {"threads": [
+        {"id": "t-a", "namn": "Med ö", "typ": "intrig", "status": "Öppen", "steg": []},
+        {"id": "t-b", "namn": "Stängd", "typ": "intrig", "status": "stangd", "steg": []},
+    ]})
+    g = Graf.load(bok)
+    assert "Med ö" in g.bagar(oppna=True) and "Stängd" not in g.bagar(oppna=True)
+    out = g.context(1, [], [], [])
+    assert "t-a" in out and "t-b" not in out

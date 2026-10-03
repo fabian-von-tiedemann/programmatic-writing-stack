@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 from bok import boktoml, frontmatter
-from bok.graf import Graf, GrafFel
+from bok.graf import Graf, GrafFel, ar_oppen
 from bok.rapport import GRANSKARE_AXLAR, las_alla
 from bok.rot import find_root
 
@@ -20,7 +20,7 @@ MAX_RUNDOR = 3
 PASSERAT = 8
 GRANSKARE = tuple(GRANSKARE_AXLAR)
 NAMN = {"redaktor": "Redaktören", "sprakgranskare": "Språkgranskaren"}
-_RAD = re.compile(r"^\|\s*(\d+)\s*\|\s*(\d+)\s*\|", re.M)
+_RAD = re.compile(r"^\|\s*(\d+)\s*\|\s*(?:akt\s*)?(\d+)\s*\|", re.M | re.I)
 _KAPFIL = re.compile(r"^kapitel-(\d+)\.md$")
 
 
@@ -43,19 +43,22 @@ def _karaktarer(root: Path) -> dict:
     filer = sorted(p for p in katalog.glob("*.md") if p.name not in ("MALL.md", "README.md"))
     if not filer:
         return {"namn": "Karaktärer", "klar": False, "saknas": ["ingen karaktär än"]}
+    # Bara POV-karaktärerna måste vara ifyllda; bikaraktärer får växa under skrivandet.
     saknas, pov = [], 0
     for p in filer:
         text = p.read_text(encoding="utf-8")
-        if "{{" in text:
-            saknas.append(f"{p.name} är inte ifylld")
-            continue
         try:
             meta, _ = frontmatter.split(text)
         except frontmatter.FrontmatterFel:
             saknas.append(f"{p.name} har trasig frontmatter")
             continue
-        pov += meta.get("pov") is True
-    if pov == 0 and not saknas:
+        if meta.get("pov") is True:
+            pov += 1
+            if "{{" in text:
+                saknas.append(f"{p.name} är inte ifylld")
+        elif meta.get("pov") is not False:
+            saknas.append(f"{p.name}: ange pov: true eller false")
+    if pov == 0:
         saknas.append("ingen POV-karaktär (pov: true)")
     return {"namn": "Karaktärer", "klar": not saknas, "saknas": saknas}
 
@@ -81,25 +84,29 @@ def _kapitelnummer(root: Path, plan: dict[int, int]) -> list[int]:
     return sorted(nr)
 
 
-def _scenkort(root: Path, nr: int) -> tuple[bool, bool]:
+def _scenkort(root: Path, nr: int) -> tuple[bool, bool, str | None]:
+    """(finns och är ifyllt, godkänt, fel i frontmattern)."""
     path = _kapitelfil(root / "bok" / "plot" / "kapitel", nr)
     if path is None:
-        return False, False
+        return False, False, None
     text = path.read_text(encoding="utf-8")
     if "{{" in text:
-        return False, False
+        return False, False, None
     try:
         meta, _ = frontmatter.split(text)
-    except frontmatter.FrontmatterFel:
-        return False, False
-    return True, meta.get("godkand") is True
+    except frontmatter.FrontmatterFel as exc:
+        return False, False, str(exc).rstrip(".")
+    return True, meta.get("godkand") is True, None
 
 
-def _lage(nr, scenkort, plan_ok, utkast, sammanfattning, g, senaste, forf) -> tuple[str, str | None]:
+def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, forf) -> tuple[str, str | None]:
     if forf and forf["utfall"] == "godkand" and forf["runda"] >= g:
         if sammanfattning:
             return "klart", None
         return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen (runda {g})."
+    if kortfel:
+        return "scenkortet har trasig frontmatter", (f"Kapitel {nr}: scenkortet har trasig frontmatter "
+                                                     f"({kortfel}). Rätta det.")
     if not scenkort:
         return "scenkort saknas", f"Kapitel {nr}: Plot-arkitekten gör scenkortet."
     if not plan_ok:
@@ -139,7 +146,7 @@ def _vill_ha_revision(senaste: dict) -> str:
 
 def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dict:
     egna = [r for r in rapporter if r["omfang"] == "kapitel" and r.get("kapitel") == nr]
-    scenkort, plan_ok = _scenkort(root, nr)
+    scenkort, plan_ok, kortfel = _scenkort(root, nr)
     manus = _kapitelfil(root / "manuskript", nr)
     granskning = [r for r in egna if r["roll"] in GRANSKARE]
     g = max((r["runda"] for r in granskning), default=0)
@@ -153,7 +160,7 @@ def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dic
     for roll in GRANSKARE:
         if roll in senaste:
             betyg.update(senaste[roll].get("betyg") or {})
-    lage, nasta = _lage(nr, scenkort, plan_ok, manus is not None, aktuell, g, senaste, forf)
+    lage, nasta = _lage(nr, scenkort, plan_ok, kortfel, manus is not None, aktuell, g, senaste, forf)
     return {"nr": nr, "akt": akt, "lage": lage, "runda": g, "betyg": betyg, "klart": nasta is None, "nasta": nasta}
 
 
@@ -210,7 +217,7 @@ def _bagar(root: Path, kapitel: list[dict]) -> dict:
           if start is not None and start <= senast and not (threads.get(bid) or {}).get("steg")]
     still = []
     for tid, t in threads.items():
-        if t.get("status", "oppen") != "oppen":
+        if not ar_oppen(t):
             continue
         steg = [s["kapitel"] for s in t.get("steg") or [] if isinstance(s, dict) and isinstance(s.get("kapitel"), int)]
         if steg and senast - max(steg) >= 3:

@@ -40,7 +40,7 @@ utfall: godkand
 `utfall: revidera` om något måste åtgärdas innan första kapitlet.
 
 ## Uppdrag: kapitelplan
-Skriv eller utöka tabellen i `bok/plot/kapitelplan.md`: en rad per kapitel med kapitel, akt, POV, funktion och vilka bågar som rör sig. Varje kapitel ska flytta minst en båge. Varje akt ska sluta med en vändning.
+Skriv eller utöka tabellen i `bok/plot/kapitelplan.md`: en rad per kapitel med kapitel, akt, POV, funktion och vilka bågar som rör sig. Akt: en siffra. Varje kapitel ska flytta minst en båge. Varje akt ska sluta med en vändning.
 
 ## Uppdrag: scenkort
 Kopiera `bok/plot/kapitel/MALL.md` till `bok/plot/kapitel/kapitel-NN.md` och fyll i allt. Frontmattern listar POV, alla personer och platser med deras id i grafen (nya personer får nya id) och bågarna som rör sig. Lämna `godkand: false`; författaren godkänner.
