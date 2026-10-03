@@ -7,7 +7,7 @@ import re
 import sys
 from pathlib import Path
 
-from bok import frontmatter
+from bok import frontmatter, tics
 from bok.rot import BokFel, find_root
 
 GRANSKARE_AXLAR = {
@@ -39,18 +39,18 @@ def _posint(v) -> bool:
 
 def validera(meta: dict) -> list[str]:
     roll = meta.get("roll")
-    if roll not in UTFALL:
+    if not isinstance(roll, str) or roll not in UTFALL:
         return [f"roll måste vara en av {', '.join(sorted(UTFALL))}, fick {roll!r}."]
     fel = []
     omfang = meta.get("omfang", "kapitel")
-    if omfang not in OMFANG:
+    if not isinstance(omfang, str) or omfang not in OMFANG:
         fel.append(f"omfang måste vara en av {', '.join(OMFANG)}, fick {omfang!r}.")
     if omfang == "kapitel" and not _posint(meta.get("kapitel")):
         fel.append("kapitel måste vara ett heltal ≥ 1 när omfang är kapitel.")
     if omfang == "akt" and not _posint(meta.get("akt")):
         fel.append("akt måste vara ett heltal ≥ 1 när omfang är akt.")
     utfall = meta.get("utfall")
-    if utfall not in UTFALL[roll]:
+    if not isinstance(utfall, str) or utfall not in UTFALL[roll]:
         fel.append(f"utfall för {roll} måste vara en av {', '.join(sorted(UTFALL[roll]))}, fick {utfall!r}.")
     if "runda" in meta and not _posint(meta["runda"]):
         fel.append("runda måste vara ett heltal ≥ 1.")
@@ -144,7 +144,10 @@ def register(sub: argparse._SubParsersAction) -> None:
 
 def _kor(args: argparse.Namespace) -> int:
     root = find_root()
-    text = sys.stdin.read() if args.fil == "-" else Path(args.fil).read_text(encoding="utf-8")
+    if args.fil == "-":
+        text = sys.stdin.read()
+    else:
+        text = tics.las_kapitel(Path(args.fil))
     path = spara(root, text, args.skriv_over)
     print(f"Sparade {path.relative_to(root).as_posix()}.")
     return 0

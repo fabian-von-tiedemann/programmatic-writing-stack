@@ -89,3 +89,31 @@ def test_cli_fel_visas_som_lista(bok, capsys, monkeypatch):
     monkeypatch.setattr("sys.stdin", io.StringIO(RED.replace("roll: redaktor", "roll: x")))
     assert main(["rapport", "spara", "-"]) == 2
     assert "Rapporten avvisades" in capsys.readouterr().err
+
+
+def test_validera_roll_lista(bok):
+    with pytest.raises(RapportFel, match="roll måste vara en av"):
+        spara(bok, RED.replace("roll: redaktor", "roll: [redaktor]"))
+
+
+def test_validera_utfall_lista(bok):
+    with pytest.raises(RapportFel, match="utfall för"):
+        spara(bok, RED.replace("utfall: revidera", "utfall: [revidera]"))
+
+
+def test_validera_utfall_dict(bok):
+    with pytest.raises(RapportFel, match="utfall för"):
+        spara(bok, RED.replace("utfall: revidera", "utfall: {a: 1}"))
+
+
+def test_las_alla_hoppar_over_roll_lista(bok):
+    spara(bok, RED)
+    skriv(bok, "bok/rapporter/kapitel-03/ogiltigt.md", "---\nroll: [redaktor]\nomfang: kapitel\nkapitel: 3\n---\n")
+    alla = las_alla(bok)
+    assert [(r["roll"], r["kapitel"]) for r in alla] == [("redaktor", 3)]
+
+
+def test_cli_filinteFel(bok, capsys):
+    assert main(["rapport", "spara", "finns-inte.md"]) == 2
+    err = capsys.readouterr().err
+    assert "Hittar inte" in err or "finns-inte.md" in err
