@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bok-forslag",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Fabians PRIVATA Cloudflare-konto, aldrig Digitalists. Sätts i Task 5 efter `wrangler whoami`.
+  "account_id": "SATTS-I-TASK-5",
+  // Inga loggar: förslagens text ska inte hamna i loggar.
+  "observability": { "enabled": false },
+  "vars": { "GITHUB_REPO": "fabian-von-tiedemann/bok-forslag" },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "bok-forslag", "database_id": "SATTS-I-TASK-5", "migrations_dir": "migrations" }
+  ],
+  // Bindningen tillåter bara fönster på 10 eller 60 sekunder; takten per timme räknas i D1.
+  "ratelimits": [
+    { "name": "NYCKEL_GRANS", "namespace_id": "4101", "simple": { "limit": 2, "period": 60 } },
+    { "name": "IP_GRANS", "namespace_id": "4102", "simple": { "limit": 10, "period": 60 } }
+  ]
+}

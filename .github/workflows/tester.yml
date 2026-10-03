@@ -35,3 +35,20 @@ jobs:
           test -f .claude/skills/bok/SKILL.md
           test -f .claude/agents/bok-writer.md
           git log --oneline | grep -q "bok init"
+
+  mottagare:
+    name: Mottagaren
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mottagare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mottagare/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
