@@ -14,6 +14,8 @@ bok init --titel "Arbetstitel"
 
 Du behöver Python 3.11 eller senare; uv hämtar det åt dig om det saknas.
 
+Första gången på en ny dator: följ [docs/installera.md](docs/installera.md) steg för steg (git, uv, bok, din bok och en säkerhetskopia).
+
 Öppna mappen i Claude Code eller Conductor och börja prata: om en idé, en person, en scen eller hur boken ska låta. Har du redan chattat om boken: lägg chattarna i `inkorg/` och be Claude gå igenom dem.
 
 **Med Conductor.** `bok init` gör mappen till ett git-repo (grenen `main`) med en första commit, och tillåter `bok`, `git add` och `git commit` i `.claude/settings.json` (som följer med i repot) så att Claude Code inte frågar om lov vid varje steg. Lägg sedan till bokens mapp som ett repository i Conductor. Varje workspace är en egen gren: slå ihop godkänt arbete tillbaka till main.
