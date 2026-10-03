@@ -41,7 +41,7 @@ När sista kapitlet i en akt (kolumnen Akt i kapitelplanen) är klart läser `bo
 
 ### När alla kapitel är klara
 
-`bok-forlaggare` gör slutläsningen (`omfang: bok`, utfall `A`, `B` eller `C`). `bok-sensitivitet` läser en gång. Därefter tillval: `bok mall forlag`, `bok mall audiobook`, `bok mall marknad`.
+`bok-forlaggare` gör slutläsningen (`omfang: bok`, utfall `A`, `B` eller `C`). Vid `B` eller `C` arbetas åtgärderna igenom och Förläggaren läser boken igen. Efter `A` läser `bok-sensitivitet` hela boken (`omfang: bok`); vid `atgarda` åtgärdas fynden och sensitivitetsläsaren läser igen. Därefter är boken klar, och tillvalen återstår: `bok mall forlag`, `bok mall audiobook`, `bok mall marknad`.
 
 ## Betyg
 

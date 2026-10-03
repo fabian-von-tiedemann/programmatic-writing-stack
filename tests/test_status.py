@@ -90,7 +90,7 @@ def test_forberedelse_klar_vantar_pa_ja(bok):
     fyll_forberedelse(bok)
     s = compute(bok)
     assert all(d["klar"] for d in s["forberedelse"])
-    assert s["nasta"].startswith("Förberedelsen är klar")
+    assert s["nasta"] == "Förberedelsen är klar: läs sammanfattningen av boken och ge ditt ja."
 
 
 def test_kapitelplan(bok):
@@ -136,7 +136,7 @@ def test_loopen_for_ett_kapitel(bok):
     ja_pa_forberedelse(bok)
     assert compute(bok)["nasta"] == "Kapitel 1: Plot-arkitekten gör scenkortet."
     scenkort(bok, 1, godkand=False)
-    assert compute(bok)["nasta"] == "Kapitel 1: visa scenkortet och be om ja."
+    assert compute(bok)["nasta"] == "Kapitel 1: scenkortet väntar på ditt ja."
     scenkort(bok, 1)
     assert compute(bok)["nasta"] == "Kapitel 1: Writer skriver utkastet."
     skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
@@ -173,7 +173,8 @@ def test_eskalering_efter_tre_rundor(bok):
     skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
     for r in (1, 2, 3):
         granska(bok, 1, r, sprak="revidera")
-    assert "inte nöjda efter runda 3" in compute(bok)["nasta"]
+    assert compute(bok)["nasta"] == ("Kapitel 1: granskarna är inte nöjda efter runda 3: "
+                                     "du bestämmer – godkänn eller skicka tillbaka.")
 
 
 def test_tillbaka_fran_forfattaren(bok):
@@ -235,14 +236,39 @@ def test_aktgrans_och_slut(bok):
     klart_kapitel(bok, 2)
     assert compute(bok)["nasta"] == "Akt 1 är skriven: Förläggaren läser akten."
     rapport(bok, omfang="akt", akt=1, roll="forlaggare", utfall="atgarda")
-    assert compute(bok)["nasta"] == "Akt 1 är skriven: Förläggaren läser akten."
+    assert compute(bok)["nasta"] == "Akt 1: åtgärda Förläggarens fynd och låt Förläggaren läsa akten igen."
     rapport(bok, omfang="akt", akt=1, roll="forlaggare", utfall="fortsatt")
     assert compute(bok)["nasta"] == "Kapitel 3: Plot-arkitekten gör scenkortet."
     klart_kapitel(bok, 3)
     rapport(bok, omfang="akt", akt=2, roll="forlaggare", utfall="fortsatt")
     assert compute(bok)["nasta"].startswith("Alla planerade kapitel är klara")
     rapport(bok, omfang="bok", roll="forlaggare", utfall="A")
-    assert compute(bok)["nasta"].startswith("Boken är klar")
+    assert compute(bok)["nasta"] == "Boken har fått A: sensitivitetsläsningen återstår."
+    rapport(bok, omfang="bok", roll="sensitivitet", utfall="atgarda")
+    assert compute(bok)["nasta"] == ("Åtgärda sensitivitetsläsarens fynd och låt "
+                                     "sensitivitetsläsaren läsa boken igen.")
+    rapport(bok, omfang="bok", roll="sensitivitet", utfall="godkand")
+    assert compute(bok)["nasta"] == "Boken är klar. Tillval: bok mall forlag, audiobook eller marknad."
+
+
+def hela_boken_skriven(root):
+    fyll_forberedelse(root)
+    ja_pa_forberedelse(root)
+    for nr in (1, 2, 3):
+        klart_kapitel(root, nr)
+    for akt in (1, 2):
+        rapport(root, omfang="akt", akt=akt, roll="forlaggare", utfall="fortsatt")
+
+
+@pytest.mark.parametrize("betyg", ["B", "C"])
+def test_slutbetyg_b_eller_c_ger_ny_lasning(bok, betyg):
+    hela_boken_skriven(bok)
+    rapport(bok, omfang="bok", roll="forlaggare", utfall=betyg)
+    assert compute(bok)["nasta"] == (f"Förläggaren gav {betyg}: arbeta igenom åtgärderna och "
+                                     "låt Förläggaren läsa boken igen.")
+    rapport(bok, omfang="bok", roll="forlaggare", utfall="A")
+    assert compute(bok)["nasta"] == "Boken har fått A: sensitivitetsläsningen återstår."
+
 
 
 def test_kapitelfil_med_en_siffra(bok):

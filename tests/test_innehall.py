@@ -146,3 +146,11 @@ def test_bagarnas_status_och_akt_som_siffra_beskrivs():
     assert "`oppen` eller `stangd`" in (AGENTER / "bok-kontinuitet.md").read_text(encoding="utf-8")
     assert "Akt: en siffra." in (DATA / "bok/bok/plot/kapitelplan.md").read_text(encoding="utf-8")
     assert "Akt: en siffra." in (AGENTER / "bok-plot-arkitekt.md").read_text(encoding="utf-8")
+
+
+def test_skillen_har_sensitivitet_som_steg_efter_a_och_eskalering_till_scenkortet():
+    body = (DATA / "genererat/claude/skills/bok/SKILL.md").read_text(encoding="utf-8")
+    rader = {r.split("|")[1].strip(): r for r in body.splitlines() if r.startswith("| ")}
+    assert "När boken fått A" in rader["Sensitivitet"] and "bok-sensitivitet" in rader["Sensitivitet"]
+    assert "bok-sensitivitet" not in rader["Tillval"]
+    assert "eskalera" in rader["Du bestämmer"] and "bok-plot-arkitekt" in rader["Du bestämmer"]

@@ -78,16 +78,17 @@ RAPPORT
 
 | Steg | Gör |
 |---|---|
-| Scenkort | Finns scenkortet redan och väntar bara på hennes ja: visa det kort och fråga. Annars starta `bok-plot-arkitekt` med uppdraget **scenkort** för kapitel N och visa det kort. Vid ja: sätt `godkand: true` i scenkortets frontmatter. |
+| Scenkort | Finns scenkortet redan och väntar bara på hennes ja: visa det kort och fråga. Annars starta `bok-plot-arkitekt` med uppdraget **scenkort** för kapitel N och visa det kort. Vid ja: sätt `godkand: true` i scenkortets frontmatter. Säger status att scenkortet har trasig frontmatter: rätta raden som nämns. |
 | Utkast | Starta `bok-writer` med kapitel N. |
 | Granskning | Kör `bok validate` och `bok tics` på kapitlet. Starta bara den granskare vars rapport för runda R saknas (status nämner dem); finns ingen ännu, starta `bok-redaktor` och `bok-sprakgranskare` parallellt med kapitel N och runda R. Spara rapporterna med `bok rapport spara -`. |
 | Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. |
-| Du bestämmer | Visa de viktigaste fynden och båda alternativen. Hon godkänner som det är, eller skickar tillbaka med egna kommentarer. |
+| Du bestämmer | Visa de viktigaste fynden och båda alternativen. Hon godkänner som det är, eller skickar tillbaka med egna kommentarer. Sa en granskare `eskalera` (problemet ligger i planen): erbjud också att `bok-plot-arkitekt` reviderar scenkortet först. Vid ja: visa det nya scenkortet och få hennes ja innan kapitlet skrivs om. |
 | Kontinuitet | Starta `bok-kontinuitet` med kapitel N och runda R (senaste granskningsrundan). Spara rapporten. Visa flaggorna. |
 | Hennes läsning | Säg att kapitlet ligger i `manuskript/kapitel-NN.md`, och erbjud en kort sammanfattning först. |
 | Aktgräns | Starta `bok-forlaggare` för akten. Spara rapporten och gå igenom åtgärderna med henne. Vid `atgarda`: åtgärda fynden med rätt roll och låt Förläggaren läsa akten igen. |
-| Slutläsning | När alla planerade kapitel är klara: fråga om fler kapitel ska planeras (`bok-plot-arkitekt`, uppdraget kapitelplan) eller om boken är färdig. Är den färdig: starta `bok-forlaggare` för hela boken (`omfang: bok`, utfall A, B eller C). Spara rapporten och gå igenom den med henne. |
-| Tillval | När boken är klar: erbjud `bok-sensitivitet` (en gång), och modulerna `bok mall forlag`, `bok mall audiobook` (sedan `bok-audiobook`) och `bok mall marknad` (sedan `bok-marknad`). |
+| Slutläsning | När alla planerade kapitel är klara: fråga om fler kapitel ska planeras (`bok-plot-arkitekt`, uppdraget kapitelplan) eller om boken är färdig. Är den färdig: starta `bok-forlaggare` för hela boken (`omfang: bok`, utfall A, B eller C). Spara rapporten och gå igenom den med henne. Vid B eller C: arbeta igenom åtgärderna med rätt roll och låt Förläggaren läsa boken igen. |
+| Sensitivitet | När boken fått A: starta `bok-sensitivitet` för hela boken (`omfang: bok`). Spara rapporten och gå igenom fynden med henne. Vid `atgarda`: åtgärda fynden och låt sensitivitetsläsaren läsa igen. |
+| Tillval | När boken är klar: erbjud modulerna `bok mall forlag`, `bok mall audiobook` (sedan `bok-audiobook`) och `bok mall marknad` (sedan `bok-marknad`). |
 
 Hennes omdöme om ett kapitel sparas med samma runda som den senaste granskningen:
 

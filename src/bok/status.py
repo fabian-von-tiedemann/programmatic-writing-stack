@@ -110,7 +110,7 @@ def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, fo
     if not scenkort:
         return "scenkort saknas", f"Kapitel {nr}: Plot-arkitekten gör scenkortet."
     if not plan_ok:
-        return "scenkortet väntar på ditt ja", f"Kapitel {nr}: visa scenkortet och be om ja."
+        return "scenkortet väntar på ditt ja", f"Kapitel {nr}: scenkortet väntar på ditt ja."
     if not utkast:
         return "utkast saknas", f"Kapitel {nr}: Writer skriver utkastet."
     if g == 0:
@@ -123,8 +123,8 @@ def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, fo
         return f"granskning runda {g}", f"Kapitel {nr}: {' och '.join(NAMN[r] for r in saknade)} ska granska runda {g}."
     utfall = {r["utfall"] for r in senaste.values()}
     if "eskalera" in utfall or ("revidera" in utfall and g >= MAX_RUNDOR):
-        return "du bestämmer", (f"Kapitel {nr}: granskarna är inte nöjda efter runda {g}. "
-                                "Visa fynden; hon godkänner eller skickar tillbaka.")
+        return "du bestämmer", (f"Kapitel {nr}: granskarna är inte nöjda efter runda {g}: "
+                                "du bestämmer – godkänn eller skicka tillbaka.")
     if "revidera" in utfall:
         return "revision", (f"Kapitel {nr}: Writer reviderar efter fynden i runda {g}, "
                             f"sedan granskning runda {g + 1}." + _vill_ha_revision(senaste))
@@ -174,7 +174,7 @@ def _nasta(forb, ja, kapitel, plan, rapporter) -> str:
         if not d["klar"]:
             return f"Förberedelse: {d['namn']} – {d['saknas'][0]}."
     if not ja:
-        return "Förberedelsen är klar: visa en sammanfattning av boken och be om hennes ja."
+        return "Förberedelsen är klar: läs sammanfattningen av boken och ge ditt ja."
     akter: dict[int, list[int]] = {}
     for nr, akt in plan.items():
         akter.setdefault(akt, []).append(nr)
@@ -183,6 +183,8 @@ def _nasta(forb, ja, kapitel, plan, rapporter) -> str:
             return k["nasta"]
         if k["akt"] is not None and k["nr"] == max(akter[k["akt"]]):
             fl = _senaste(rapporter, omfang="akt", akt=k["akt"], roll="forlaggare")
+            if fl and fl["utfall"] == "atgarda":
+                return f"Akt {k['akt']}: åtgärda Förläggarens fynd och låt Förläggaren läsa akten igen."
             if not fl or fl["utfall"] != "fortsatt":
                 return f"Akt {k['akt']} är skriven: Förläggaren läser akten."
     if not kapitel:
@@ -190,7 +192,15 @@ def _nasta(forb, ja, kapitel, plan, rapporter) -> str:
     slut = _senaste(rapporter, omfang="bok", roll="forlaggare")
     if not slut or slut["utfall"] not in ("A", "B", "C"):
         return "Alla planerade kapitel är klara. Planera fler i kapitelplanen, eller låt Förläggaren göra slutläsningen."
-    return "Boken är klar. Tillval: sensitivitetsläsning, bok mall forlag, audiobook eller marknad."
+    if slut["utfall"] != "A":
+        return (f"Förläggaren gav {slut['utfall']}: arbeta igenom åtgärderna och "
+                "låt Förläggaren läsa boken igen.")
+    sens = _senaste(rapporter, omfang="bok", roll="sensitivitet")
+    if not sens:
+        return "Boken har fått A: sensitivitetsläsningen återstår."
+    if sens["utfall"] != "godkand":
+        return "Åtgärda sensitivitetsläsarens fynd och låt sensitivitetsläsaren läsa boken igen."
+    return "Boken är klar. Tillval: bok mall forlag, audiobook eller marknad."
 
 
 def _plan_bagar(root: Path) -> list[tuple[str, int | None]]:

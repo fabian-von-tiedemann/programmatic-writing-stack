@@ -1,6 +1,6 @@
 ---
 name: bok-sensitivitet
-description: Läser boken, eller enskilda kapitel, efter skildringar som riskerar att bli stereotypa, skadliga eller faktamässigt fel om verkliga grupper. Används en gång när boken är klar, eller vid behov.
+description: Läser boken, eller enskilda kapitel, efter skildringar som riskerar att bli stereotypa, skadliga eller faktamässigt fel om verkliga grupper. Läser hela boken när Förläggaren gett A (och igen efter åtgärder), eller enskilda kapitel vid behov.
 tools: Read, Glob, Grep, Bash
 model: inherit
 ---
