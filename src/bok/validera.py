@@ -11,7 +11,7 @@ from bok.rot import find_root
 from bok.tics import kapitelfiler, las_kapitel
 
 _NAMN = re.compile(r"(?<![\wÅÄÖåäö])([A-ZÅÄÖ][a-zåäöéü]+(?:[ -][A-ZÅÄÖ][a-zåäöéü]+)*)")
-MENINGSSTART = set('.!?…:–—-""»«(')
+MENINGSSTART = {'.', '!', '?', '…', ':', '–', '—', '-', '“', '”', '»', '«', '(', '‘', '’'}
 
 
 def block(text: str, namn: str) -> list[str]:
@@ -67,7 +67,7 @@ def register(sub: argparse._SubParsersAction) -> None:
 def _kor(args: argparse.Namespace) -> int:
     root = find_root()
     canon_path = root / "bok" / "canon.md"
-    canon = canon_path.read_text(encoding="utf-8") if canon_path.is_file() else ""
+    canon = las_kapitel(canon_path) if canon_path.is_file() else ""
     forbjudna = block(canon, "blacklist")
     kanda = kanda_namn(Graf.load(root), canon)
     filer = [Path(f).resolve() for f in args.filer] or kapitelfiler(root)

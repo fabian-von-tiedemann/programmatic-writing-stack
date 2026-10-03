@@ -28,6 +28,20 @@ def test_okanda_hoppar_over_meningsstart_och_kanda():
     assert ut == [(1, "Märta"), (2, "Gustav")]
 
 
+def test_okanda_med_curly_quotes():
+    # Swedish dialogue with curly quotes
+    text = '“Nej”, sa Märta till Gustav.\n'
+    ut = okanda(text, {"Märta"})
+    assert ut == [(1, "Gustav")]
+
+
+def test_okanda_sentence_start_after_curly_quote_and_period():
+    # After curly quote and period, the word is at sentence start
+    text = '“Nej.” Märta log.\n'
+    ut = okanda(text, set())
+    assert ut == []
+
+
 def test_cli_blacklist_ger_exitkod_1(bok, capsys):
     skriv(bok, "bok/canon.md", CANON)
     skriv(bok, "manuskript/kapitel-01.md", "Hon läste om Olof Palme.\n")
