@@ -209,3 +209,10 @@ def test_trasiga_installningar_lamnas(tmp_path):
     actions = init_repo(tmp_path, titel="X", git=False)
     assert (tmp_path / ".claude/settings.json").read_text() == "{ inte json"
     assert any(a.startswith("VARNING: .claude/settings.json") for a in actions)
+
+
+def test_installningar_som_lista_lamnas(tmp_path):
+    skriv(tmp_path, ".claude/settings.json", "[]")
+    actions = init_repo(tmp_path, titel="X", git=False)
+    assert (tmp_path / ".claude/settings.json").read_text() == "[]"
+    assert any(a.startswith("VARNING: .claude/settings.json") for a in actions)

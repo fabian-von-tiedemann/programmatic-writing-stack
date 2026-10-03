@@ -54,9 +54,6 @@ TILLSTAND = (
     "Bash(bok:*)",
     "Bash(git add:*)",
     "Bash(git commit:*)",
-    "Bash(git status:*)",
-    "Bash(git log:*)",
-    "Bash(git diff:*)",
 )
 
 
@@ -116,7 +113,9 @@ def _in_git(root: Path) -> bool:
 
 def _git_init(root: Path) -> str:
     try:
-        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True)
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        # `git init -b` kräver git 2.28; symbolic-ref fungerar överallt
+        subprocess.run(["git", "symbolic-ref", "HEAD", "refs/heads/main"], cwd=root, check=True)
     except (OSError, subprocess.CalledProcessError):
         return "VARNING: git saknas eller git init misslyckades; mappen är inte versionshanterad."
     subprocess.run(["git", "add", "-A"], cwd=root, check=False)

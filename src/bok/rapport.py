@@ -124,8 +124,10 @@ def spara(root: Path, text: str, skriv_over: bool = False) -> Path:
     runda = runda or _nasta(katalog, meta["roll"])
     path = katalog / f"{meta['roll']}-r{runda}.md"
     if path.exists() and not skriv_over:
-        raise RapportFel([f"{path.relative_to(root).as_posix()} finns redan. Använd en ny runda, "
-                          "eller --skriv-over för att ersätta rapporten."])
+        rad = path.relative_to(root).as_posix()
+        if meta["roll"] in EFTER_GRANSKNING and meta.get("omfang", "kapitel") == "kapitel":
+            raise RapportFel([f"{rad} finns redan för den här rundan. Använd --skriv-over för att ersätta den."])
+        raise RapportFel([f"{rad} finns redan. Använd en ny runda, eller --skriv-over för att ersätta rapporten."])
     normal = text.lstrip("﻿").replace("\r\n", "\n").lstrip()
     path.write_text(normal if normal.endswith("\n") else normal + "\n", encoding="utf-8")
     return path
