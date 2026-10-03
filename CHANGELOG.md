@@ -2,6 +2,12 @@
 
 Alla större ändringar i Programmatic Writing Stack dokumenteras här. Följer [Keep a Changelog](https://keepachangelog.com/)-formatet.
 
+## [2.1.1] — 2026-10-03
+
+### Lagt till
+- Välkomst första gången: i en helt ny bok berättar Claude kort hur det går till och vad man kan börja med.
+- `README.md` i bokens rot (skapas av `bok init` om den saknas): kom igång, mapparna, uppdatering och förslag, skrivet för författaren.
+
 ## [2.1.0] — 2026-10-03
 
 ### Lagt till
