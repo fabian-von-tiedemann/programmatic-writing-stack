@@ -17,6 +17,7 @@ BESKRIVNING = {
     "graf-extra": "Föremål, organisationer och dokument i grafen.",
     "audiobook": "Uttal, röstprofiler och inläsningsnoter.",
     "marknad": "Baksidestext, pitch och målgrupp.",
+    "tidslinje": "Bokens tid år för år, för berättelser som spänner över många år.",
 }
 
 

@@ -55,10 +55,10 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 |---|---|
 | `bok init` | gör en mapp till ett bokrepo, eller uppgradera ramverket |
 | `bok status` | var boken står och nästa steg |
-| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad` |
-| `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var` |
+| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad`, `tidslinje` |
+| `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var`, `tidslinje` |
 | `bok tics` | ord och vändningar som blivit vana |
-| `bok validate` | förbjudna namn och namn som saknas i grafen |
+| `bok validate` | förbjudna namn, tidslinjen och namn/åldrar att kontrollera |
 | `bok rapport spara` | sparar granskningar och godkännanden |
 | `bok annotations` | läsarnoter från Apple Böcker (macOS) |
 | `bok forslag` | skicka förslag till dem som bygger verktyget och se vad som hänt med dem |

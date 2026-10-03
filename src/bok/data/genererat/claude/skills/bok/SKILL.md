@@ -40,12 +40,14 @@ Grundläget. Hon får börja var som helst: en person, en scen, en känsla, ett 
   | hur det ska låta, texter hon gillar | Stilverkstaden nedan |
   | tid, plats, världens regler, sakfrågor | `bok/varld/varld.md`, eller `bok-researcher` |
   | fakta som måste stämma, namn som inte får förekomma | `bok/canon.md` |
+  | en verklig händelse som boken använder | `bok/canon.md`, blocket `verkliga-handelser` (`datum \| händelse \| vad boken lägger till`) |
+  | årtal, när något händer, hur gamla personerna är | grafen (`fodd`, `datum`) via `bok-kontinuitet`, och `bok/plot/tidslinje.md` om modulen finns. Bestämmer hon när någon är född (eller död): skriv `fodd`/`dod` direkt i `bok/story-graph/characters.json` (skapa personen med `id` och `namn` om hen saknas), med samma id som `bok/karaktarer/<id>.md` |
   | ett vägval och varför | `bok/beslut.md` |
 
 - **Föreslå, fråga inte tomt.** Inte "Vad är premissen?" utan "Utifrån det du berättat skulle premissen kunna vara: … Stämmer det, eller vill du vrida på det?"
 - **Fyll i, töm inte.** Ersätt `{{…}}` med hennes innehåll. Stryk inte rubriker.
 - **"Var är vi?"** Återge `bok status` i klartext: vad som finns, vad som saknas innan första kapitlet, och vad du föreslår härnäst.
-- **Genren styr tillvalen.** Spänning, deckare eller thriller: föreslå `bok mall spanning`. En serie: `bok mall serie`.
+- **Genren styr tillvalen.** Spänning, deckare eller thriller: föreslå `bok mall spanning`. En serie: `bok mall serie`. Spänner boken över många år: föreslå `bok mall tidslinje`.
 
 ## Inkorgen
 Om `inkorg/` innehåller något annat än `README.md`, eller hon klistrar in chattar och anteckningar:
@@ -65,9 +67,13 @@ Rösten är det som gör boken till hennes. Kör verkstaden när hon pratar om t
 4. **Val.** Låt henne välja, blanda och säga vad som skaver. Skriv om tills hon känner igen sin bok.
 5. **Röstbeskrivning.** Skriv in det valda i `bok/stil/rost.md`. Writer och Språkgranskare utgår från den filen, aldrig direkt från exemplen.
 
+**En röst per person.** Har boken flera POV-personer och hon vill att någon låter annorlunda: kör verkstaden för den personen ("jobba med Sofias röst"). Provskriv ur personens perspektiv och skriv bara det som skiljer från `bok/stil/rost.md` i `bok/stil/rost-<id>.md`.
+
 Andras texter används för att förstå kvaliteter. Återge aldrig formuleringar ur dem, och håll utdragen korta.
 
 ## Innan första kapitlet
+**Verkliga händelser.** Säger `bok status` att verkliga händelser behöver granskas (`Förberedelse: Verkliga händelser – …`): starta `bok-sensitivitet` för planen (uppdraget planen) och spara rapporten med `bok rapport spara -`. Vid `atgarda`: gå igenom fynden med henne, justera planen och kör sensitivitetsläsaren igen tills utfallet är `godkand`.
+
 När `bok status` visar att allt i förberedelsen är klart utom hennes ja:
 1. Starta `bok-plot-arkitekt` med uppdraget **grind**. Spara rapporten med `bok rapport spara -`. Om utfallet är `revidera`: gå igenom förslagen med henne.
 2. Visa boken på en skärm: premiss, logline, genre och löfte, POV-karaktärerna med önskan och rädsla, akterna, bågarna och rösten i tre meningar.
@@ -90,8 +96,10 @@ RAPPORT
 |---|---|
 | Scenkort | Finns scenkortet redan och väntar bara på hennes ja: visa det kort och fråga. Annars starta `bok-plot-arkitekt` med uppdraget **scenkort** för kapitel N och visa det kort. Vid ja: sätt `godkand: true` överst i scenkortet (mellan raderna `---`). Säger status att scenkortets huvud är trasigt: rätta raden som nämns. |
 | Utkast | Starta `bok-writer` med kapitel N. |
-| Granskning | Kör `bok validate` och `bok tics` på kapitlet. Starta bara den granskare vars rapport för runda R saknas (status nämner dem); finns ingen ännu, starta `bok-redaktor` och `bok-sprakgranskare` parallellt med kapitel N och runda R. Spara rapporterna med `bok rapport spara -`. |
-| Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. |
+| Fackgranskning | Starta `bok-researcher` med uppdraget **fackgranskning** för kapitel N. Spara rapporten med `bok rapport spara - --skriv-over`. |
+| Revision efter fackgranskning | Starta `bok-writer` med fynden ur fackgranskningen, och gå sedan direkt till en ny fackgranskning. |
+| Granskning | Kör `bok validate` och `bok tics` på kapitlet. BLOCKERANDE tidsfel från `bok validate` går till `bok-kontinuitet` (felet ligger i grafen) eller till scenkortet (`datum`, `tillbakablick`) och rättas före granskningen; åldersvarningar skickas med kapitlet till Redaktören. Starta bara den granskare vars rapport för runda R saknas (status nämner dem); finns ingen ännu, starta `bok-redaktor` och `bok-sprakgranskare` parallellt med kapitel N och runda R. Spara rapporterna med `bok rapport spara -`. |
+| Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till fackgranskning (om scenkortet har `fack`) och granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. |
 | Du bestämmer | Visa de viktigaste fynden och båda alternativen. Hon godkänner som det är, eller skickar tillbaka med egna kommentarer. Sa en granskare `eskalera` (problemet ligger i planen): erbjud också att `bok-plot-arkitekt` reviderar scenkortet först. Vid ja: visa det nya scenkortet och få hennes ja innan kapitlet skrivs om. |
 | Kontinuitet | Starta `bok-kontinuitet` med kapitel N och runda R (senaste granskningsrundan). Spara rapporten med `bok rapport spara - --skriv-over` (en ny körning i samma runda ersätter den förra). Visa flaggorna. |
 | Hennes läsning | Säg att kapitlet ligger i `manuskript/kapitel-NN.md`, och erbjud en kort sammanfattning först. |
@@ -119,6 +127,17 @@ Vid `utfall: tillbaka` skriver du hennes kommentarer i brödtexten.
 **Om `bok rapport spara` avvisar en rapport:** rätta exakt det felmeddelandet säger och försök igen. Hitta aldrig på betyg; be rollen om en ny rapport om något saknas.
 
 **Efter varje steg:** berätta på tre till sex rader vad som hände, betygen, de viktigaste fynden och vad hon behöver bestämma. Kör `bok status --json` och föreslå nästa steg.
+
+## Respons utifrån
+När ett lektörsbrev, kommentarer från betaläsare eller respons från ett förlag ligger i `inkorg/` eller klistras in:
+1. Läs allt och dela upp responsen i konkreta punkter, med kapitel där det går.
+2. Gå igenom punkterna med henne, några i taget. Föreslå för varje: **ta till sig**, **avböj** (säg varför) eller **fundera**. Hon bestämmer.
+3. Skriv besluten i `bok/beslut.md`: datum, punkten, beslutet och varför.
+4. Det hon tar till sig blir rader i `bok/revisioner.md`: `- [ ] Kapitel 3: …` för ett kapitel, `- [ ] Alla: …` för hela boken.
+5. Påverkar en punkt planen (struktur, personer, bågar): föreslå ändringen och låt `bok-plot-arkitekt` göra den efter hennes ja.
+6. För varje kapitel som redan har ett utkast och öppna rader i `bok/revisioner.md`: har kapitlet inte granskats än, starta `bok-writer` med de raderna före granskningen. Har det granskats eller godkänts, erbjud att skicka tillbaka det: spara hennes `forfattare`-rapport med `utfall: tillbaka` för senaste granskningsrundan, med raderna som kommentarer (`bok rapport spara - --skriv-over`). Då leder status till Writer.
+
+Writer läser kapitlets öppna rader när kapitlet skrivs eller revideras, och Kontinuitet kryssar av det som är gjort. `bok status` visar hur många som är öppna.
 
 ## Förslag till verktyget
 Det här gäller verktyget, inte boken.

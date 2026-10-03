@@ -11,6 +11,7 @@ from bok import boktoml, frontmatter
 from bok.graf import Graf, GrafFel, ar_oppen
 from bok.rapport import GRANSKARE_AXLAR, las_alla
 from bok.rot import find_root
+from bok.validera import block
 
 KONCEPT = ("bok/koncept/premiss.md", "bok/koncept/genre.md", "bok/koncept/form.md", "bok/koncept/teman.md")
 PLOT = ("bok/plot/struktur.md", "bok/plot/bagar.md")
@@ -36,6 +37,34 @@ def _del(namn: str, filer: tuple[str, ...], root: Path) -> dict:
 def _kapitelplan_del(root: Path) -> dict:
     klar = 1 in kapitelplan(root).values()
     return {"namn": "Kapitelplan", "klar": klar, "saknas": [] if klar else ["ingen rad för akt 1 i kapitelplan.md"]}
+
+
+_REVISION = re.compile(r"^\s*- \[ \] (?:kapitel\s+(\d+)|(alla))\s*:", re.M | re.I)
+
+
+def _verkliga_del(root: Path, rapporter: list[dict]) -> dict | None:
+    """Sensitivitetsläsning av planen, bara när canon.md listar verkliga händelser."""
+    path = root / "bok" / "canon.md"
+    if not path.is_file() or not block(path.read_text(encoding="utf-8"), "verkliga-handelser"):
+        return None
+    s = _senaste(rapporter, omfang="forberedelse", roll="sensitivitet")
+    if s and s["utfall"] == "godkand":
+        return {"namn": "Verkliga händelser", "klar": True, "saknas": []}
+    saknas = "sensitivitetsläsaren vill ha ändringar i planen" if s else "sensitivitetsläsning av planen saknas"
+    return {"namn": "Verkliga händelser", "klar": False, "saknas": [saknas]}
+
+
+def revisioner(root: Path) -> dict:
+    path = root / "bok" / "revisioner.md"
+    ut: dict = {"alla": 0, "kapitel": {}}
+    if not path.is_file():
+        return ut
+    for kap, alla in _REVISION.findall(path.read_text(encoding="utf-8")):
+        if alla:
+            ut["alla"] += 1
+        else:
+            ut["kapitel"][int(kap)] = ut["kapitel"].get(int(kap), 0) + 1
+    return ut
 
 
 def _karaktarer(root: Path) -> dict:
@@ -84,22 +113,38 @@ def _kapitelnummer(root: Path, plan: dict[int, int]) -> list[int]:
     return sorted(nr)
 
 
-def _scenkort(root: Path, nr: int) -> tuple[bool, bool, str | None]:
-    """(finns och är ifyllt, godkänt, fel i frontmattern)."""
+def _scenkort(root: Path, nr: int) -> tuple[bool, bool, str | None, dict]:
+    """(finns och är ifyllt, godkänt, fel i huvudet, huvudet)."""
     path = _kapitelfil(root / "bok" / "plot" / "kapitel", nr)
     if path is None:
-        return False, False, None
+        return False, False, None, {}
     text = path.read_text(encoding="utf-8")
     if "{{" in text:
-        return False, False, None
+        return False, False, None, {}
     try:
         meta, _ = frontmatter.split(text)
     except frontmatter.FrontmatterFel as exc:
-        return False, False, str(exc).rstrip(".")
-    return True, meta.get("godkand") is True, None
+        return False, False, str(exc).rstrip("."), {}
+    return True, meta.get("godkand") is True, None, meta
 
 
-def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, forf) -> tuple[str, str | None]:
+def _granska_nasta(nr: int, runda: int) -> tuple[str, str]:
+    return ("ska granskas" if runda == 1 else f"granskning runda {runda}",
+            f"Kapitel {nr}: kör bok validate och bok tics, sedan Redaktör och Språkgranskare (runda {runda}).")
+
+
+def _fack(nr: int, fack_r: dict | None, runda: int) -> tuple[str, str] | None:
+    """Fackgranskningen före granskningsrunda `runda`; None när den är godkänd."""
+    if fack_r is None:
+        return "fackgranskning", f"Kapitel {nr}: Researcher fackgranskar kapitlet (runda {runda})."
+    if fack_r["utfall"] == "atgarda":
+        return "revision efter fackgranskning", (f"Kapitel {nr}: Writer reviderar efter fackgranskningen, "
+                                                 f"sedan ny fackgranskning (runda {runda}).")
+    return None
+
+
+def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, forf,
+          fack: bool = False, fack_r: dict | None = None) -> tuple[str, str | None]:
     if forf and forf["utfall"] == "godkand" and forf["runda"] >= g:
         if sammanfattning:
             return "klart", None
@@ -114,11 +159,15 @@ def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, fo
     if not utkast:
         return "utkast saknas", f"Kapitel {nr}: Writer skriver utkastet."
     if g == 0:
-        return "ska granskas", (f"Kapitel {nr}: kör bok validate och bok tics, sedan "
-                                "Redaktör och Språkgranskare (runda 1).")
+        if fack and (steg := _fack(nr, fack_r, 1)):
+            return steg
+        return _granska_nasta(nr, 1)
     if forf and forf["utfall"] == "tillbaka" and forf["runda"] >= g:
+        if fack and fack_r is not None:
+            return _fack(nr, fack_r, g + 1) or _granska_nasta(nr, g + 1)
+        mellan = "fackgranskning och granskning" if fack else "granskning"
         return "tillbaka till Writer", (f"Kapitel {nr}: Writer reviderar efter dina kommentarer, "
-                                        f"sedan granskning runda {g + 1}.")
+                                        f"sedan {mellan} runda {g + 1}.")
     if saknade := [r for r in GRANSKARE if r not in senaste]:
         return f"granskning runda {g}", f"Kapitel {nr}: {' och '.join(NAMN[r] for r in saknade)} ska granska runda {g}."
     utfall = {r["utfall"] for r in senaste.values()}
@@ -126,8 +175,11 @@ def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, fo
         return "du bestämmer", (f"Kapitel {nr}: granskarna är inte nöjda efter runda {g}: "
                                 "du bestämmer – godkänn eller skicka tillbaka.")
     if "revidera" in utfall:
+        if fack and fack_r is not None:
+            return _fack(nr, fack_r, g + 1) or _granska_nasta(nr, g + 1)
+        mellan = "fackgranskning och granskning" if fack else "granskning"
         return "revision", (f"Kapitel {nr}: Writer reviderar efter fynden i runda {g}, "
-                            f"sedan granskning runda {g + 1}." + _vill_ha_revision(senaste))
+                            f"sedan {mellan} runda {g + 1}." + _vill_ha_revision(senaste))
     if not sammanfattning:
         return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen (runda {g})."
     return "väntar på din läsning", (f"Kapitel {nr}: läs manuskript/kapitel-{nr:02d}.md "
@@ -146,7 +198,7 @@ def _vill_ha_revision(senaste: dict) -> str:
 
 def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dict:
     egna = [r for r in rapporter if r["omfang"] == "kapitel" and r.get("kapitel") == nr]
-    scenkort, plan_ok, kortfel = _scenkort(root, nr)
+    scenkort, plan_ok, kortfel, meta = _scenkort(root, nr)
     manus = _kapitelfil(root / "manuskript", nr)
     granskning = [r for r in egna if r["roll"] in GRANSKARE]
     g = max((r["runda"] for r in granskning), default=0)
@@ -155,12 +207,15 @@ def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dic
     kont = max((r["runda"] for r in egna if r["roll"] == "kontinuitet"), default=0)
     aktuell = _kapitelfil(root / "bok" / "sammanfattningar", nr) is not None and kont >= g
     senaste = {r["roll"]: r for r in granskning if r["runda"] == g}
+    fack_v = meta.get("fack")
+    fack = bool(fack_v.strip()) if isinstance(fack_v, str) else isinstance(fack_v, list) and bool(fack_v)
+    fack_r = next((r for r in egna if r["roll"] == "researcher" and r["runda"] == g + 1), None)
     forf = max((r for r in egna if r["roll"] == "forfattare"), key=lambda r: r["runda"], default=None)
     betyg: dict = {}
     for roll in GRANSKARE:
         if roll in senaste:
             betyg.update(senaste[roll].get("betyg") or {})
-    lage, nasta = _lage(nr, scenkort, plan_ok, kortfel, manus is not None, aktuell, g, senaste, forf)
+    lage, nasta = _lage(nr, scenkort, plan_ok, kortfel, manus is not None, aktuell, g, senaste, forf, fack, fack_r)
     return {"nr": nr, "akt": akt, "lage": lage, "runda": g, "betyg": betyg, "klart": nasta is None, "nasta": nasta}
 
 
@@ -240,13 +295,18 @@ def _bagar(root: Path, kapitel: list[dict]) -> dict:
 
 def compute(root: Path) -> dict:
     bok = boktoml.read(root)
+    rapporter = las_alla(root)
     forb = [_del("Koncept", KONCEPT, root), _karaktarer(root), _del("Plot", PLOT, root),
             _del("Röst", ROST, root), _kapitelplan_del(root)]
-    rapporter = las_alla(root)
+    if verkliga := _verkliga_del(root, rapporter):
+        forb.append(verkliga)
     forb_ja = _senaste(rapporter, omfang="forberedelse", roll="forfattare")
     ja = forb_ja is not None and forb_ja["utfall"] == "godkand"
     plan = kapitelplan(root)
     kapitel = [_kapitel(root, nr, plan.get(nr), rapporter) for nr in _kapitelnummer(root, plan)]
+    rev = revisioner(root)
+    for k in kapitel:
+        k["revisioner"] = rev["kapitel"].get(k["nr"], 0)
     return {
         "titel": bok.get("titel", ""),
         "forberedelse": forb,
@@ -254,6 +314,7 @@ def compute(root: Path) -> dict:
         "kapitel": kapitel,
         "bagar": _bagar(root, kapitel),
         "nasta": _nasta(forb, ja, kapitel, plan, rapporter),
+        "revisioner_alla": rev["alla"],
     }
 
 
@@ -267,7 +328,10 @@ def render_text(s: dict) -> str:
         for k in s["kapitel"]:
             akt = f" (akt {k['akt']})" if k["akt"] else ""
             betyg = " · ".join(f"{a} {v}" for a, v in k["betyg"].items())
-            r.append(f"  {k['nr']}{akt}: {k['lage']}" + (f"  [{betyg}]" if betyg else ""))
+            rev = f"  ({k['revisioner']} öppna revisioner)" if k.get("revisioner") else ""
+            r.append(f"  {k['nr']}{akt}: {k['lage']}" + (f"  [{betyg}]" if betyg else "") + rev)
+    if s.get("revisioner_alla"):
+        r += ["", f"Revisioner för hela boken: {s['revisioner_alla']} öppna"]
     b = s["bagar"]
     varningar = []
     if b.get("fel"):

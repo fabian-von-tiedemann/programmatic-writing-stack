@@ -151,3 +151,27 @@ def test_kontinuitet_fore_granskning_avvisas(bok):
     text = "---\nomfang: kapitel\nkapitel: 3\nroll: kontinuitet\nutfall: klar\n---\n"
     with pytest.raises(RapportFel, match="inte granskats"):
         spara(bok, text)
+
+
+def _researcher(runda=None):
+    rad = f"runda: {runda}\n" if runda else ""
+    return f"---\nomfang: kapitel\nkapitel: 3\nroll: researcher\n{rad}utfall: godkand\n---\n"
+
+
+def test_fackgranskning_fore_forsta_granskningen(bok):
+    assert spara(bok, _researcher()).name == "researcher-r1.md"
+
+
+def test_fackgranskning_hor_till_kommande_runda(bok):
+    _granska_runda(bok, 1)
+    assert spara(bok, _researcher()).name == "researcher-r2.md"
+    with pytest.raises(RapportFel, match="kommande granskningsrundan"):
+        spara(bok, _researcher(1))
+    with pytest.raises(RapportFel, match="--skriv-over"):
+        spara(bok, _researcher())
+    assert spara(bok, _researcher(2), skriv_over=True).name == "researcher-r2.md"
+
+
+def test_sensitivitet_vid_forberedelse(bok):
+    text = "---\nomfang: forberedelse\nroll: sensitivitet\nutfall: atgarda\n---\n"
+    assert spara(bok, text) == bok / "bok/rapporter/forberedelse/sensitivitet-r1.md"

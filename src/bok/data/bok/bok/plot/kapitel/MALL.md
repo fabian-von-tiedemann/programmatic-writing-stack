@@ -4,6 +4,9 @@ pov: {{karaktärs-id}}
 karaktarer: [{{id}}, {{id}}]
 platser: [{{plats-id}}]
 bagar: [{{t-id}}]
+datum:
+fack: []
+tillbakablick: false
 godkand: false
 ---
 

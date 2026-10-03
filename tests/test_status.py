@@ -12,9 +12,10 @@ def ja_pa_forberedelse(root):
     rapport(root, omfang="forberedelse", roll="forfattare", utfall="godkand")
 
 
-def scenkort(root, nr, godkand=True):
+def scenkort(root, nr, godkand=True, fack=None):
+    rad = f"fack: [{', '.join(fack)}]\n" if fack else ""
     skriv(root, f"bok/plot/kapitel/kapitel-{nr:02d}.md",
-          f"---\nkapitel: {nr}\npov: anna\nkaraktarer: [anna]\nplatser: []\nbagar: [t-arvet]\n"
+          f"---\nkapitel: {nr}\npov: anna\nkaraktarer: [anna]\nplatser: []\nbagar: [t-arvet]\n{rad}"
           f"godkand: {'true' if godkand else 'false'}\n---\n\n# Kapitel {nr}\n")
 
 
@@ -345,3 +346,101 @@ def test_cli_text_och_json(bok, capsys):
     assert out.startswith("# Testbok\n") and "Nästa steg: " in out and "✗ Koncept" in out
     assert main(["status", "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["titel"] == "Testbok"
+
+
+def fackgranskning(root, nr, utfall):
+    rapport(root, omfang="kapitel", kapitel=nr, roll="researcher", utfall=utfall)
+
+
+def utkast_med_fack(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    scenkort(bok, 1, fack=["medicin"])
+    skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
+
+
+def test_fackgranskning_fore_forsta_granskningen(bok):
+    from bok.rapport import spara
+
+    utkast_med_fack(bok)
+    s = compute(bok)
+    assert s["kapitel"][0]["lage"] == "fackgranskning"
+    assert s["nasta"] == "Kapitel 1: Researcher fackgranskar kapitlet (runda 1)."
+    fackgranskning(bok, 1, "atgarda")
+    assert compute(bok)["nasta"] == ("Kapitel 1: Writer reviderar efter fackgranskningen, "
+                                     "sedan ny fackgranskning (runda 1).")
+    spara(bok, "---\nomfang: kapitel\nkapitel: 1\nroll: researcher\nrunda: 1\nutfall: godkand\n---\n",
+          skriv_over=True)
+    assert compute(bok)["kapitel"][0]["lage"] == "ska granskas"
+
+
+def test_fackgranskning_godkand_leder_till_granskning(bok):
+    utkast_med_fack(bok)
+    fackgranskning(bok, 1, "godkand")
+    assert compute(bok)["nasta"] == ("Kapitel 1: kör bok validate och bok tics, sedan "
+                                     "Redaktör och Språkgranskare (runda 1).")
+
+
+def test_fackgranskning_efter_revision(bok):
+    utkast_med_fack(bok)
+    fackgranskning(bok, 1, "godkand")
+    granska(bok, 1, 1, red="revidera", red_betyg={**BRA_RED, "tema": 6})
+    assert compute(bok)["nasta"].startswith(
+        "Kapitel 1: Writer reviderar efter fynden i runda 1, sedan fackgranskning och granskning runda 2.")
+    fackgranskning(bok, 1, "godkand")
+    assert compute(bok)["nasta"] == ("Kapitel 1: kör bok validate och bok tics, sedan "
+                                     "Redaktör och Språkgranskare (runda 2).")
+
+
+def test_kapitel_utan_fack_som_forut(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    scenkort(bok, 1)
+    skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
+    assert compute(bok)["kapitel"][0]["lage"] == "ska granskas"
+
+
+CANON_VERKLIG = ("# Canon\n\n```verkliga-handelser\n"
+                 "1994-09-28 | Estoniakatastrofen | en kollega omkommer (fiktiv)\n```\n")
+
+
+def test_verkliga_handelser_kraver_sensitivitet(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/canon.md", CANON_VERKLIG)
+    s = compute(bok)
+    assert s["nasta"] == "Förberedelse: Verkliga händelser – sensitivitetsläsning av planen saknas."
+    rapport(bok, omfang="forberedelse", roll="sensitivitet", utfall="atgarda")
+    assert "sensitivitetsläsaren vill ha ändringar" in compute(bok)["nasta"]
+    rapport(bok, omfang="forberedelse", roll="sensitivitet", utfall="godkand")
+    assert compute(bok)["nasta"].startswith("Förberedelsen är klar")
+
+
+def test_utan_verkliga_handelser_som_forut(bok):
+    fyll_forberedelse(bok)
+    s = compute(bok)
+    assert [d["namn"] for d in s["forberedelse"]] == ["Koncept", "Karaktärer", "Plot", "Röst", "Kapitelplan"]
+    assert s["revisioner_alla"] == 0
+
+
+def test_revisioner_raknas(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    scenkort(bok, 1)
+    skriv(bok, "bok/revisioner.md",
+          "# Revisioner\n\nFormat: `- [ ] Kapitel 3: …`\n\n"
+          "- [ ] Kapitel 1: stryk kommentaren i slutet\n- [x] Kapitel 1: rätta åldern\n"
+          "- [ ] kapitel 1: tempot i mitten\n- [ ] Alla: Marlénes ålder följer grafen\n")
+    s = compute(bok)
+    assert s["kapitel"][0]["revisioner"] == 2
+    assert s["revisioner_alla"] == 1
+    assert main(["status"]) == 0
+
+
+def test_fack_som_text_raknas(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    skriv(bok, "bok/plot/kapitel/kapitel-01.md",
+          "---\nkapitel: 1\npov: anna\nkaraktarer: [anna]\nplatser: []\nbagar: [t-arvet]\n"
+          "fack: medicin\ngodkand: true\n---\n\n# Kapitel 1\n")
+    skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
+    assert compute(bok)["nasta"] == "Kapitel 1: Researcher fackgranskar kapitlet (runda 1)."
