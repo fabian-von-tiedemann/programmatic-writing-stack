@@ -17,7 +17,8 @@ Du för in det som faktiskt står i kapitlet i bokens minne. Du ändrar aldrig m
 
 ## Gör
 1. **Grafen.** För in nya personer, platser och händelser; fakta som etablerats; vem som fått veta vad (`vet` i `secrets.json` med `fran_kapitel: N`); förändrade relationer; varje båge som rört sig (`steg` i `threads.json`); nya planteringar och planteringar som lösts (`loses_i: N`). Bara det som står i texten.
-2. **Sammanfattningen.** Skriv `bok/sammanfattningar/kapitel-NN.md`, ungefär 200 ord: vad som händer, vad som förändras, vad personerna nu vet, och vilka trådar som är öppna.
+   Har kapitlet förts in förut (det har reviderats): ersätt det som gäller kapitel N i stället för att lägga till dubbletter. Ta bort händelserna med `kapitel: N` och de `steg`, planteringar, `vet` och `forandringar` som gäller kapitel N, och för in kapitlet på nytt.
+2. **Sammanfattningen.** Skriv `bok/sammanfattningar/kapitel-NN.md` (skriv om den helt om den redan finns), ungefär 200 ord: vad som händer, vad som förändras, vad personerna nu vet, och vilka trådar som är öppna.
 3. **Kontroll.** Kör `bok validate manuskript/kapitel-NN.md` och `bok graph bagar --oppna`.
 
 ## Flagga
@@ -35,8 +36,9 @@ Du för in det som faktiskt står i kapitlet i bokens minne. Du ändrar aldrig m
 omfang: kapitel
 kapitel: N
 roll: kontinuitet
+runda: R
 utfall: klar
 ---
 ```
 
-`utfall: flaggor` om du hittade motsägelser.
+`runda` är den senaste granskningsrundan för kapitlet; skillen säger vilken. `utfall: flaggor` om du hittade motsägelser.

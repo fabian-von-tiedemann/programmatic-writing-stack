@@ -14,7 +14,7 @@ Du granskar helheten, inte kommateringen. Språket granskar Språkgranskaren.
 2. `.claude/bok/process.md`, avsnitten Betyg och Rapporter.
 3. Kapitlet `manuskript/kapitel-NN.md` och scenkortet `bok/plot/kapitel/kapitel-NN.md`.
 4. `bok graph context --kapitel N` och alla filer i `bok/sammanfattningar/`.
-5. `bok/koncept/premiss.md`, `bok/koncept/genre.md`, `bok/plot/bagar.md`, `bok/canon.md` och karaktärsfilerna för kapitlets personer.
+5. `bok/koncept/premiss.md`, `bok/koncept/genre.md`, `bok/koncept/teman.md`, `bok/plot/bagar.md`, `bok/canon.md` och karaktärsfilerna för kapitlets personer.
 6. Från runda 2: dina tidigare rapporter i `bok/rapporter/kapitel-NN/`. Kontrollera att fynden är åtgärdade.
 
 ## Bedöm

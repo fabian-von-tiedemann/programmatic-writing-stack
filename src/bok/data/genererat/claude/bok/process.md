@@ -32,7 +32,7 @@ Fritt samtal, i vilken ordning som helst. För att börja skriva kapitel 1 kräv
 3. **Mekanisk kontroll.** `bok validate manuskript/kapitel-NN.md` och `bok tics manuskript/kapitel-NN.md`. Blockerande namn rättas innan granskning.
 4. **Granskning, runda R.** `bok-redaktor` och `bok-sprakgranskare` parallellt. De returnerar rapporter som skillen sparar med `bok rapport spara -`.
 5. **Revision.** Har någon `utfall: revidera` reviderar `bok-writer` efter fynden, och sedan följer granskning runda R+1. Granskarna får högst två revisioner: runda 3 är deras sista granskning. Är de inte nöjda efter runda 3, eller säger någon `eskalera`, visar skillen fynden och författaren bestämmer. Skickar författaren tillbaka kapitlet efter det (steg 7) blir det en ny runda.
-6. **Kontinuitet.** `bok-kontinuitet` uppdaterar `bok/story-graph/`, skriver `bok/sammanfattningar/kapitel-NN.md` och flaggar brott mot canon. Rollen returnerar en rapport (`utfall: klar` eller `flaggor`) som skillen sparar. Vid `flaggor` visar skillen dem för författaren innan hon läser kapitlet.
+6. **Kontinuitet.** `bok-kontinuitet` uppdaterar `bok/story-graph/`, skriver `bok/sammanfattningar/kapitel-NN.md` och flaggar brott mot canon. Skillen ger rollen kapitel N och runda R (den senaste granskningsrundan). Rollen returnerar en rapport (`runda: R`, `utfall: klar` eller `flaggor`) som skillen sparar; sammanfattningen räknas som aktuell först när den rapporten finns. Körs Kontinuitet igen för ett reviderat kapitel ersätter den kapitlets uppgifter i grafen. Vid `flaggor` visar skillen dem för författaren innan hon läser kapitlet.
 7. **Författarens läsning.** Hon godkänner (`roll: forfattare`, `utfall: godkand`, `runda: R`) eller skickar tillbaka med kommentarer (`utfall: tillbaka`). Tillbaka betyder revision och en ny granskningsrunda.
 
 ### Aktgränser
@@ -90,7 +90,7 @@ blockerande: ["Kapitel 2 slutade på torsdag, kapitel 3 börjar på tisdag"]
 | `sensitivitet` | `bok` eller `kapitel` | `godkand`, `atgarda` |
 | `forfattare` | `forberedelse` eller `kapitel` | `godkand`, `tillbaka` |
 
-`runda` krävs för granskningar och för författarens omdöme om ett kapitel; i övrigt numreras rapporterna automatiskt.
+`runda` krävs för granskningar och för författarens omdöme om ett kapitel. Kontinuitet anger den granskningsrunda rapporten gäller. I övrigt numreras rapporterna automatiskt.
 
 Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, konkret förslag), `## Övrigt` och `## Det som fungerar` (sådant Writer inte får ändra vid revision).
 
@@ -99,7 +99,7 @@ Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, k
 | Roll | Läser |
 |---|---|
 | Writer | scenkortet, `bok/stil/rost.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md`, `.claude/bok/hantverk/` |
-| Redaktör | kapitlet, scenkortet, `bok graph context`, sammanfattningarna, premiss, genre, bågar, canon, kapitlets karaktärsfiler, `.claude/bok/hantverk/` |
+| Redaktör | kapitlet, scenkortet, `bok graph context`, sammanfattningarna, premiss, genre, teman, bågar, canon, kapitlets karaktärsfiler, `.claude/bok/hantverk/` |
 | Språkgranskare | kapitlet, `bok/stil/rost.md`, kapitlets karaktärsfiler (språklig signatur), `bok tics`, hantverket |
 | Kontinuitet | kapitlet, scenkortet, hela grafen, `bok/canon.md` |
 | Förläggare | alla sammanfattningar, premiss, genre, struktur, bågar, kapitelplan, `bok graph bagar`, aktens första och sista kapitel |

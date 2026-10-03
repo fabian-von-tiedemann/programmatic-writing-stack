@@ -25,11 +25,16 @@ def granska(root, nr, runda, red="godkand", sprak="godkand", red_betyg=None):
             betyg=BRA_SPRAK, utfall=sprak)
 
 
+def kontinuitet(root, nr, runda):
+    skriv(root, f"bok/sammanfattningar/kapitel-{nr:02d}.md", "Sammanfattning.\n")
+    rapport(root, omfang="kapitel", kapitel=nr, roll="kontinuitet", runda=runda, utfall="klar")
+
+
 def klart_kapitel(root, nr):
     scenkort(root, nr)
     skriv(root, f"manuskript/kapitel-{nr:02d}.md", "Text.\n")
     granska(root, nr, 1)
-    skriv(root, f"bok/sammanfattningar/kapitel-{nr:02d}.md", "Sammanfattning.\n")
+    kontinuitet(root, nr, 1)
     rapport(root, omfang="kapitel", kapitel=nr, roll="forfattare", runda=1, utfall="godkand")
 
 
@@ -104,9 +109,10 @@ def test_loopen_for_ett_kapitel(bok):
     assert nasta.startswith("Kapitel 1: Writer reviderar efter fynden i runda 1")
     assert "Redaktören: tema 6" in nasta
     granska(bok, 1, 2)
-    assert compute(bok)["nasta"].startswith("Kapitel 1: Kontinuitet")
-    skriv(bok, "bok/sammanfattningar/kapitel-01.md", "Sammanfattning.\n")
-    assert compute(bok)["nasta"].startswith("Kapitel 1: be henne läsa manuskript/kapitel-01.md")
+    assert compute(bok)["nasta"] == ("Kapitel 1: Kontinuitet uppdaterar grafen och skriver "
+                                     "sammanfattningen (runda 2).")
+    kontinuitet(bok, 1, 2)
+    assert compute(bok)["nasta"] == "Kapitel 1: läs manuskript/kapitel-01.md och godkänn eller skicka tillbaka."
     rapport(bok, omfang="kapitel", kapitel=1, roll="forfattare", runda=2, utfall="godkand")
     s = compute(bok)
     assert s["kapitel"][0]["klart"] is True
@@ -144,16 +150,45 @@ def test_tillbaka_fran_forfattaren(bok):
     assert compute(bok)["nasta"].startswith("Kapitel 1: Writer reviderar efter dina kommentarer")
 
 
-def test_inaktuell_sammanfattning(bok):
-    fyll_forberedelse(bok)
-    ja_pa_forberedelse(bok)
-    scenkort(bok, 1)
-    manus = skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
-    sammanf = skriv(bok, "bok/sammanfattningar/kapitel-01.md", "S.\n")
-    os.utime(sammanf, (1_000_000, 1_000_000))
-    os.utime(manus, (2_000_000, 2_000_000))
-    granska(bok, 1, 1)
+def granskat_kapitel(root, nr=1, runda=1):
+    fyll_forberedelse(root)
+    ja_pa_forberedelse(root)
+    scenkort(root, nr)
+    skriv(root, f"manuskript/kapitel-{nr:02d}.md", "Text.\n")
+    granska(root, nr, runda)
+
+
+def test_sammanfattning_utan_kontinuitetsrapport_ger_kontinuitet(bok):
+    granskat_kapitel(bok)
+    skriv(bok, "bok/sammanfattningar/kapitel-01.md", "S.\n")
     assert compute(bok)["nasta"].startswith("Kapitel 1: Kontinuitet")
+
+
+def test_kontinuitet_fran_aldre_runda_ger_kontinuitet(bok):
+    granskat_kapitel(bok)
+    kontinuitet(bok, 1, 1)
+    rapport(bok, "Mer värme.", omfang="kapitel", kapitel=1, roll="forfattare", runda=1, utfall="tillbaka")
+    granska(bok, 1, 2)
+    assert compute(bok)["nasta"].startswith("Kapitel 1: Kontinuitet")
+
+
+def test_kontinuitet_efter_godkannande_i_aldre_runda_ger_kontinuitet(bok):
+    granskat_kapitel(bok)
+    kontinuitet(bok, 1, 1)
+    granska(bok, 1, 2)
+    rapport(bok, omfang="kapitel", kapitel=1, roll="forfattare", runda=2, utfall="godkand")
+    assert compute(bok)["nasta"].startswith("Kapitel 1: Kontinuitet")
+
+
+def test_filtider_spelar_ingen_roll(bok):
+    # git checkout skriver filerna i indexordning; sammanfattningen kan bli äldre än manuset
+    granskat_kapitel(bok)
+    kontinuitet(bok, 1, 1)
+    os.utime(bok / "bok/sammanfattningar/kapitel-01.md", (1_000_000, 1_000_000))
+    os.utime(bok / "manuskript/kapitel-01.md", (2_000_000, 2_000_000))
+    assert compute(bok)["nasta"].startswith("Kapitel 1: läs manuskript/kapitel-01.md")
+    rapport(bok, omfang="kapitel", kapitel=1, roll="forfattare", runda=1, utfall="godkand")
+    assert compute(bok)["kapitel"][0]["klart"] is True
 
 
 def test_aktgrans_och_slut(bok):

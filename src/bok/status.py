@@ -99,7 +99,7 @@ def _lage(nr, scenkort, plan_ok, utkast, sammanfattning, g, senaste, forf) -> tu
     if forf and forf["utfall"] == "godkand" and forf["runda"] >= g:
         if sammanfattning:
             return "klart", None
-        return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen."
+        return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen (runda {g})."
     if not scenkort:
         return "scenkort saknas", f"Kapitel {nr}: Plot-arkitekten gör scenkortet."
     if not plan_ok:
@@ -122,9 +122,9 @@ def _lage(nr, scenkort, plan_ok, utkast, sammanfattning, g, senaste, forf) -> tu
         return "revision", (f"Kapitel {nr}: Writer reviderar efter fynden i runda {g}, "
                             f"sedan granskning runda {g + 1}." + _vill_ha_revision(senaste))
     if not sammanfattning:
-        return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen."
-    return "väntar på din läsning", (f"Kapitel {nr}: be henne läsa manuskript/kapitel-{nr:02d}.md "
-                                     "och godkänna eller skicka tillbaka.")
+        return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen (runda {g})."
+    return "väntar på din läsning", (f"Kapitel {nr}: läs manuskript/kapitel-{nr:02d}.md "
+                                     "och godkänn eller skicka tillbaka.")
 
 
 def _vill_ha_revision(senaste: dict) -> str:
@@ -141,10 +141,12 @@ def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dic
     egna = [r for r in rapporter if r["omfang"] == "kapitel" and r.get("kapitel") == nr]
     scenkort, plan_ok = _scenkort(root, nr)
     manus = _kapitelfil(root / "manuskript", nr)
-    sammanf = _kapitelfil(root / "bok" / "sammanfattningar", nr)
-    aktuell = sammanf is not None and (manus is None or sammanf.stat().st_mtime >= manus.stat().st_mtime)
     granskning = [r for r in egna if r["roll"] in GRANSKARE]
     g = max((r["runda"] for r in granskning), default=0)
+    # Sammanfattningen är aktuell när Kontinuitet har kört för senaste granskningsrundan.
+    # Filtider duger inte: git checkout skriver filerna i indexordning.
+    kont = max((r["runda"] for r in egna if r["roll"] == "kontinuitet"), default=0)
+    aktuell = _kapitelfil(root / "bok" / "sammanfattningar", nr) is not None and kont >= g
     senaste = {r["roll"]: r for r in granskning if r["runda"] == g}
     forf = max((r for r in egna if r["roll"] == "forfattare"), key=lambda r: r["runda"], default=None)
     betyg: dict = {}

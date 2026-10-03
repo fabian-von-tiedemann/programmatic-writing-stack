@@ -133,3 +133,9 @@ def test_skillen():
     assert "bok status --json" in body
     for fras in ("bok rapport spara -", ".claude/bok/process.md", "bok-sensitivitet", "omfang: bok"):
         assert fras in body, fras
+
+
+def test_kontinuitet_anger_runda_och_redaktoren_laser_teman():
+    kont = (AGENTER / "bok-kontinuitet.md").read_text(encoding="utf-8")
+    assert "roll: kontinuitet\nrunda: R\n" in kont
+    assert "`bok/koncept/teman.md`" in (AGENTER / "bok-redaktor.md").read_text(encoding="utf-8")
