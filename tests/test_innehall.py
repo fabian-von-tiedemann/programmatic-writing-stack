@@ -132,3 +132,5 @@ def test_skillen():
                     "## Skriva kapitel", "## Gör inte"):
         assert avsnitt in body, avsnitt
     assert "bok status --json" in body
+    for fras in ("bok rapport spara -", ".claude/bok/process.md", "bok-sensitivitet", "omfang: bok"):
+        assert fras in body, fras
