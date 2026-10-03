@@ -50,7 +50,7 @@ def _karaktarer(root: Path) -> dict:
         try:
             meta, _ = frontmatter.split(text)
         except frontmatter.FrontmatterFel:
-            saknas.append(f"{p.name} har trasig frontmatter")
+            saknas.append(f"{p.name} har ett trasigt huvud (raderna mellan --- överst)")
             continue
         if meta.get("pov") is True:
             pov += 1
@@ -105,8 +105,8 @@ def _lage(nr, scenkort, plan_ok, kortfel, utkast, sammanfattning, g, senaste, fo
             return "klart", None
         return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen (runda {g})."
     if kortfel:
-        return "scenkortet har trasig frontmatter", (f"Kapitel {nr}: scenkortet har trasig frontmatter "
-                                                     f"({kortfel}). Rätta det.")
+        return "scenkortets huvud är trasigt", (f"Kapitel {nr}: huvudet i scenkortet (raderna mellan --- "
+                                                f"överst) är trasigt ({kortfel}). Rätta det.")
     if not scenkort:
         return "scenkort saknas", f"Kapitel {nr}: Plot-arkitekten gör scenkortet."
     if not plan_ok:

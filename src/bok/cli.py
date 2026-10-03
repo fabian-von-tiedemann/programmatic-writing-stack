@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import io
+import os
 import sys
 
 from bok import __version__
@@ -38,6 +40,13 @@ def main(argv: list[str] | None = None) -> int:
     except BokFel as exc:
         print(f"bok: {exc}", file=sys.stderr)
         return 2
+    except BrokenPipeError:
+        # Läsaren slutade läsa (t.ex. bok status | head). Tysta resten av utskriften.
+        try:
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        except (OSError, ValueError, io.UnsupportedOperation):
+            pass
+        return 1
     except UnicodeDecodeError:
         print("bok: en fil är inte sparad som UTF-8. Spara om den som UTF-8 och försök igen.", file=sys.stderr)
         return 2

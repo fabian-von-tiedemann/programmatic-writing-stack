@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 from pathlib import Path
 
@@ -48,6 +49,39 @@ def _check_claude_md(root: Path) -> None:
         )
 
 
+# Kommandon som skillen kör hela tiden; utan dem frågar Claude Code om lov vid varje steg.
+TILLSTAND = (
+    "Bash(bok:*)",
+    "Bash(git add:*)",
+    "Bash(git commit:*)",
+    "Bash(git status:*)",
+    "Bash(git log:*)",
+    "Bash(git diff:*)",
+)
+
+
+def _ensure_settings(root: Path) -> str | None:
+    path = root / ".claude" / "settings.json"
+    rel = ".claude/settings.json"
+    data: dict = {}
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            data = None
+        permissions = data.get("permissions", {}) if isinstance(data, dict) else None
+        if not isinstance(permissions, dict) or not isinstance(permissions.get("allow", []), list):
+            return f"VARNING: {rel} går inte att läsa som inställningar och lämnas orörd."
+    allow = data.setdefault("permissions", {}).setdefault("allow", [])
+    nya = [t for t in TILLSTAND if t not in allow]
+    if not nya:
+        return None
+    allow.extend(nya)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return f"Tillät bok- och git-kommandon i {rel}."
+
+
 def _ensure_claude_md(root: Path, titel: str) -> str | None:
     path = root / "CLAUDE.md"
     block = _block()
@@ -82,7 +116,7 @@ def _in_git(root: Path) -> bool:
 
 def _git_init(root: Path) -> str:
     try:
-        subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=root, check=True)
     except (OSError, subprocess.CalledProcessError):
         return "VARNING: git saknas eller git init misslyckades; mappen är inte versionshanterad."
     subprocess.run(["git", "add", "-A"], cwd=root, check=False)
@@ -121,6 +155,9 @@ def init_repo(path: Path, titel: str | None = None, git: bool = True) -> list[st
         skapade += 1
     if skapade:
         actions.append(f"Skapade {skapade} filer för boken (bok/, manuskript/, inkorg/).")
+
+    if msg := _ensure_settings(root):
+        actions.append(msg)
 
     if msg := _ensure_claude_md(root, titel):
         actions.append(msg)

@@ -33,3 +33,12 @@ def test_fil_som_inte_ar_utf8_blir_en_rad(bok, monkeypatch, capsys):
     assert main(["status"]) == 2
     err = capsys.readouterr().err
     assert err.startswith("bok: en fil är inte sparad som UTF-8") and err.count("\n") == 1
+
+
+def test_avbrutet_ror_ar_tyst(bok, monkeypatch, capsys):
+    def ror(root):
+        raise BrokenPipeError(32, "Broken pipe")
+
+    monkeypatch.setattr(status, "compute", ror)
+    assert main(["status"]) == 1
+    assert capsys.readouterr().err == ""

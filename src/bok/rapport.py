@@ -25,6 +25,7 @@ UTFALL = {
 }
 OMFANG = ("kapitel", "akt", "forberedelse", "bok")
 GODKAND_GRANS = 8
+EFTER_GRANSKNING = ("kontinuitet", "forfattare")
 
 
 class RapportFel(BokFel):
@@ -93,6 +94,19 @@ def _nasta(katalog: Path, roll: str) -> int:
     return max(nummer, default=0) + 1
 
 
+def _runda_efter_granskning(katalog: Path, meta: dict, runda: int | None) -> int:
+    """Kontinuitet och författarens omdöme gäller alltid kapitlets senaste granskningsrunda."""
+    rundor = [int(m.group(1)) for roll in GRANSKARE_AXLAR for p in katalog.glob(f"{roll}-r*.md")
+              if (m := re.fullmatch(rf"{roll}-r(\d+)\.md", p.name))]
+    if not rundor:
+        raise RapportFel([f"Kapitel {meta['kapitel']} har inte granskats än; {meta['roll']} kommer efter granskningen."])
+    senaste = max(rundor)
+    if runda is not None and runda != senaste:
+        raise RapportFel([f"runda {runda} stämmer inte med senaste granskningsrundan för kapitel "
+                          f"{meta['kapitel']}, som är {senaste}."])
+    return senaste
+
+
 def spara(root: Path, text: str, skriv_over: bool = False) -> Path:
     try:
         meta, body = frontmatter.split(text)
@@ -103,11 +117,15 @@ def spara(root: Path, text: str, skriv_over: bool = False) -> Path:
     if fel := validera(meta):
         raise RapportFel(fel)
     katalog = _katalog(root, meta)
+    runda = meta.get("runda")
+    if meta.get("omfang", "kapitel") == "kapitel" and meta["roll"] in EFTER_GRANSKNING:
+        runda = _runda_efter_granskning(katalog, meta, runda)
     katalog.mkdir(parents=True, exist_ok=True)
-    runda = meta.get("runda") or _nasta(katalog, meta["roll"])
+    runda = runda or _nasta(katalog, meta["roll"])
     path = katalog / f"{meta['roll']}-r{runda}.md"
     if path.exists() and not skriv_over:
-        raise RapportFel([f"{path.relative_to(root).as_posix()} finns redan. Använd en ny runda eller --skriv-over."])
+        raise RapportFel([f"{path.relative_to(root).as_posix()} finns redan. Använd en ny runda, "
+                          "eller --skriv-over för att ersätta rapporten."])
     normal = text.lstrip("﻿").replace("\r\n", "\n").lstrip()
     path.write_text(normal if normal.endswith("\n") else normal + "\n", encoding="utf-8")
     return path

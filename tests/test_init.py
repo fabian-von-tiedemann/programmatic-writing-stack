@@ -134,6 +134,8 @@ def test_git_init_och_forsta_commit(tmp_path, git_env):
     log = subprocess.run(["git", "log", "--oneline"], cwd=root, capture_output=True, text=True)
     assert log.stdout.count("\n") == 1
     assert "Initierade git och gjorde första commit." in actions
+    gren = subprocess.run(["git", "symbolic-ref", "--short", "HEAD"], cwd=root, capture_output=True, text=True)
+    assert gren.stdout.strip() == "main"
 
 
 def test_befintligt_repo_far_ingen_commit(tmp_path, git_env):
@@ -181,3 +183,29 @@ def test_init_i_bokens_egen_mapp_uppgraderar(tmp_path):
     root = tmp_path / "bok"
     init_repo(root, titel="Testbok", git=False)
     assert init_repo(root, git=False) == []
+
+
+def test_tillstand_for_claude_code(tmp_path):
+    import json
+    init_repo(tmp_path, titel="X", git=False)
+    allow = json.loads((tmp_path / ".claude/settings.json").read_text())["permissions"]["allow"]
+    assert "Bash(bok:*)" in allow and "Bash(git commit:*)" in allow
+
+
+def test_befintliga_installningar_behalls(tmp_path):
+    import json
+    skriv(tmp_path, ".claude/settings.json",
+          json.dumps({"model": "opus", "permissions": {"allow": ["Bash(ls:*)"], "deny": ["Bash(rm:*)"]}}))
+    init_repo(tmp_path, titel="X", git=False)
+    data = json.loads((tmp_path / ".claude/settings.json").read_text())
+    assert data["model"] == "opus"
+    assert data["permissions"]["deny"] == ["Bash(rm:*)"]
+    assert data["permissions"]["allow"][0] == "Bash(ls:*)"
+    assert "Bash(bok:*)" in data["permissions"]["allow"]
+
+
+def test_trasiga_installningar_lamnas(tmp_path):
+    skriv(tmp_path, ".claude/settings.json", "{ inte json")
+    actions = init_repo(tmp_path, titel="X", git=False)
+    assert (tmp_path / ".claude/settings.json").read_text() == "{ inte json"
+    assert any(a.startswith("VARNING: .claude/settings.json") for a in actions)

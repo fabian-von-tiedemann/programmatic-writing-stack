@@ -83,7 +83,7 @@ def test_mallen_kopierad_rakt_av_saknar_pov(bok):
 def test_trasig_karaktarsfil_kraschar_inte(bok):
     fyll_forberedelse(bok)
     skriv(bok, "bok/karaktarer/erik.md", "---\nid: erik\n")
-    assert "erik.md har trasig frontmatter" in compute(bok)["nasta"]
+    assert "erik.md har ett trasigt huvud" in compute(bok)["nasta"]
 
 
 def test_forberedelse_klar_vantar_pa_ja(bok):
@@ -285,9 +285,10 @@ def test_scenkort_med_trasig_frontmatter(bok):
     skriv(bok, "bok/plot/kapitel/kapitel-01.md",
           "---\nkapitel: 1\npov: anna\nkaraktarer:\n  - anna\ngodkand: true\n---\n\n# Kapitel 1\n")
     s = compute(bok)
-    assert s["kapitel"][0]["lage"] == "scenkortet har trasig frontmatter"
-    assert s["nasta"] == ("Kapitel 1: scenkortet har trasig frontmatter "
+    assert s["kapitel"][0]["lage"] == "scenkortets huvud är trasigt"
+    assert s["nasta"] == ("Kapitel 1: huvudet i scenkortet (raderna mellan --- överst) är trasigt "
                           "(Rad 4: förväntade 'nyckel: värde', fick '  - anna'). Rätta det.")
+    assert "frontmatter" not in s["nasta"]
 
 
 def test_ofyllt_scenkort_raknas_som_saknat(bok):

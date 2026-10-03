@@ -117,3 +117,37 @@ def test_cli_filinteFel(bok, capsys):
     assert main(["rapport", "spara", "finns-inte.md"]) == 2
     err = capsys.readouterr().err
     assert "Hittar inte" in err or "finns-inte.md" in err
+
+
+def _granska_runda(bok, runda):
+    spara(bok, RED.replace("runda: 1", f"runda: {runda}"))
+
+
+def test_kontinuitet_far_senaste_granskningsrundan(bok):
+    _granska_runda(bok, 1)
+    _granska_runda(bok, 2)
+    text = "---\nomfang: kapitel\nkapitel: 3\nroll: kontinuitet\nutfall: klar\n---\n"
+    assert spara(bok, text).name == "kontinuitet-r2.md"
+
+
+def test_kontinuitet_omkorning_i_samma_runda_kraver_skriv_over(bok):
+    _granska_runda(bok, 1)
+    text = "---\nomfang: kapitel\nkapitel: 3\nroll: kontinuitet\nutfall: klar\n---\n"
+    spara(bok, text)
+    with pytest.raises(RapportFel, match="--skriv-over"):
+        spara(bok, text)
+    assert spara(bok, text, skriv_over=True).name == "kontinuitet-r1.md"
+
+
+def test_kontinuitet_och_forfattare_maste_galla_senaste_rundan(bok):
+    _granska_runda(bok, 1)
+    for roll, utfall in (("kontinuitet", "klar"), ("forfattare", "godkand")):
+        text = f"---\nomfang: kapitel\nkapitel: 3\nroll: {roll}\nrunda: 2\nutfall: {utfall}\n---\n"
+        with pytest.raises(RapportFel, match="senaste granskningsrundan"):
+            spara(bok, text)
+
+
+def test_kontinuitet_fore_granskning_avvisas(bok):
+    text = "---\nomfang: kapitel\nkapitel: 3\nroll: kontinuitet\nutfall: klar\n---\n"
+    with pytest.raises(RapportFel, match="inte granskats"):
+        spara(bok, text)
