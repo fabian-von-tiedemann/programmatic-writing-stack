@@ -24,13 +24,17 @@ def test_personer_med_fodd(personer):
 
 
 @pytest.mark.parametrize("text", ["Marléne var 49.", "Den 48-åriga Marléne steg av.", "Sofia var 21.",
-                                  "Marléne och Sofia var 30.", "Hon var 12 år då."])
+                                  "Marléne och Sofia var 30.", "Hon var 12 år då.",
+                                  "Klockan var 12 när Marléne kom.", "Marléne var 20 minuter sen.",
+                                  "Marléne såg att det var 100 meter kvar.", "Marléne köpte 3 bullar, 7, och gick."])
 def test_inga_varningar(personer, text):
     assert aldersvarningar(text + "\n", personer, D94) == []
 
 
 @pytest.mark.parametrize("text, del_", [
-    ("Marléne var 52 när hon kom in.", "texten säger 52"),
+    ("Marléne var 52 år när hon kom in.", "texten säger 52"),
+    ("Marlénes syster sa att Marléne var 52.", "texten säger 52"),
+    ("Hennes mamma, Marléne, 60, kom.", "texten säger 60"),
     ("Marléne, 60, öppnade dörren.", "texten säger 60"),
     ("Sofia var 25.", "19–20 år"),
     ("Hon mötte den 30-åriga Sofia.", "texten säger 30"),

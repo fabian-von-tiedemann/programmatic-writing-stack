@@ -62,8 +62,7 @@ def okanda(text: str, kanda: set[str]) -> list[tuple[int, str]]:
 _MENING = re.compile(r"[^.!?…]+[.!?…]?")
 _ALDER = re.compile(
     r"(?<!\d)(\d{1,3})(?:-årig\w*|\s+år\s+gammal\w*|\s+års\s+ålder)"
-    r"|\bvar\s+(\d{1,3})(?:\s+år)?\b(?![:.,]\d)"
-    r"|,\s*(\d{1,3}),"
+    r"|\bvar\s+(\d{1,3})(?=\s+år\b|\s*[.!?…]|\s*$)"
 )
 _FODD = re.compile(r"\bfödd(?:\s+år)?\s+(\d{4})\b")
 _KAPNR = re.compile(r"^kapitel-(\d+)\.md$")
@@ -87,13 +86,17 @@ def aldersvarningar(text: str, personer, kapiteldatum: Datum) -> list[tuple[int,
     for nr, rad in enumerate(text.splitlines(), 1):
         for mening in _MENING.findall(rad):
             traffade = [p for p in personer
-                        if any(re.search(rf"(?<![\wÅÄÖåäö]){re.escape(f)}(?![\wåäö])", mening) for f in p[1])]
+                        if any(re.search(rf"(?<![\wÅÄÖåäö]){re.escape(f)}s?(?![\wåäö])", mening) for f in p[1])]
             if len(traffade) != 1:
                 continue
-            namn, _, fodd, _ = traffade[0]
+            namn, former, fodd, _ = traffade[0]
             lagst, hogst = alder(fodd, kapiteldatum)
-            for m in _ALDER.finditer(mening):
-                varde = int(next(x for x in m.groups() if x))
+            fynd = list(_ALDER.finditer(mening))
+            vardena = [int(next(x for x in m.groups() if x)) for m in fynd]
+            for f in former:
+                for m in re.finditer(rf"(?<![\wÅÄÖåäö]){re.escape(f)},\s*(\d{{1,3}}),", mening):
+                    vardena.append(int(m.group(1)))
+            for varde in dict.fromkeys(vardena):
                 if varde < lagst - 1 or varde > hogst + 1:
                     ut.append((nr, f"{namn} är {som_text(lagst, hogst)} vid kapitlets datum ({kapiteldatum}), "
                                    f"texten säger {varde}."))
