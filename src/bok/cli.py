@@ -10,9 +10,9 @@ from bok.rot import BokFel
 
 
 def _moduler() -> list:
-    from bok import graf, init, mallar, rapport, status, tics, validera
+    from bok import annotations, graf, init, mallar, rapport, status, tics, validera
 
-    return [init, status, mallar, graf, tics, validera, rapport]
+    return [init, status, mallar, graf, tics, validera, rapport, annotations]
 
 
 def build_parser() -> argparse.ArgumentParser:
