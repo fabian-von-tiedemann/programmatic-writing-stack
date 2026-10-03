@@ -6,9 +6,10 @@ import argparse
 import re
 from pathlib import Path
 
-from bok.graf import Graf
+from bok.graf import Graf, scenkort_om_finns
 from bok.rot import find_root
 from bok.tics import kapitelfiler, las_kapitel
+from bok.tid import Datum, alder, som_text, tolka
 
 _NAMN = re.compile(r"(?<![\wÅÄÖåäö])([A-ZÅÄÖ][a-zåäöéü]+(?:[ -][A-ZÅÄÖ][a-zåäöéü]+)*)")
 MENINGSSTART = set('.!?…:–—-"(«»') | {'“', '”', '‘', '’'}
@@ -58,6 +59,67 @@ def okanda(text: str, kanda: set[str]) -> list[tuple[int, str]]:
     return ut
 
 
+_MENING = re.compile(r"[^.!?…]+[.!?…]?")
+_ALDER = re.compile(
+    r"(?<!\d)(\d{1,3})(?:-årig\w*|\s+år\s+gammal\w*|\s+års\s+ålder)"
+    r"|\bvar\s+(\d{1,3})(?:\s+år)?\b(?![:.,]\d)"
+    r"|,\s*(\d{1,3}),"
+)
+_FODD = re.compile(r"\bfödd(?:\s+år)?\s+(\d{4})\b")
+_KAPNR = re.compile(r"^kapitel-(\d+)\.md$")
+
+
+def personer_med_fodd(graf: Graf) -> list[tuple[str, list[str], Datum, Datum | None]]:
+    ut = []
+    for c in graf.lista("characters"):
+        fodd = tolka(c.get("fodd"))
+        if fodd is None:
+            continue
+        namn = [n.strip() for n in [c.get("namn"), *(c.get("alias") or [])] if isinstance(n, str) and n.strip()]
+        former = set(namn) | {n.split()[0] for n in namn}
+        ut.append((c.get("namn") or c.get("id", "?"), sorted(former, key=len, reverse=True), fodd, tolka(c.get("dod"))))
+    return ut
+
+
+def aldersvarningar(text: str, personer, kapiteldatum: Datum) -> list[tuple[int, str]]:
+    """Åldrar och födelseår i texten som inte stämmer med grafen. En person per mening, annars hoppas den över."""
+    ut = []
+    for nr, rad in enumerate(text.splitlines(), 1):
+        for mening in _MENING.findall(rad):
+            traffade = [p for p in personer
+                        if any(re.search(rf"(?<![\wÅÄÖåäö]){re.escape(f)}(?![\wåäö])", mening) for f in p[1])]
+            if len(traffade) != 1:
+                continue
+            namn, _, fodd, _ = traffade[0]
+            lagst, hogst = alder(fodd, kapiteldatum)
+            for m in _ALDER.finditer(mening):
+                varde = int(next(x for x in m.groups() if x))
+                if varde < lagst - 1 or varde > hogst + 1:
+                    ut.append((nr, f"{namn} är {som_text(lagst, hogst)} vid kapitlets datum ({kapiteldatum}), "
+                                   f"texten säger {varde}."))
+            for m in _FODD.finditer(mening):
+                if int(m.group(1)) != fodd.ar:
+                    ut.append((nr, f"{namn} är född {fodd.ar} enligt grafen, texten säger {m.group(1)}."))
+    return ut
+
+
+def _nummer(fil: Path) -> int | None:
+    m = _KAPNR.match(fil.name)
+    return int(m.group(1)) if m else None
+
+
+def _kapitel_i_tid(root: Path, graf: Graf) -> list[tuple[int, Datum | None, bool]]:
+    nummer = {n for f in kapitelfiler(root) if (n := _nummer(f))}
+    nummer |= {n for f in (root / "bok" / "plot" / "kapitel").glob("kapitel-*.md") if (n := _nummer(f))}
+    nummer |= {e["kapitel"] for e in graf.lista("events")
+               if isinstance(e.get("kapitel"), int) and not isinstance(e.get("kapitel"), bool) and e["kapitel"] > 0}
+    ut = []
+    for n in sorted(nummer):
+        meta = scenkort_om_finns(root, n)
+        ut.append((n, graf.kapitel_datum(n, meta.get("datum")), meta.get("tillbakablick") is True))
+    return ut
+
+
 def register(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("validate", help="förbjudna namn och namn som saknas i grafen")
     p.add_argument("filer", nargs="*", help="kapitelfiler (standard: alla i manuskript/)")
@@ -69,12 +131,21 @@ def _kor(args: argparse.Namespace) -> int:
     canon_path = root / "bok" / "canon.md"
     canon = las_kapitel(canon_path) if canon_path.is_file() else ""
     forbjudna = block(canon, "blacklist")
-    kanda = kanda_namn(Graf.load(root), canon)
+    graf = Graf.load(root)
+    kanda = kanda_namn(graf, canon)
     filer = [Path(f).resolve() for f in args.filer] or kapitelfiler(root)
     if not filer:
         print("Inga kapitel att kontrollera i manuskript/.")
         return 0
+    kapitel = _kapitel_i_tid(root, graf)
+    datum = {n: d for n, d, _ in kapitel}
+    personer = personer_med_fodd(graf)
     stopp = False
+    if tidsfel := graf.tidsfel(kapitel):
+        print("Tidslinjen")
+        for rad in tidsfel:
+            print(f"  BLOCKERANDE: {rad}")
+        stopp = True
     for fil in filer:
         text = las_kapitel(fil)
         print(fil.relative_to(root).as_posix() if fil.is_relative_to(root) else str(fil))
@@ -85,6 +156,11 @@ def _kor(args: argparse.Namespace) -> int:
         if nya := okanda(text, kanda):
             lista = ", ".join(f"{n} (rad {nr})" for nr, n in nya)
             print(f"  Okända namn (lägg i grafen, eller i canon.md under kända namn): {lista}")
-        if not traffar and not nya:
+        varningar = []
+        if (n := _nummer(fil)) and (d := datum.get(n)) is not None and personer:
+            varningar = aldersvarningar(text, personer, d)
+        for nr, rad in varningar:
+            print(f"  Ålder att kontrollera rad {nr}: {rad}")
+        if not traffar and not nya and not varningar:
             print("  Inga anmärkningar.")
     return 1 if stopp else 0
