@@ -83,12 +83,14 @@ def test_cli_without_titel_uses_bok_toml(bok, dbs, capsys):
     assert output[0]["markerat"] == "Fin mening"
 
 
-def test_cli_empty_titel_error(bok, capsys):
+def test_cli_empty_titel_error(bok, dbs, capsys):
     # Set empty titel in bok.toml
     boktoml_path = bok / "bok.toml"
     content = boktoml_path.read_text()
     content = content.replace('titel = "Testbok"', 'titel = ""')
     boktoml_path.write_text(content)
-    ret = main(["annotations"])
+    # Databasflaggorna gör att testet går förbi macOS-kontrollen även på Linux
+    anno, lib = dbs
+    ret = main(["annotations", "--anno-db", str(anno), "--lib-db", str(lib)])
     assert ret == 2
     assert "Ange bokens titel i Böcker med --titel" in capsys.readouterr().err
