@@ -22,8 +22,8 @@ from pathlib import Path
 from bok import __version__, frontmatter
 from bok.rot import BokFel, find_root
 
-# Sätts till mottagarens riktiga adress när den är driftsatt (se planens Task 5).
-STANDARD_URL = "https://forslag.bok.invalid"
+# Mottagaren (mottagare/) på Fabians privata Cloudflare-konto. BOK_FORSLAG_URL ersätter den i tester.
+STANDARD_URL = "https://bok-forslag.lindvide.workers.dev"
 TYPER = ("forbattring", "problem", "fraga", "lardom")
 MAX_TEXT = 4000
 MAX_SAMMANHANG = 2000
