@@ -10,6 +10,7 @@ from pathlib import Path
 
 from bok import frontmatter
 from bok.rot import BokFel, find_root
+from bok.tid import Datum, alder, sakert_fore, som_text, tolka
 
 LISTOR = (
     "characters", "locations", "events", "secrets", "relationships", "threads",
@@ -115,6 +116,80 @@ class Graf:
                 return x.get("namn") or id_
         return id_
 
+    def kapitel_datum(self, kapitel: int, fran_scenkort=None) -> Datum | None:
+        """Scenkortets datum, annars det tidigaste daterade händelsen i kapitlet."""
+        if (d := tolka(fran_scenkort)) is not None:
+            return d
+        datum = [d for e in self.lista("events")
+                 if _kap(e.get("kapitel")) == kapitel and (d := tolka(e.get("datum"))) is not None]
+        return min(datum, key=Datum.tidigast) if datum else None
+
+    def alder_vid(self, cid: str, vid: Datum) -> str | None:
+        c = self._finns("characters", cid)
+        if c is None or (fodd := tolka(c.get("fodd"))) is None:
+            return None
+        dod = tolka(c.get("dod"))
+        if dod is not None and sakert_fore(dod, vid):
+            return f"död {dod} (född {fodd})"
+        lagst, hogst = alder(fodd, vid)
+        if hogst < 0:
+            return f"inte född än (född {fodd})"
+        return f"{som_text(max(lagst, 0), hogst)} (född {fodd})"
+
+    def tidslinje(self, fran: int | None = None, till: int | None = None) -> str:
+        rader = []
+        for e in self.lista("events"):
+            d = tolka(e.get("datum"))
+            if d is None or (fran is not None and d.ar < fran) or (till is not None and d.ar > till):
+                continue
+            rader.append((d, e))
+        rader.sort(key=lambda x: (x[0].tidigast(), _kap(x[1].get("kapitel"))))
+        r = ["# Tidslinje", ""]
+        if not rader:
+            r.append("Inga daterade händelser i grafen än.")
+        for d, e in rader:
+            folk = []
+            for cid in e.get("narvarande") or []:
+                if not isinstance(cid, str):
+                    continue
+                a = self.alder_vid(cid, d)
+                folk.append(f"{self.namn(cid)} {a.split(' (')[0]}" if a else self.namn(cid))
+            delar = [str(d), f"kapitel {e.get('kapitel', '?')}", e.get("vad", "")]
+            if isinstance(e.get("plats"), str):
+                delar.append(self.namn(e["plats"]))
+            if folk:
+                delar.append(", ".join(folk))
+            r.append("- " + " · ".join(x for x in delar if x))
+        return "\n".join(r) + "\n"
+
+    def tidsfel(self, kapitel: list[tuple[int, Datum | None, bool]]) -> list[str]:
+        """Tidsfel i grafen. `kapitel`: (nummer, datum, tillbakablick) i kapitelordning."""
+        fel = []
+        for e in sorted(self.lista("events"), key=_ordning):
+            d = tolka(e.get("datum"))
+            if d is None:
+                continue
+            for cid in e.get("narvarande") or []:
+                c = self._finns("characters", cid) if isinstance(cid, str) else None
+                if c is None:
+                    continue
+                fodd, dod = tolka(c.get("fodd")), tolka(c.get("dod"))
+                var = f'"{e.get("vad") or e.get("id", "")}" ({d}, kapitel {e.get("kapitel", "?")})'
+                if fodd is not None and sakert_fore(d, fodd):
+                    fel.append(f"{c.get('namn', cid)} är med i {var} men föds {fodd}.")
+                if dod is not None and sakert_fore(dod, d):
+                    fel.append(f"{c.get('namn', cid)} är med i {var} men dog {dod}.")
+        forra: tuple[int, Datum] | None = None
+        for nr, d, tillbaka in kapitel:
+            if d is None:
+                continue
+            if forra is not None and not tillbaka and sakert_fore(d, forra[1]):
+                fel.append(f"Kapitel {nr} ({d}) ligger före kapitel {forra[0]} ({forra[1]}). "
+                           "Är det en tillbakablick? Skriv tillbakablick: true i scenkortet.")
+            if not tillbaka:
+                forra = (nr, d)
+        return fel
+
     def _relationer(self, id_: str) -> list[tuple[str, dict]]:
         ut = []
         for x in self.lista("relationships"):
@@ -184,8 +259,12 @@ class Graf:
             r.append("")
         return "\n".join(r)
 
-    def context(self, kapitel: int, karaktarer: list[str], platser: list[str], bagar: list[str]) -> str:
-        r = [f"# Underlag för kapitel {kapitel}", "", "## Personer", ""]
+    def context(self, kapitel: int, karaktarer: list[str], platser: list[str], bagar: list[str],
+                datum: Datum | None = None, rostfil: str | None = None) -> str:
+        r = [f"# Underlag för kapitel {kapitel}", ""]
+        if datum is not None:
+            r += [f"Kapitlet utspelar sig: {datum}", ""]
+        r += ["## Personer", ""]
         for cid in karaktarer:
             c = self._finns("characters", cid)
             if c is None:
@@ -193,6 +272,8 @@ class Graf:
                 continue
             r.append(f"### {c.get('namn', cid)} ({cid})")
             r += [f"- {k}: {v}" for k, v in (c.get("fakta") or {}).items()]
+            if datum is not None and (a := self.alder_vid(cid, datum)):
+                r.append(f"- Ålder: {a}")
             r += [f"- Relation till {self.namn(a)}: {relation_vid(x, kapitel)}" for a, x in self._relationer(cid)]
             for s in self.lista("secrets"):
                 for v in s.get("vet") or []:
@@ -223,6 +304,8 @@ class Graf:
             r += [f"- Kapitel {s.get('kapitel')}: {s.get('vad', '')}" for s in _steg(t) if _kap(s.get("kapitel")) < kapitel]
             r += [f"- Olöst plantering (kapitel {p.get('kapitel')}): {p.get('vad', '')}" for p in _oppna_vid(t, kapitel)]
             r.append("")
+        if rostfil:
+            r += ["## Röst", "", f"POV-personen har en egen röstfil: {rostfil}. Den går före bok/stil/rost.md.", ""]
         r += ["## Förra kapitlet", ""]
         forra = [e for e in self.lista("events") if e.get("kapitel") == kapitel - 1]
         r += [f"- {e.get('vad', '')}" for e in sorted(forra, key=_ordning)] or ["Inga händelser i grafen."]
@@ -240,6 +323,14 @@ def scenkort(root: Path, kapitel: int) -> dict:
         raise GrafFel(f"Scenkortet {path.name} är inte ifyllt än.")
     meta, _ = frontmatter.split(text)
     return meta
+
+
+def scenkort_om_finns(root: Path, kapitel: int) -> dict:
+    """Scenkortets huvud, eller {} om scenkortet saknas, inte är ifyllt eller är trasigt."""
+    try:
+        return scenkort(root, kapitel)
+    except BokFel:
+        return {}
 
 
 def _ids(meta: dict, nyckel: str) -> list[str]:
@@ -262,6 +353,9 @@ def register(sub: argparse._SubParsersAction) -> None:
     w = g.add_parser("var", help="händelser på en plats")
     w.add_argument("plats")
     w.add_argument("--kapitel", type=int)
+    t = g.add_parser("tidslinje", help="daterade händelser i tidsordning, med åldrar")
+    t.add_argument("--fran", type=int)
+    t.add_argument("--till", type=int)
     p.set_defaults(func=_kor)
 
 
@@ -270,10 +364,16 @@ def _kor(args: argparse.Namespace) -> int:
     if args.fraga == "context":
         meta = scenkort(root, args.kapitel)
         graf = Graf.load(root)
-        print(graf.context(args.kapitel, _ids(meta, "karaktarer"), _ids(meta, "platser"), _ids(meta, "bagar")))
+        pov = meta.get("pov")
+        rost = root / "bok" / "stil" / f"rost-{pov}.md" if isinstance(pov, str) else None
+        print(graf.context(args.kapitel, _ids(meta, "karaktarer"), _ids(meta, "platser"), _ids(meta, "bagar"),
+                           datum=graf.kapitel_datum(args.kapitel, meta.get("datum")),
+                           rostfil=rost.relative_to(root).as_posix() if rost and rost.is_file() else None))
         return 0
     graf = Graf.load(root)
-    if args.fraga == "vem-vet":
+    if args.fraga == "tidslinje":
+        print(graf.tidslinje(args.fran, args.till))
+    elif args.fraga == "vem-vet":
         print(graf.vem_vet(args.hemlighet, args.kapitel))
     elif args.fraga == "bagar":
         print(graf.bagar(args.oppna))

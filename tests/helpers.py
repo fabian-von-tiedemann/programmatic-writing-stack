@@ -68,3 +68,29 @@ def rapport(root, body="", **meta):
 
 BRA_RED = {"struktur": 8, "karaktar": 8, "spanning": 8, "kontinuitet": 8, "tema": 8}
 BRA_SPRAK = {"prosa": 8, "dialog": 8, "rost": 8}
+
+
+TIDGRAF = {
+    "characters": [
+        {"id": "marlene", "namn": "Marléne Östlund", "fodd": "1946-03-14"},
+        {"id": "sofia", "namn": "Sofia Östlund", "fodd": "1974"},
+        {"id": "henrik", "namn": "Henrik Ek", "fodd": "1950", "dod": "1990-05-01"},
+        {"id": "utan", "namn": "Utan Datum"},
+    ],
+    "locations": [{"id": "kontoret", "namn": "Kontoret"}],
+    "events": [
+        {"id": "e1", "kapitel": 1, "vad": "Anbudsöppningen", "datum": "1989-11-09",
+         "plats": "kontoret", "narvarande": ["marlene", "henrik"]},
+        {"id": "e2", "kapitel": 2, "vad": "Estonia", "datum": "1994-09-28", "narvarande": ["marlene", "sofia"]},
+        {"id": "e3", "kapitel": 2, "vad": "Odaterad", "narvarande": ["utan"]},
+        {"id": "e4", "kapitel": 3, "vad": "Begravningen", "datum": "våren 1995", "narvarande": ["marlene"]},
+    ],
+    "secrets": [],
+    "relationships": [],
+    "threads": [],
+}
+
+
+def skriv_tidgraf(root, graf=TIDGRAF):
+    for nyckel, lista in graf.items():
+        skriv(root, f"bok/story-graph/{nyckel}.json", json.dumps({nyckel: lista}, ensure_ascii=False))
