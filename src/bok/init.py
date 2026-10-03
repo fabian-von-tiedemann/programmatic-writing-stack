@@ -8,7 +8,7 @@ from pathlib import Path
 
 from bok import __version__, boktoml
 from bok.genererat import write_generated
-from bok.rot import BokFel
+from bok.rot import MARKER, BokFel
 
 DATA = Path(__file__).parent / "data"
 BLOCK_START = "<!-- bok:start -->"
@@ -94,6 +94,9 @@ def _git_init(root: Path) -> str:
 
 def init_repo(path: Path, titel: str | None = None, git: bool = True) -> list[str]:
     root = Path(path).resolve()
+    for mapp in root.parents:
+        if (mapp / MARKER).is_file():
+            raise BokFel(f"Mappen ligger redan i boken {mapp}. Kör bok init där i stället.")
     root.mkdir(parents=True, exist_ok=True)
     toml = root / "bok.toml"
     befintlig = boktoml.read(root) if toml.exists() else None  # validerar innan något skrivs

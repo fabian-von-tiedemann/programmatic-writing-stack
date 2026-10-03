@@ -38,6 +38,13 @@ def main(argv: list[str] | None = None) -> int:
     except BokFel as exc:
         print(f"bok: {exc}", file=sys.stderr)
         return 2
+    except UnicodeDecodeError:
+        print("bok: en fil är inte sparad som UTF-8. Spara om den som UTF-8 och försök igen.", file=sys.stderr)
+        return 2
+    except OSError as exc:
+        var = f" {exc.filename}" if exc.filename else " en fil"
+        print(f"bok: kunde inte läsa eller skriva{var}: {exc.strerror or exc}", file=sys.stderr)
+        return 2
 
 
 def run() -> None:

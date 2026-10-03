@@ -165,3 +165,19 @@ def test_trasigt_block_avbryter_utan_att_skriva(tmp_path, text):
     assert path.read_text() == text
     assert not (tmp_path / "bok").exists()
     assert not (tmp_path / "bok.toml").exists()
+
+
+def test_init_i_en_undermapp_till_en_bok_avbryts(tmp_path):
+    root = tmp_path / "bok"
+    init_repo(root, titel="Testbok", git=False)
+    under = root / "manuskript" / "ny"
+    with pytest.raises(BokFel) as fel:
+        init_repo(under, git=False)
+    assert str(fel.value) == f"Mappen ligger redan i boken {root.resolve()}. Kör bok init där i stället."
+    assert not under.exists()
+
+
+def test_init_i_bokens_egen_mapp_uppgraderar(tmp_path):
+    root = tmp_path / "bok"
+    init_repo(root, titel="Testbok", git=False)
+    assert init_repo(root, git=False) == []
