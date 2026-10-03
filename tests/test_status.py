@@ -398,3 +398,39 @@ def test_kapitel_utan_fack_som_forut(bok):
     scenkort(bok, 1)
     skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
     assert compute(bok)["kapitel"][0]["lage"] == "ska granskas"
+
+
+CANON_VERKLIG = ("# Canon\n\n```verkliga-handelser\n"
+                 "1994-09-28 | Estoniakatastrofen | en kollega omkommer (fiktiv)\n```\n")
+
+
+def test_verkliga_handelser_kraver_sensitivitet(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/canon.md", CANON_VERKLIG)
+    s = compute(bok)
+    assert s["nasta"] == "Förberedelse: Verkliga händelser – sensitivitetsläsning av planen saknas."
+    rapport(bok, omfang="forberedelse", roll="sensitivitet", utfall="atgarda")
+    assert "sensitivitetsläsaren vill ha ändringar" in compute(bok)["nasta"]
+    rapport(bok, omfang="forberedelse", roll="sensitivitet", utfall="godkand")
+    assert compute(bok)["nasta"].startswith("Förberedelsen är klar")
+
+
+def test_utan_verkliga_handelser_som_forut(bok):
+    fyll_forberedelse(bok)
+    s = compute(bok)
+    assert [d["namn"] for d in s["forberedelse"]] == ["Koncept", "Karaktärer", "Plot", "Röst", "Kapitelplan"]
+    assert s["revisioner_alla"] == 0
+
+
+def test_revisioner_raknas(bok):
+    fyll_forberedelse(bok)
+    ja_pa_forberedelse(bok)
+    scenkort(bok, 1)
+    skriv(bok, "bok/revisioner.md",
+          "# Revisioner\n\nFormat: `- [ ] Kapitel 3: …`\n\n"
+          "- [ ] Kapitel 1: stryk kommentaren i slutet\n- [x] Kapitel 1: rätta åldern\n"
+          "- [ ] kapitel 1: tempot i mitten\n- [ ] Alla: Marlénes ålder följer grafen\n")
+    s = compute(bok)
+    assert s["kapitel"][0]["revisioner"] == 2
+    assert s["revisioner_alla"] == 1
+    assert main(["status"]) == 0

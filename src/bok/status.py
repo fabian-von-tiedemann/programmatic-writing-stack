@@ -11,6 +11,7 @@ from bok import boktoml, frontmatter
 from bok.graf import Graf, GrafFel, ar_oppen
 from bok.rapport import GRANSKARE_AXLAR, las_alla
 from bok.rot import find_root
+from bok.validera import block
 
 KONCEPT = ("bok/koncept/premiss.md", "bok/koncept/genre.md", "bok/koncept/form.md", "bok/koncept/teman.md")
 PLOT = ("bok/plot/struktur.md", "bok/plot/bagar.md")
@@ -36,6 +37,34 @@ def _del(namn: str, filer: tuple[str, ...], root: Path) -> dict:
 def _kapitelplan_del(root: Path) -> dict:
     klar = 1 in kapitelplan(root).values()
     return {"namn": "Kapitelplan", "klar": klar, "saknas": [] if klar else ["ingen rad för akt 1 i kapitelplan.md"]}
+
+
+_REVISION = re.compile(r"^\s*- \[ \] (?:kapitel\s+(\d+)|(alla))\s*:", re.M | re.I)
+
+
+def _verkliga_del(root: Path, rapporter: list[dict]) -> dict | None:
+    """Sensitivitetsläsning av planen, bara när canon.md listar verkliga händelser."""
+    path = root / "bok" / "canon.md"
+    if not path.is_file() or not block(path.read_text(encoding="utf-8"), "verkliga-handelser"):
+        return None
+    s = _senaste(rapporter, omfang="forberedelse", roll="sensitivitet")
+    if s and s["utfall"] == "godkand":
+        return {"namn": "Verkliga händelser", "klar": True, "saknas": []}
+    saknas = "sensitivitetsläsaren vill ha ändringar i planen" if s else "sensitivitetsläsning av planen saknas"
+    return {"namn": "Verkliga händelser", "klar": False, "saknas": [saknas]}
+
+
+def revisioner(root: Path) -> dict:
+    path = root / "bok" / "revisioner.md"
+    ut: dict = {"alla": 0, "kapitel": {}}
+    if not path.is_file():
+        return ut
+    for kap, alla in _REVISION.findall(path.read_text(encoding="utf-8")):
+        if alla:
+            ut["alla"] += 1
+        else:
+            ut["kapitel"][int(kap)] = ut["kapitel"].get(int(kap), 0) + 1
+    return ut
 
 
 def _karaktarer(root: Path) -> dict:
@@ -265,13 +294,18 @@ def _bagar(root: Path, kapitel: list[dict]) -> dict:
 
 def compute(root: Path) -> dict:
     bok = boktoml.read(root)
+    rapporter = las_alla(root)
     forb = [_del("Koncept", KONCEPT, root), _karaktarer(root), _del("Plot", PLOT, root),
             _del("Röst", ROST, root), _kapitelplan_del(root)]
-    rapporter = las_alla(root)
+    if verkliga := _verkliga_del(root, rapporter):
+        forb.append(verkliga)
     forb_ja = _senaste(rapporter, omfang="forberedelse", roll="forfattare")
     ja = forb_ja is not None and forb_ja["utfall"] == "godkand"
     plan = kapitelplan(root)
     kapitel = [_kapitel(root, nr, plan.get(nr), rapporter) for nr in _kapitelnummer(root, plan)]
+    rev = revisioner(root)
+    for k in kapitel:
+        k["revisioner"] = rev["kapitel"].get(k["nr"], 0)
     return {
         "titel": bok.get("titel", ""),
         "forberedelse": forb,
@@ -279,6 +313,7 @@ def compute(root: Path) -> dict:
         "kapitel": kapitel,
         "bagar": _bagar(root, kapitel),
         "nasta": _nasta(forb, ja, kapitel, plan, rapporter),
+        "revisioner_alla": rev["alla"],
     }
 
 
@@ -292,7 +327,10 @@ def render_text(s: dict) -> str:
         for k in s["kapitel"]:
             akt = f" (akt {k['akt']})" if k["akt"] else ""
             betyg = " · ".join(f"{a} {v}" for a, v in k["betyg"].items())
-            r.append(f"  {k['nr']}{akt}: {k['lage']}" + (f"  [{betyg}]" if betyg else ""))
+            rev = f"  ({k['revisioner']} öppna revisioner)" if k.get("revisioner") else ""
+            r.append(f"  {k['nr']}{akt}: {k['lage']}" + (f"  [{betyg}]" if betyg else "") + rev)
+    if s.get("revisioner_alla"):
+        r += ["", f"Revisioner för hela boken: {s['revisioner_alla']} öppna"]
     b = s["bagar"]
     varningar = []
     if b.get("fel"):
