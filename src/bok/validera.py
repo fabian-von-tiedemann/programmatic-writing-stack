@@ -90,6 +90,8 @@ def aldersvarningar(text: str, personer, kapiteldatum: Datum) -> list[tuple[int,
             if len(traffade) != 1:
                 continue
             namn, former, fodd, _ = traffade[0]
+            if not any(re.search(rf"(?<![\wÅÄÖåäö]){re.escape(f)}(?![\wåäö])", mening) for f in former):
+                continue  # bara nämnd i genitiv ("Sofias mamma"): åldern gäller någon annan
             lagst, hogst = alder(fodd, kapiteldatum)
             fynd = list(_ALDER.finditer(mening))
             vardena = [int(next(x for x in m.groups() if x)) for m in fynd]
