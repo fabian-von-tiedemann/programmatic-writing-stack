@@ -22,10 +22,13 @@ UTFALL = {
     "forlaggare": {"fortsatt", "atgarda", "A", "B", "C"},
     "sensitivitet": {"godkand", "atgarda"},
     "forfattare": {"godkand", "tillbaka"},
+    "researcher": {"godkand", "atgarda"},
 }
 OMFANG = ("kapitel", "akt", "forberedelse", "bok")
 GODKAND_GRANS = 8
 EFTER_GRANSKNING = ("kontinuitet", "forfattare")
+FORE_GRANSKNING = ("researcher",)
+SAMMA_RUNDA = EFTER_GRANSKNING + FORE_GRANSKNING
 
 
 class RapportFel(BokFel):
@@ -94,10 +97,14 @@ def _nasta(katalog: Path, roll: str) -> int:
     return max(nummer, default=0) + 1
 
 
+def _granskningsrundor(katalog: Path) -> list[int]:
+    return [int(m.group(1)) for roll in GRANSKARE_AXLAR for p in katalog.glob(f"{roll}-r*.md")
+            if (m := re.fullmatch(rf"{roll}-r(\d+)\.md", p.name))]
+
+
 def _runda_efter_granskning(katalog: Path, meta: dict, runda: int | None) -> int:
     """Kontinuitet och författarens omdöme gäller alltid kapitlets senaste granskningsrunda."""
-    rundor = [int(m.group(1)) for roll in GRANSKARE_AXLAR for p in katalog.glob(f"{roll}-r*.md")
-              if (m := re.fullmatch(rf"{roll}-r(\d+)\.md", p.name))]
+    rundor = _granskningsrundor(katalog)
     if not rundor:
         raise RapportFel([f"Kapitel {meta['kapitel']} har inte granskats än; {meta['roll']} kommer efter granskningen."])
     senaste = max(rundor)
@@ -105,6 +112,15 @@ def _runda_efter_granskning(katalog: Path, meta: dict, runda: int | None) -> int
         raise RapportFel([f"runda {runda} stämmer inte med senaste granskningsrundan för kapitel "
                           f"{meta['kapitel']}, som är {senaste}."])
     return senaste
+
+
+def _runda_fore_granskning(katalog: Path, meta: dict, runda: int | None) -> int:
+    """Fackgranskningen hör till den granskningsrunda som kommer härnäst."""
+    kommande = max(_granskningsrundor(katalog), default=0) + 1
+    if runda is not None and runda != kommande:
+        raise RapportFel([f"runda {runda} stämmer inte med kommande granskningsrundan för kapitel "
+                          f"{meta['kapitel']}, som är {kommande}."])
+    return kommande
 
 
 def spara(root: Path, text: str, skriv_over: bool = False) -> Path:
@@ -118,14 +134,17 @@ def spara(root: Path, text: str, skriv_over: bool = False) -> Path:
         raise RapportFel(fel)
     katalog = _katalog(root, meta)
     runda = meta.get("runda")
-    if meta.get("omfang", "kapitel") == "kapitel" and meta["roll"] in EFTER_GRANSKNING:
-        runda = _runda_efter_granskning(katalog, meta, runda)
+    if meta.get("omfang", "kapitel") == "kapitel":
+        if meta["roll"] in EFTER_GRANSKNING:
+            runda = _runda_efter_granskning(katalog, meta, runda)
+        elif meta["roll"] in FORE_GRANSKNING:
+            runda = _runda_fore_granskning(katalog, meta, runda)
     katalog.mkdir(parents=True, exist_ok=True)
     runda = runda or _nasta(katalog, meta["roll"])
     path = katalog / f"{meta['roll']}-r{runda}.md"
     if path.exists() and not skriv_over:
         rad = path.relative_to(root).as_posix()
-        if meta["roll"] in EFTER_GRANSKNING and meta.get("omfang", "kapitel") == "kapitel":
+        if meta["roll"] in SAMMA_RUNDA and meta.get("omfang", "kapitel") == "kapitel":
             raise RapportFel([f"{rad} finns redan för den här rundan. Använd --skriv-over för att ersätta den."])
         raise RapportFel([f"{rad} finns redan. Använd en ny runda, eller --skriv-over för att ersätta rapporten."])
     normal = text.lstrip("﻿").replace("\r\n", "\n").lstrip()
