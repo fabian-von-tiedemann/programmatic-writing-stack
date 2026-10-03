@@ -39,13 +39,18 @@ def _hitta(katalog: Path, monster: str) -> Path:
 
 def _kopiera(db: Path, till: Path) -> Path:
     """Kopiera databasen med -wal och -shm, så att nya noter som inte skrivits in än kommer med."""
-    mal = till / db.name
-    shutil.copy2(db, mal)
-    for suffix in ("-wal", "-shm"):
-        extra = db.with_name(db.name + suffix)
-        if extra.exists():
-            shutil.copy2(extra, till / extra.name)
-    return mal
+    try:
+        mal = till / db.name
+        shutil.copy2(db, mal)
+        for suffix in ("-wal", "-shm"):
+            extra = db.with_name(db.name + suffix)
+            if extra.exists():
+                shutil.copy2(extra, till / extra.name)
+        return mal
+    except PermissionError as exc:
+        raise AnnotationsFel("Får inte läsa Apple Böckers databas. Ge Terminal (eller Claude Code) Fullständig skivåtkomst i Systeminställningar > Integritet och säkerhet, och försök igen.") from exc
+    except OSError as exc:
+        raise AnnotationsFel(f"Kunde inte läsa Apple Böckers databas: {exc}") from exc
 
 
 def hamta(titel: str, sedan: datetime | None = None,
@@ -53,19 +58,24 @@ def hamta(titel: str, sedan: datetime | None = None,
     anno_db = anno_db or _hitta(CONTAINER / "AEAnnotation", "AEAnnotation_*.sqlite")
     lib_db = lib_db or _hitta(CONTAINER / "BKLibrary", "BKLibrary-*.sqlite")
     grans = sedan.timestamp() - CORE_DATA_EPOK if sedan else -1e18
-    with tempfile.TemporaryDirectory() as tmp:
-        lib = sqlite3.connect(_kopiera(lib_db, Path(tmp)))
-        try:
-            rad = lib.execute("SELECT ZASSETID FROM ZBKLIBRARYASSET WHERE ZTITLE = ? LIMIT 1", (titel,)).fetchone()
-        finally:
-            lib.close()
-        if rad is None:
-            raise AnnotationsFel(f"Hittar ingen bok med titeln {titel!r} i Böcker. Ange en annan med --titel.")
-        anno = sqlite3.connect(_kopiera(anno_db, Path(tmp)))
-        try:
-            rader = anno.execute(SQL, (rad[0], grans)).fetchall()
-        finally:
-            anno.close()
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            lib = sqlite3.connect(_kopiera(lib_db, Path(tmp)))
+            try:
+                rad = lib.execute("SELECT ZASSETID FROM ZBKLIBRARYASSET WHERE ZTITLE = ? ORDER BY ZASSETID LIMIT 1", (titel,)).fetchone()
+            finally:
+                lib.close()
+            if rad is None:
+                raise AnnotationsFel(f"Hittar ingen bok med titeln {titel!r} i Böcker. Ange en annan med --titel.")
+            anno = sqlite3.connect(_kopiera(anno_db, Path(tmp)))
+            try:
+                rader = anno.execute(SQL, (rad[0], grans)).fetchall()
+            finally:
+                anno.close()
+    except AnnotationsFel:
+        raise
+    except sqlite3.Error as exc:
+        raise AnnotationsFel(f"Kunde inte läsa Apple Böckers databas: {exc}") from exc
     return [
         {"datum": datetime.fromtimestamp(d + CORE_DATA_EPOK).strftime("%Y-%m-%d %H:%M"),
          "stil": STILAR.get(int(s), str(s)), "markerat": sel, "not": note, "plats": loc}
@@ -102,6 +112,8 @@ def _kor(args: argparse.Namespace) -> int:
     if sys.platform != "darwin" and not (args.anno_db and args.lib_db):
         raise AnnotationsFel("bok annotations fungerar bara på macOS, där Apple Böcker finns.")
     titel = args.titel or boktoml.read(find_root()).get("titel", "")
+    if not titel:
+        raise AnnotationsFel("Ange bokens titel i Böcker med --titel.")
     try:
         sedan = datetime.strptime(args.sedan, "%Y-%m-%d") if args.sedan else None
     except ValueError as exc:
@@ -109,7 +121,10 @@ def _kor(args: argparse.Namespace) -> int:
     noter = hamta(titel, sedan, args.anno_db, args.lib_db)
     text = json.dumps(noter, ensure_ascii=False, indent=2) + "\n" if args.json else render_md(titel, noter)
     if args.ut:
-        Path(args.ut).write_text(text, encoding="utf-8")
+        try:
+            Path(args.ut).write_text(text, encoding="utf-8")
+        except OSError as exc:
+            raise AnnotationsFel(f"Kunde inte skriva {args.ut}: {exc}") from exc
         print(f"Skrev {len(noter)} noter till {args.ut}.")
     else:
         print(text, end="")
