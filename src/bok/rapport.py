@@ -121,7 +121,7 @@ def las_alla(root: Path) -> list[dict]:
             continue
         try:
             meta, _ = frontmatter.split(p.read_text(encoding="utf-8"))
-        except frontmatter.FrontmatterFel:
+        except (frontmatter.FrontmatterFel, UnicodeDecodeError):
             continue
         if not meta or validera(meta):
             continue

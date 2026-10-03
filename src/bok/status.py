@@ -1,0 +1,258 @@
+"""bok status: var boken står och vad som är nästa steg, härlett ur filerna."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from pathlib import Path
+
+from bok import boktoml, frontmatter
+from bok.graf import Graf, GrafFel
+from bok.rapport import GRANSKARE_AXLAR, las_alla
+from bok.rot import find_root
+
+KONCEPT = ("bok/koncept/premiss.md", "bok/koncept/genre.md", "bok/koncept/form.md", "bok/koncept/teman.md")
+PLOT = ("bok/plot/struktur.md", "bok/plot/bagar.md")
+ROST = ("bok/stil/rost.md",)
+KAPITELPLAN = "bok/plot/kapitelplan.md"
+MAX_RUNDOR = 3
+GRANSKARE = tuple(GRANSKARE_AXLAR)
+NAMN = {"redaktor": "Redaktören", "sprakgranskare": "Språkgranskaren"}
+_RAD = re.compile(r"^\|\s*(\d+)\s*\|\s*(\d+)\s*\|", re.M)
+_KAPFIL = re.compile(r"^kapitel-(\d+)\.md$")
+
+
+def ofylld(path: Path) -> bool:
+    return not path.is_file() or "{{" in path.read_text(encoding="utf-8")
+
+
+def _del(namn: str, filer: tuple[str, ...], root: Path) -> dict:
+    saknas = [f"{Path(f).name} är inte ifylld" for f in filer if ofylld(root / f)]
+    return {"namn": namn, "klar": not saknas, "saknas": saknas}
+
+
+def _karaktarer(root: Path) -> dict:
+    katalog = root / "bok" / "karaktarer"
+    filer = sorted(p for p in katalog.glob("*.md") if p.name not in ("MALL.md", "README.md"))
+    if not filer:
+        return {"namn": "Karaktärer", "klar": False, "saknas": ["ingen karaktär än"]}
+    saknas, pov = [], 0
+    for p in filer:
+        text = p.read_text(encoding="utf-8")
+        if "{{" in text:
+            saknas.append(f"{p.name} är inte ifylld")
+            continue
+        try:
+            meta, _ = frontmatter.split(text)
+        except frontmatter.FrontmatterFel:
+            saknas.append(f"{p.name} har trasig frontmatter")
+            continue
+        pov += meta.get("pov") is True
+    if pov == 0 and not saknas:
+        saknas.append("ingen POV-karaktär (pov: true)")
+    return {"namn": "Karaktärer", "klar": not saknas, "saknas": saknas}
+
+
+def kapitelplan(root: Path) -> dict[int, int]:
+    path = root / KAPITELPLAN
+    if not path.is_file():
+        return {}
+    return {int(k): int(a) for k, a in _RAD.findall(path.read_text(encoding="utf-8"))}
+
+
+def _kapitelfil(katalog: Path, nr: int) -> Path | None:
+    for p in katalog.glob("kapitel-*.md"):
+        if (m := _KAPFIL.match(p.name)) and int(m.group(1)) == nr:
+            return p
+    return None
+
+
+def _kapitelnummer(root: Path, plan: dict[int, int]) -> list[int]:
+    nr = set(plan)
+    for katalog in (root / "manuskript", root / "bok" / "plot" / "kapitel"):
+        nr.update(int(m.group(1)) for p in katalog.glob("kapitel-*.md") if (m := _KAPFIL.match(p.name)))
+    return sorted(nr)
+
+
+def _scenkort(root: Path, nr: int) -> tuple[bool, bool]:
+    path = _kapitelfil(root / "bok" / "plot" / "kapitel", nr)
+    if path is None:
+        return False, False
+    text = path.read_text(encoding="utf-8")
+    if "{{" in text:
+        return False, False
+    try:
+        meta, _ = frontmatter.split(text)
+    except frontmatter.FrontmatterFel:
+        return False, False
+    return True, meta.get("godkand") is True
+
+
+def _lage(nr, scenkort, plan_ok, utkast, sammanfattning, g, senaste, forf) -> tuple[str, str | None]:
+    if forf and forf["utfall"] == "godkand" and forf["runda"] >= g:
+        if sammanfattning:
+            return "klart", None
+        return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen."
+    if not scenkort:
+        return "scenkort saknas", f"Kapitel {nr}: Plot-arkitekten gör scenkortet."
+    if not plan_ok:
+        return "scenkortet väntar på ditt ja", f"Kapitel {nr}: visa scenkortet och be om ja."
+    if not utkast:
+        return "utkast saknas", f"Kapitel {nr}: Writer skriver utkastet."
+    if g == 0:
+        return "ska granskas", (f"Kapitel {nr}: kör bok validate och bok tics, sedan "
+                                "Redaktör och Språkgranskare (runda 1).")
+    if forf and forf["utfall"] == "tillbaka" and forf["runda"] >= g:
+        return "tillbaka till Writer", (f"Kapitel {nr}: Writer reviderar efter dina kommentarer, "
+                                        f"sedan granskning runda {g + 1}.")
+    if saknade := [r for r in GRANSKARE if r not in senaste]:
+        return f"granskning runda {g}", f"Kapitel {nr}: {' och '.join(NAMN[r] for r in saknade)} ska granska runda {g}."
+    utfall = {r["utfall"] for r in senaste.values()}
+    if "eskalera" in utfall or ("revidera" in utfall and g >= MAX_RUNDOR):
+        return "du bestämmer", (f"Kapitel {nr}: granskarna är inte nöjda efter runda {g}. "
+                                "Visa fynden; hon godkänner eller skickar tillbaka.")
+    if "revidera" in utfall:
+        return "revision", f"Kapitel {nr}: Writer reviderar efter fynden i runda {g}, sedan granskning runda {g + 1}."
+    if not sammanfattning:
+        return "kontinuitet", f"Kapitel {nr}: Kontinuitet uppdaterar grafen och skriver sammanfattningen."
+    return "väntar på din läsning", (f"Kapitel {nr}: be henne läsa manuskript/kapitel-{nr:02d}.md "
+                                     "och godkänna eller skicka tillbaka.")
+
+
+def _kapitel(root: Path, nr: int, akt: int | None, rapporter: list[dict]) -> dict:
+    egna = [r for r in rapporter if r["omfang"] == "kapitel" and r.get("kapitel") == nr]
+    scenkort, plan_ok = _scenkort(root, nr)
+    manus = _kapitelfil(root / "manuskript", nr)
+    sammanf = _kapitelfil(root / "bok" / "sammanfattningar", nr)
+    aktuell = sammanf is not None and (manus is None or sammanf.stat().st_mtime >= manus.stat().st_mtime)
+    granskning = [r for r in egna if r["roll"] in GRANSKARE]
+    g = max((r["runda"] for r in granskning), default=0)
+    senaste = {r["roll"]: r for r in granskning if r["runda"] == g}
+    forf = max((r for r in egna if r["roll"] == "forfattare"), key=lambda r: r["runda"], default=None)
+    betyg: dict = {}
+    for roll in GRANSKARE:
+        if roll in senaste:
+            betyg.update(senaste[roll].get("betyg") or {})
+    lage, nasta = _lage(nr, scenkort, plan_ok, manus is not None, aktuell, g, senaste, forf)
+    return {"nr": nr, "akt": akt, "lage": lage, "runda": g, "betyg": betyg, "klart": nasta is None, "nasta": nasta}
+
+
+def _senaste(rapporter: list[dict], **villkor) -> dict | None:
+    valda = [r for r in rapporter if all(r.get(k) == v for k, v in villkor.items())]
+    return max(valda, key=lambda r: r["runda"], default=None)
+
+
+def _nasta(forb, ja, kapitel, plan, rapporter) -> str:
+    for d in forb:
+        if not d["klar"]:
+            return f"Förberedelse: {d['namn']} – {d['saknas'][0]}."
+    if not ja:
+        return "Förberedelsen är klar: visa en sammanfattning av boken och be om hennes ja."
+    akter: dict[int, list[int]] = {}
+    for nr, akt in plan.items():
+        akter.setdefault(akt, []).append(nr)
+    for k in kapitel:
+        if not k["klart"]:
+            return k["nasta"]
+        if k["akt"] is not None and k["nr"] == max(akter[k["akt"]]):
+            fl = _senaste(rapporter, omfang="akt", akt=k["akt"], roll="forlaggare")
+            if not fl or fl["utfall"] != "fortsatt":
+                return f"Akt {k['akt']} är skriven: Förläggaren läser akten."
+    if not kapitel:
+        return "Kapitel 1: Plot-arkitekten gör scenkortet."
+    slut = _senaste(rapporter, omfang="bok", roll="forlaggare")
+    if not slut or slut["utfall"] not in ("A", "B", "C"):
+        return "Alla planerade kapitel är klara. Planera fler i kapitelplanen, eller låt Förläggaren göra slutläsningen."
+    return "Boken är klar. Tillval: sensitivitetsläsning, bok mall forlag, audiobook eller marknad."
+
+
+def _plan_bagar(root: Path) -> list[tuple[str, int | None]]:
+    path = root / "bok" / "plot" / "bagar.md"
+    if ofylld(path):
+        return []
+    ut = []
+    for sektion in re.split(r"(?m)^## ", path.read_text(encoding="utf-8"))[1:]:
+        if m := re.search(r"(?m)^id:\s*(\S+)", sektion):
+            s = re.search(r"(?m)^start:\s*kapitel\s*(\d+)", sektion)
+            ut.append((m.group(1), int(s.group(1)) if s else None))
+    return ut
+
+
+def _bagar(root: Path, kapitel: list[dict]) -> dict:
+    tom = {"stillastaende": [], "ej_paborjade": [], "olosta_planteringar": []}
+    senast = max((k["nr"] for k in kapitel if k["klart"]), default=0)
+    try:
+        graf = Graf.load(root)
+    except GrafFel as exc:
+        return {**tom, "fel": str(exc)}
+    threads = {t["id"]: t for t in graf.lista("threads") if t.get("id")}
+    ej = [bid for bid, start in _plan_bagar(root)
+          if start is not None and start <= senast and not (threads.get(bid) or {}).get("steg")]
+    still = []
+    for tid, t in threads.items():
+        if t.get("status", "oppen") != "oppen":
+            continue
+        steg = [s["kapitel"] for s in t.get("steg") or [] if isinstance(s, dict) and isinstance(s.get("kapitel"), int)]
+        if steg and senast - max(steg) >= 3:
+            still.append({"id": tid, "senast": max(steg)})
+    olosta = [{"bage": tid, "vad": p.get("vad", ""), "kapitel": p.get("kapitel")}
+              for tid, t in threads.items() for p in t.get("planteringar") or []
+              if isinstance(p, dict) and not p.get("loses_i")]
+    return {"stillastaende": still, "ej_paborjade": ej, "olosta_planteringar": olosta}
+
+
+def compute(root: Path) -> dict:
+    bok = boktoml.read(root)
+    forb = [_del("Koncept", KONCEPT, root), _karaktarer(root), _del("Plot", PLOT, root),
+            _del("Röst", ROST, root), _del("Kapitelplan", (KAPITELPLAN,), root)]
+    rapporter = las_alla(root)
+    ja = _senaste(rapporter, omfang="forberedelse", roll="forfattare") is not None and \
+        _senaste(rapporter, omfang="forberedelse", roll="forfattare")["utfall"] == "godkand"
+    plan = kapitelplan(root)
+    kapitel = [_kapitel(root, nr, plan.get(nr), rapporter) for nr in _kapitelnummer(root, plan)]
+    return {
+        "titel": bok.get("titel", ""),
+        "forberedelse": forb,
+        "forberedelse_godkand": ja,
+        "kapitel": kapitel,
+        "bagar": _bagar(root, kapitel),
+        "nasta": _nasta(forb, ja, kapitel, plan, rapporter),
+    }
+
+
+def render_text(s: dict) -> str:
+    r = [f"# {s['titel']}", "", "Förberedelse"]
+    for d in s["forberedelse"]:
+        r.append(f"  {'✓' if d['klar'] else '✗'} {d['namn']}" + ("" if d["klar"] else f": {'; '.join(d['saknas'])}"))
+    r.append(f"  {'✓' if s['forberedelse_godkand'] else '✗'} Ditt ja på helheten")
+    if s["kapitel"]:
+        r += ["", "Kapitel"]
+        for k in s["kapitel"]:
+            akt = f" (akt {k['akt']})" if k["akt"] else ""
+            betyg = " · ".join(f"{a} {v}" for a, v in k["betyg"].items())
+            r.append(f"  {k['nr']}{akt}: {k['lage']}" + (f"  [{betyg}]" if betyg else ""))
+    b = s["bagar"]
+    varningar = []
+    if b.get("fel"):
+        varningar.append(f"grafen kunde inte läsas: {b['fel']}")
+    varningar += [f"{x} skulle ha börjat men har inte rört sig i texten" for x in b["ej_paborjade"]]
+    varningar += [f"{x['id']} har inte rört sig sedan kapitel {x['senast']}" for x in b["stillastaende"]]
+    if b["olosta_planteringar"]:
+        varningar.append(f"{len(b['olosta_planteringar'])} planteringar väntar på upplösning")
+    if varningar:
+        r += ["", "Bågar", *(f"  ! {v}" for v in varningar)]
+    r += ["", f"Nästa steg: {s['nasta']}"]
+    return "\n".join(r) + "\n"
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    p = sub.add_parser("status", help="var boken står och vad som är nästa steg")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=_kor)
+
+
+def _kor(args: argparse.Namespace) -> int:
+    s = compute(find_root())
+    print(json.dumps(s, ensure_ascii=False, indent=2) if args.json else render_text(s), end="" if not args.json else "\n")
+    return 0

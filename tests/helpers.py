@@ -42,3 +42,29 @@ GRAF = {
 def skriv_graf(root, graf=GRAF):
     for nyckel, lista in graf.items():
         skriv(root, f"bok/story-graph/{nyckel}.json", json.dumps({nyckel: lista}, ensure_ascii=False))
+
+
+def fyll_forberedelse(root):
+    for rel in ["bok/koncept/premiss.md", "bok/koncept/genre.md", "bok/koncept/form.md",
+                "bok/koncept/teman.md", "bok/plot/struktur.md", "bok/plot/bagar.md", "bok/stil/rost.md"]:
+        skriv(root, rel, f"# {rel}\n\nIfylld.\n")
+    skriv(root, "bok/karaktarer/anna.md", "---\nid: anna\nnamn: Anna Berg\npov: true\n---\n\n# Anna\n")
+    skriv(root, "bok/plot/kapitelplan.md",
+          "# Kapitelplan\n\n| Kapitel | Akt | POV | Funktion | Bågar |\n|---|---|---|---|---|\n"
+          "| 1 | 1 | anna | Start | t-arvet |\n| 2 | 1 | anna | Fördjupning | t-arvet |\n"
+          "| 3 | 2 | anna | Vändning | t-arvet |\n")
+
+
+def rapport(root, body="", **meta):
+    from bok.rapport import spara
+
+    rader = []
+    for k, v in meta.items():
+        if isinstance(v, dict):
+            v = "{" + ", ".join(f"{a}: {b}" for a, b in v.items()) + "}"
+        rader.append(f"{k}: {v}")
+    return spara(root, "---\n" + "\n".join(rader) + "\n---\n" + body)
+
+
+BRA_RED = {"struktur": 8, "karaktar": 8, "spanning": 8, "kontinuitet": 8, "tema": 8}
+BRA_SPRAK = {"prosa": 8, "dialog": 8, "rost": 8}
