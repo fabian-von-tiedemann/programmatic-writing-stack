@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from bok.cli import main
@@ -98,3 +100,46 @@ def test_cli_vem_vet(bok, capsys):
     skriv_graf(bok)
     assert main(["graph", "vem-vet", "s-arvet", "--kapitel", "2"]) == 0
     assert "Erik Berg" in capsys.readouterr().out
+
+
+def _graf_med_trad(bok, trad):
+    skriv_graf(bok)
+    skriv(bok, "bok/story-graph/threads.json", json.dumps({"threads": [trad]}, ensure_ascii=False))
+    return Graf.load(bok)
+
+
+def test_context_visar_plantering_som_var_oppen_da(bok):
+    g = _graf_med_trad(bok, {
+        "id": "t-x", "namn": "X", "typ": "intrig", "status": "oppen", "steg": [],
+        "planteringar": [{"vad": "Nyckeln", "kapitel": 1, "loses_i": 5}],
+    })
+    assert "Olöst plantering (kapitel 1): Nyckeln" in g.context(3, [], [], ["t-x"])
+    assert "Nyckeln" not in g.context(6, [], [], ["t-x"])
+    assert "Olöst plantering" not in g.bagar()
+
+
+def test_kapitelfalt_som_inte_ar_heltal_kraschar_inte(bok):
+    skriv_graf(bok)
+    skriv(bok, "bok/story-graph/events.json", json.dumps({"events": [
+        {"id": "e1", "kapitel": "3", "vad": "A", "plats": "garden", "narvarande": ["anna"]},
+        {"id": "e2", "kapitel": None, "vad": "B", "plats": "garden", "narvarande": ["anna"]},
+        {"id": "e3", "kapitel": 1, "vad": "C", "plats": "garden", "narvarande": ["anna"]},
+    ]}))
+    skriv(bok, "bok/story-graph/threads.json", json.dumps({"threads": [
+        {"id": "t-y", "namn": "Y", "typ": "intrig", "status": "oppen",
+         "steg": [{"kapitel": "3", "vad": "a"}, {"kapitel": None, "vad": "b"}, {"kapitel": 2, "vad": "c"}],
+         "planteringar": [{"vad": "P", "kapitel": "1", "loses_i": "4"}]},
+    ]}))
+    skriv(bok, "bok/story-graph/secrets.json", json.dumps({"secrets": [
+        {"id": "s", "vad": "S", "vet": [{"karaktar": "anna", "fran_kapitel": None}, {"karaktar": "erik", "fran_kapitel": "2"}]},
+    ]}))
+    skriv(bok, "bok/story-graph/relationships.json", json.dumps({"relationships": [
+        {"fran": "anna", "till": "erik", "typ": "syskon",
+         "forandringar": [{"kapitel": None, "typ": "a"}, {"kapitel": "2", "typ": "b"}]},
+    ]}))
+    g = Graf.load(bok)
+    g.context(3, ["anna", "erik"], ["garden"], ["t-y"])
+    g.bagar()
+    g.karaktar("anna")
+    g.var("garden")
+    g.vem_vet("s", kapitel=2)

@@ -21,9 +21,13 @@ class GrafFel(BokFel):
     pass
 
 
+def _kap(x) -> int:
+    """Kapitelnummer ur json; allt som inte är ett heltal räknas som 0."""
+    return x if isinstance(x, int) and not isinstance(x, bool) else 0
+
+
 def _ordning(e: dict) -> tuple:
-    kap = e.get("kapitel")
-    return (kap if isinstance(kap, int) else 0, str(e.get("id", "")))
+    return (_kap(e.get("kapitel")), str(e.get("id", "")))
 
 
 def relation_vid(rel: dict, kapitel: int | None) -> str:
@@ -31,23 +35,29 @@ def relation_vid(rel: dict, kapitel: int | None) -> str:
     typ = rel.get("typ", "")
     for f in sorted(
         (f for f in rel.get("forandringar") or [] if isinstance(f, dict)),
-        key=lambda f: f.get("kapitel", 0),
+        key=lambda f: _kap(f.get("kapitel")),
     ):
-        if kapitel is None or f.get("kapitel", 0) < kapitel:
+        if kapitel is None or _kap(f.get("kapitel")) < kapitel:
             typ = f.get("typ", typ)
     return typ
 
 
-def _olosta(t: dict, fore: int | None = None) -> list[dict]:
+def _olosta(t: dict) -> list[dict]:
+    """Planteringar som aldrig lösts."""
+    return [p for p in t.get("planteringar") or [] if isinstance(p, dict) and not p.get("loses_i")]
+
+
+def _oppna_vid(t: dict, kapitel: int) -> list[dict]:
+    """Planteringar som var öppna när kapitel `kapitel` började."""
     return [
         p for p in t.get("planteringar") or []
-        if isinstance(p, dict) and not p.get("loses_i")
-        and (fore is None or p.get("kapitel", 0) < fore)
+        if isinstance(p, dict) and _kap(p.get("kapitel")) < kapitel
+        and (not _kap(p.get("loses_i")) or _kap(p.get("loses_i")) >= kapitel)
     ]
 
 
 def _steg(t: dict) -> list[dict]:
-    return sorted((s for s in t.get("steg") or [] if isinstance(s, dict)), key=lambda s: s.get("kapitel", 0))
+    return sorted((s for s in t.get("steg") or [] if isinstance(s, dict)), key=lambda s: _kap(s.get("kapitel")))
 
 
 @dataclass
@@ -113,9 +123,9 @@ class Graf:
         if s.get("sanning"):
             r += [f"Sanning: {s['sanning']}", ""]
         vet = sorted((v for v in s.get("vet") or [] if isinstance(v, dict)),
-                     key=lambda v: v.get("fran_kapitel", 0))
+                     key=lambda v: _kap(v.get("fran_kapitel")))
         if kapitel is not None:
-            vet = [v for v in vet if v.get("fran_kapitel", 0) <= kapitel]
+            vet = [v for v in vet if _kap(v.get("fran_kapitel")) <= kapitel]
         if not vet:
             r.append("Ingen vet." if kapitel is None else f"Ingen vet vid kapitel {kapitel}.")
         for v in vet:
@@ -129,8 +139,8 @@ class Graf:
             r += ["## Fakta", *(f"- {k}: {v}" for k, v in fakta.items()), ""]
         if rel := self._relationer(id_):
             r += ["## Relationer", *(f"- {self.namn(a)}: {relation_vid(x, None)}" for a, x in rel), ""]
-        kap = sorted({e["kapitel"] for e in self.lista("events")
-                      if id_ in (e.get("narvarande") or []) and isinstance(e.get("kapitel"), int)})
+        kap = sorted({_kap(e.get("kapitel")) for e in self.lista("events")
+                      if id_ in (e.get("narvarande") or [])} - {0})
         if kap:
             r += ["## Förekommer i kapitel", ", ".join(map(str, kap)), ""]
         vet = [s for s in self.lista("secrets")
@@ -180,10 +190,10 @@ class Graf:
             r += [f"- Relation till {self.namn(a)}: {relation_vid(x, kapitel)}" for a, x in self._relationer(cid)]
             for s in self.lista("secrets"):
                 for v in s.get("vet") or []:
-                    if isinstance(v, dict) and v.get("karaktar") == cid and v.get("fran_kapitel", 0) < kapitel:
+                    if isinstance(v, dict) and v.get("karaktar") == cid and _kap(v.get("fran_kapitel")) < kapitel:
                         r.append(f"- Vet: {s.get('vad', s.get('id'))}")
             tidigare = [e for e in self.lista("events") if cid in (e.get("narvarande") or [])
-                        and isinstance(e.get("kapitel"), int) and e["kapitel"] < kapitel]
+                        and 0 < _kap(e.get("kapitel")) < kapitel]
             r += [f"- Senast (kapitel {e['kapitel']}): {e.get('vad', '')}" for e in sorted(tidigare, key=_ordning)[-3:]]
             r.append("")
         if platser:
@@ -204,8 +214,8 @@ class Graf:
                 r += [f"### {tid}", "Planerad båge som inte påbörjats i texten än.", ""]
                 continue
             r.append(f"### {t.get('namn', tid)} ({tid})")
-            r += [f"- Kapitel {s.get('kapitel')}: {s.get('vad', '')}" for s in _steg(t) if s.get("kapitel", 0) < kapitel]
-            r += [f"- Olöst plantering (kapitel {p.get('kapitel')}): {p.get('vad', '')}" for p in _olosta(t, kapitel)]
+            r += [f"- Kapitel {s.get('kapitel')}: {s.get('vad', '')}" for s in _steg(t) if _kap(s.get("kapitel")) < kapitel]
+            r += [f"- Olöst plantering (kapitel {p.get('kapitel')}): {p.get('vad', '')}" for p in _oppna_vid(t, kapitel)]
             r.append("")
         r += ["## Förra kapitlet", ""]
         forra = [e for e in self.lista("events") if e.get("kapitel") == kapitel - 1]
