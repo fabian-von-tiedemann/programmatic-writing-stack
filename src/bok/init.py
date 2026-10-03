@@ -165,6 +165,11 @@ def init_repo(path: Path, titel: str | None = None, git: bool = True) -> list[st
         if msg := write_generated(root, rel, content, __version__):
             actions.append(msg)
 
+    if any(a.startswith("Uppgraderade ") for a in actions):
+        from bok import forslag
+
+        actions += forslag.nyheter()
+
     if not var_git:
         actions.append(_git_init(root))
     return actions

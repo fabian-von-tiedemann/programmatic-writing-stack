@@ -154,3 +154,11 @@ def test_skillen_har_sensitivitet_som_steg_efter_a_och_eskalering_till_scenkorte
     assert "När boken fått A" in rader["Sensitivitet"] and "bok-sensitivitet" in rader["Sensitivitet"]
     assert "bok-sensitivitet" not in rader["Tillval"]
     assert "eskalera" in rader["Du bestämmer"] and "bok-plot-arkitekt" in rader["Du bestämmer"]
+
+
+def test_skillen_tar_emot_forslag():
+    text = (DATA / "genererat/claude/skills/bok/SKILL.md").read_text(encoding="utf-8")
+    assert "## Förslag till verktyget" in text
+    assert "bok forslag skicka -" in text
+    assert "typ: lardom" in text
+    assert "Aldrig text ur boken" in text

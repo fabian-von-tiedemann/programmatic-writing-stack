@@ -10,6 +10,7 @@ import pytest
 
 from bok import __version__, forslag
 from bok.cli import main
+from bok.init import init_repo
 from helpers import skriv
 
 UTKAST = ("---\ntyp: problem\nroll: sprakgranskare\nsammanhang: I granskningen av ett kapitel.\n---\n"
@@ -173,3 +174,41 @@ def test_trasiga_lokala_filer(bok, mottagare, monkeypatch, capsys, fil, innehall
     assert skicka(monkeypatch) == 2
     assert fel in capsys.readouterr().err
     assert path.read_text(encoding="utf-8") == innehall
+
+
+def test_nyheter_en_gang(bok, mottagare, monkeypatch):
+    skicka(monkeypatch)
+    mottagare.lista = [{"id": "id-1", "issue": 101, "status": "infort", "version": "2.1.0", "svar": None}]
+    rader = forslag.nyheter()
+    assert rader[0] == "Ett av dina förslag finns med i den här versionen:"
+    assert "Det var krångligt" in rader[1]
+    assert forslag.nyheter() == []
+
+
+def test_nyheter_utan_forslag_gor_inget_anrop(bok, mottagare):
+    assert forslag.nyheter() == []
+    assert mottagare.huvuden == []
+
+
+def test_nyheter_ar_tyst_och_snabb_nar_mottagaren_droger(bok, mottagare, monkeypatch):
+    skicka(monkeypatch)
+    mottagare.sov = 2.0
+    start = time.monotonic()
+    assert forslag.nyheter(timeout=0.5) == []
+    assert time.monotonic() - start < 1.5
+
+
+def test_init_efter_uppgradering_visar_nyheter(bok, mottagare, monkeypatch):
+    skicka(monkeypatch)
+    mottagare.lista = [{"id": "id-1", "issue": 101, "status": "infort", "version": "2.1.0", "svar": None}]
+    path = bok / ".claude/skills/bok/SKILL.md"
+    path.write_text(path.read_text().replace(f"bok-version: {__version__}", "bok-version: 1.9.0"))
+    actions = init_repo(bok, git=False)
+    assert "Ett av dina förslag finns med i den här versionen:" in actions
+
+
+def test_init_utan_uppgradering_ror_inte_natet(bok, mottagare, monkeypatch):
+    skicka(monkeypatch)
+    antal = len(mottagare.huvuden)
+    init_repo(bok, git=False)
+    assert len(mottagare.huvuden) == antal
