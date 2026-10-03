@@ -1,6 +1,6 @@
 # Anti-mönster
 
-Åtta mönster som dödar dramat, läsarens förtroende eller karaktärens trovärdighet. Redaktören och Förläggaren flaggar dem. Plot-arkitekten förebygger dem redan i scenkorten.
+Åtta mönster som dödar dramat, läsarens förtroende eller karaktärens trovärdighet. Writer undviker dem, Redaktören och Förläggaren flaggar dem, och Plot-arkitekten förebygger dem redan i scenkorten.
 
 ## J.1 Ensam upptäckt
 

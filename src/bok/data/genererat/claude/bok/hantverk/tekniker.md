@@ -99,7 +99,7 @@ Byter boken POV mellan kapitel ska bytena vara konsekventa och ha en mening. Byt
 Det som planteras ska skördas, och det som skördas ska ha planterats. Ingen lösning får komma utifrån. Följ upp i `bok/story-graph/threads.json`.
 
 ### F.2 Balans mellan plantering och utdelning
-Plantering utan utdelning gör att läsaren känner sig lurad. Utdelning utan plantering gör att hon känner sig fuskad.
+Plantering utan utdelning gör att läsaren känner sig lurad. Utdelning utan plantering gör att läsaren känner sig fuskad.
 
 ### F.3 Inga heliga scener
 Varje scen ska tjäna boken. Är den vacker men inte tjänar något: klipp.
@@ -109,3 +109,31 @@ Ett kapitelslut ska ge läsaren en anledning att fortsätta. Det kan vara en obe
 
 ### F.5 Tre akter i varje skala
 Boken har tre akter. Varje akt har en början, en mitt och ett klimax. Likadant kapitlet och scenen. Samma form i flera skalor ger djup.
+
+## G. Fällor i den egna prosan
+
+Fel som lätt slinker in när text produceras snabbt. Writer undviker dem och granskarna letar efter dem.
+
+### G.1 Berättaren kommenterar boken
+"Det här kapitlet slutar med …", "Boken slutar inte här." Stryk allt där berättaren talar om själva boken i stället för att berätta.
+
+### G.2 Omen med exakta tal
+"Hon skulle inte sova bra på 236 dagar." Tillfälligt imponerande, snabbt tröttande. Högst ett eller två per akt, aldrig som standard.
+
+### G.3 Lila prosa
+För många adjektiv, för många utsmyckade bilder, för många "som om". "Som om hon bar hela världen på axlarna" ska bort. Skriv rakt eller låt bli.
+
+### G.4 Slutet avslöjas i förväg
+"Hon skulle ångra det resten av livet." Stryk. Låt läsaren upptäcka det själv.
+
+### G.5 Och sedan
+Varje stycke börjar med en tidsmarkör: "Sedan gick hon. Sedan ringde telefonen. Sedan kom han." Variera meningsstarterna. Test: läs bara styckenas första ord i följd.
+
+### G.6 Abstraktion där en bild finns
+"En känsla av oro fyllde rummet." Skriv i stället vad någon hör, ser eller gör: "Hon hörde sin egen andning."
+
+### G.7 Artig dialog
+Karaktärerna säger vad de bör säga. Verkliga människor avbryter, missförstår, byter ämne och tiger. Ge replikerna felmarginal. Test: skulle en verklig person ha sagt det här, just så, just då?
+
+### G.8 Upprepade manér
+Ett grepp som fungerade en gång upprepas tills det blir en tic. Variera, och kör `bok tics`.

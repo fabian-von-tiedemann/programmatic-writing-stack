@@ -4,7 +4,7 @@ Tekniker för böcker där läsarens oro är motorn: thriller, deckare, psykolog
 
 ## 1. Tickande klockor
 
-Låt boken ha minst en tidsgräns, gärna flera som överlappar: ett avtal som löper ut, en deadline, ett möte som inte går att skjuta upp. Klockan syns: läsaren påminns om tidsgränsen i varje kapitel där den gäller. Påminn sparsamt och varierat. För ofta blir det melodrama.
+Låt boken ha minst en tidsgräns, gärna flera som överlappar: ett avtal som löper ut, en deadline, ett möte som inte går att skjuta upp. Klockan syns: läsaren påminns om tidsgränsen i varje kapitel där den gäller, men i skiftande form och sällan som ren påminnelse. Ett uttalat "tiden rinner ut" gång på gång blir melodrama; en bruten rutin, ett uppskjutet samtal eller en kalender med ett ringat datum gör samma jobb.
 
 ## 2. Plantering och utdelning i tempo
 
@@ -12,7 +12,7 @@ Plantera tidigt och dela ut sent. Avståndet skapar en tid där läsaren bär in
 
 ## 3. Två spår som korsar varandra
 
-Två berättelsespår kan växla så att varje paus i det ena skapar spänning i det andra. Skär mellan dem när det ena spåret når en vändpunkt, inte när det har tagit slut.
+Två berättelsespår kan växla så att varje paus i det ena skapar spänning i det andra. Skär mellan dem mitt i en vändpunkt, inte efter att den har lösts.
 
 ## 4. Läsaren vet mer än huvudpersonen
 

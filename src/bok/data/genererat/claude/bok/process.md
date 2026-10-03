@@ -31,8 +31,8 @@ Fritt samtal, i vilken ordning som helst. För att börja skriva kapitel 1 kräv
 2. **Utkast.** `bok-writer` skriver `manuskript/kapitel-NN.md`.
 3. **Mekanisk kontroll.** `bok validate manuskript/kapitel-NN.md` och `bok tics manuskript/kapitel-NN.md`. Blockerande namn rättas innan granskning.
 4. **Granskning, runda R.** `bok-redaktor` och `bok-sprakgranskare` parallellt. De returnerar rapporter som skillen sparar med `bok rapport spara -`.
-5. **Revision.** Har någon `utfall: revidera` reviderar `bok-writer` efter fynden, och sedan följer granskning runda R+1. Högst två revisioner: runda 3 är sista granskningen. Är granskarna inte nöjda efter runda 3, eller säger någon `eskalera`, visar skillen fynden och författaren bestämmer.
-6. **Kontinuitet.** `bok-kontinuitet` uppdaterar `bok/story-graph/`, skriver `bok/sammanfattningar/kapitel-NN.md` och flaggar brott mot canon.
+5. **Revision.** Har någon `utfall: revidera` reviderar `bok-writer` efter fynden, och sedan följer granskning runda R+1. Granskarna får högst två revisioner: runda 3 är deras sista granskning. Är de inte nöjda efter runda 3, eller säger någon `eskalera`, visar skillen fynden och författaren bestämmer. Skickar författaren tillbaka kapitlet efter det (steg 7) blir det en ny runda.
+6. **Kontinuitet.** `bok-kontinuitet` uppdaterar `bok/story-graph/`, skriver `bok/sammanfattningar/kapitel-NN.md` och flaggar brott mot canon. Rollen returnerar en rapport (`utfall: klar` eller `flaggor`) som skillen sparar. Vid `flaggor` visar skillen dem för författaren innan hon läser kapitlet.
 7. **Författarens läsning.** Hon godkänner (`roll: forfattare`, `utfall: godkand`, `runda: R`) eller skickar tillbaka med kommentarer (`utfall: tillbaka`). Tillbaka betyder revision och en ny granskningsrunda.
 
 ### Aktgränser
@@ -98,8 +98,8 @@ Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, k
 
 | Roll | Läser |
 |---|---|
-| Writer | scenkortet, `bok/stil/rost.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md` |
-| Redaktör | kapitlet, scenkortet, `bok graph context`, sammanfattningarna, premiss, genre, bågar, canon, kapitlets karaktärsfiler |
+| Writer | scenkortet, `bok/stil/rost.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md`, `.claude/bok/hantverk/` |
+| Redaktör | kapitlet, scenkortet, `bok graph context`, sammanfattningarna, premiss, genre, bågar, canon, kapitlets karaktärsfiler, `.claude/bok/hantverk/` |
 | Språkgranskare | kapitlet, `bok/stil/rost.md`, kapitlets karaktärsfiler (språklig signatur), `bok tics`, hantverket |
 | Kontinuitet | kapitlet, scenkortet, hela grafen, `bok/canon.md` |
 | Förläggare | alla sammanfattningar, premiss, genre, struktur, bågar, kapitelplan, `bok graph bagar`, aktens första och sista kapitel |
