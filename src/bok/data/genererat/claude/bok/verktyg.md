@@ -10,7 +10,8 @@ Kommandon som rollerna och skillen kör. Alla fungerar var som helst i bokens ma
 | `bok graph bagar --oppna` | öppna bågar och olösta planteringar |
 | `bok graph karaktar <id>` | en person i grafen |
 | `bok graph var <plats>` | händelser på en plats |
-| `bok validate manuskript/kapitel-NN.md` | förbjudna namn (exitkod 1) och namn som saknas i grafen |
+| `bok graph tidslinje [--fran ÅR] [--till ÅR]` | daterade händelser i tidsordning, med åldrar |
+| `bok validate manuskript/kapitel-NN.md` | förbjudna namn och tidsfel i grafen stoppar (exitkod 1); namn som saknas i grafen och åldrar som inte stämmer är varningar |
 | `bok tics manuskript/kapitel-NN.md` | tics per kapitel; `--bok` för hela boken |
 | `bok rapport spara -` | spara en rapport från stdin; avvisar fel frontmatter |
 | `bok mall <modul>` | lägg till en tillvalsmodul; utan namn listas modulerna |

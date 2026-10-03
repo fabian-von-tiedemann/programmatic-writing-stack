@@ -231,3 +231,17 @@ def test_mallar_2_2():
     assert "```verkliga-handelser" in (DATA / "bok/bok/canon.md").read_text(encoding="utf-8")
     assert (DATA / "bok/bok/revisioner.md").is_file()
     assert (DATA / "moduler/tidslinje/bok/plot/tidslinje.md").is_file()
+
+
+def test_slutgranskningens_rattningar():
+    skill = _las("skills/bok/SKILL.md")
+    for fras in ("`fodd`/`dod` direkt i `bok/story-graph/characters.json`", "utfall: tillbaka",
+                 "BLOCKERANDE tidsfel", "åldersvarningar skickas"):
+        assert fras in skill, fras
+    assert "decided" not in _las("bok/story-graph.md") and "bestämt dem i planen" in _las("bok/story-graph.md")
+    verktyg = _las("bok/verktyg.md")
+    assert "bok graph tidslinje [--fran ÅR] [--till ÅR]" in verktyg and "är varningar" in verktyg
+    assert "tidslinje.md" in _las("agents/bok-sensitivitet.md") and "kapitelplan.md" in _las("agents/bok-sensitivitet.md")
+    assert "när boken har fasta årtal" in _las("agents/bok-plot-arkitekt.md")
+    assert "ta bort eventuell `ålder`" in _las("agents/bok-kontinuitet.md")
+    assert "som `fodd`" in (DATA / "bok/bok/karaktarer/README.md").read_text(encoding="utf-8")

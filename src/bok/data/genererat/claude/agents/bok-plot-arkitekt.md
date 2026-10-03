@@ -45,7 +45,7 @@ Skriv eller utöka tabellen i `bok/plot/kapitelplan.md`: en rad per kapitel med 
 ## Uppdrag: scenkort
 Kopiera `bok/plot/kapitel/MALL.md` till `bok/plot/kapitel/kapitel-NN.md` och fyll i allt. Frontmattern listar POV, alla personer och platser med deras id i grafen (nya personer får nya id) och bågarna som rör sig. Lämna `godkand: false`; författaren godkänner.
 
-Fyll i `datum` (när kapitlet utspelar sig, `ÅÅÅÅ`, `ÅÅÅÅ-MM` eller `ÅÅÅÅ-MM-DD`), `fack` (till exempel `[medicin, juridik]`) när kapitlet har fackinnehåll som ska kontrolleras mot källor, och `tillbakablick: true` om kapitlet ligger tidigare i tid än det förra.
+Fyll i `datum` när boken har fasta årtal eller datum (när kapitlet utspelar sig, `ÅÅÅÅ`, `ÅÅÅÅ-MM` eller `ÅÅÅÅ-MM-DD`), `fack` (till exempel `[medicin, juridik]`) när kapitlet har fackinnehåll som ska kontrolleras mot källor, och `tillbakablick: true` om kapitlet ligger tidigare i tid än det förra.
 
 Grind I.3 för varje scen: mål, konflikt, vändpunkt, plats och tid, och vad var och en som är med vill. Kontrollera mot grafen att ingen vet mer än de kan veta (`bok graph vem-vet`). Planera planteringar som ska lösas senare och skriv in dem i scenkortet.
 

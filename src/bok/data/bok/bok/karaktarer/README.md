@@ -4,4 +4,4 @@ En fil per person: `<id>.md`, kopierad från `MALL.md`. `id` är kort och utan m
 
 Markera POV-karaktärer med `pov: true`. Innan första kapitlet måste varje POV-karaktär ha önskan, rädsla, blind fläck och språklig signatur.
 
-Det här är planen för personen. Det som faktiskt etablerats i texten (ålder, utseende, var hen bor) håller Kontinuitet i `bok/story-graph/characters.json`.
+Skriv in födelseår i grafen som `fodd` så att åldrarna räknas ut. Det här är planen för personen. Det som faktiskt etablerats i texten (ålder, utseende, var hen bor) håller Kontinuitet i `bok/story-graph/characters.json`.

@@ -15,7 +15,7 @@ Kapitelnummer är bokens tidsaxel. "Från kapitel 3" betyder att något gäller 
 
 `fodd` och `dod` är partiella datum: `ÅÅÅÅ`, `ÅÅÅÅ-MM` eller `ÅÅÅÅ-MM-DD`. Åldrar räknas ut av `bok`; skriv aldrig ålder i `fakta`.
 
-Bara fakta som etablerats i texten. Önskan, rädsla och båge står i `bok/karaktarer/<id>.md`.
+Fakta som etablerats i texten, och `fodd`/`dod` när hon har bestämt dem i planen (så att åldrar kan räknas ut från kapitel 1). Önskan, rädsla och båge står i `bok/karaktarer/<id>.md`.
 
 ## locations.json
 
