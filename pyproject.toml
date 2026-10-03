@@ -1,0 +1,26 @@
+[project]
+name = "bok"
+dynamic = ["version"]
+description = "Skrivharness för romaner i Claude Code: dras in i valfritt repo med bok init."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+bok = "bok.cli:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/bok/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bok"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

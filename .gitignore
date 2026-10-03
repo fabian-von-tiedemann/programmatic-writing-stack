@@ -24,3 +24,9 @@ __pycache__/
 
 # Conductor-workspace-filer (om körd inifrån conductor)
 .context/attachments/
+
+# Python-paket
+.venv/
+dist/
+*.egg-info/
+.pytest_cache/

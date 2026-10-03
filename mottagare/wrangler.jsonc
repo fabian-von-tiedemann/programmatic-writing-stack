@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bok-forslag",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  // Fabians PRIVATA Cloudflare-konto, aldrig Digitalists.
+  "account_id": "d2a97f23814624c9529fa16ed85beefe",
+  // Inga loggar: förslagens text ska inte hamna i loggar. Felens namn (console.error) syns bara i `wrangler tail`.
+  "observability": { "enabled": false },
+  // Hemligheter sätts med `wrangler secret put`: GITHUB_TOKEN och IP_SALT (slumpad, för taket per IP och dag).
+  "vars": { "GITHUB_REPO": "fabian-von-tiedemann/bok-forslag" },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "bok-forslag", "database_id": "77f65146-5e4b-4ad6-8759-8dd1d21dca83", "migrations_dir": "migrations" }
+  ],
+  // Bindningen tillåter bara fönster på 10 eller 60 sekunder; takten per timme räknas i D1.
+  "ratelimits": [
+    { "name": "NYCKEL_GRANS", "namespace_id": "4101", "simple": { "limit": 2, "period": 60 } },
+    { "name": "IP_GRANS", "namespace_id": "4102", "simple": { "limit": 10, "period": 60 } },
+    { "name": "LAS_GRANS", "namespace_id": "4103", "simple": { "limit": 10, "period": 60 } },
+    { "name": "LAS_IP_GRANS", "namespace_id": "4104", "simple": { "limit": 30, "period": 60 } }
+  ]
+}

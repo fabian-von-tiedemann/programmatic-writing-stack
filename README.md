@@ -1,205 +1,94 @@
-# Programmatic Writing Stack
+# bok
 
-> Ett ramverk för att skriva böcker som ett mjukvaruprojekt.
-> Versionkontroll, automatiserade tester, code review, architecture decision records — applicerat på prosa.
+> Ett skrivharness för romaner i Claude Code. Dra in det i ett tomt repo, och chatta dig fram till en bok.
 
-**Version:** 1.2
-**Status:** Validerad mot fullskaligt thriller-projekt (26 enheter, snitt 9.13/10)
-**Författare:** Fabian von Tiedemann
+AI skriver prosan. Du bestämmer: idén, personerna, rösten och varje kapitel. Harnesset håller ordning på resten: karaktärer, hemligheter, bågar, kontinuitet, granskning och vad som är nästa steg.
 
----
+## Kom igång
 
-## Vad det är
-
-13 AI-roller. 9 lager artefakter. Del III hantverkstekniker. En process-loop med kvalitetsgrindar mellan faser.
-
-Förvandlar enskild författare till operationsekvivalent av ett franchise-team (Tom Clancy-modellen) med behållen upphovsrätt.
-
-## Vad det inte är
-
-- En generator av prosa — AI är verktyg, författaren är upphovsperson
-- En ersättning för läsare — mänsklig läsare är slutvalideraren
-- Genre-specifikt — fungerar för thriller, sci-fi, fantasy, litterär roman, ungdomsbok
-- Beroende av specifik LLM — designat för Claude men model-agnostiskt i princip
-
----
-
-## Snabbstart
-
-### Initiera nytt bokprojekt
-
-```bash
-git clone <denna-repo> ~/code/programmatic-writing-stack
-cd ~/code/programmatic-writing-stack
-./init-writing-stack.sh ~/projects/min-nya-bok "Boktitel" thriller
-cd ~/projects/min-nya-bok
+```sh
+uv tool install git+https://github.com/fabian-von-tiedemann/programmatic-writing-stack
+mkdir min-bok && cd min-bok
+bok init --titel "Arbetstitel"
 ```
 
-Du har nu ett komplett ramverks-skelett med:
-- 13 rolldefinitioner i `.context/roles/`
-- 9 lager artefakter med templates och `MALL.md`-filer
-- Hantverk-bibliotek (tekniker, kvalitetsgrindar, snabb-checklista, anti-monster)
-- 7 operativa scripts (graph-query, grep-tics, layered markup, Apple Books-noter, m.fl.)
-- Git initialiserat med första commit
+Du behöver Python 3.11 eller senare; uv hämtar det åt dig om det saknas.
 
-### Uppgradera befintligt bokprojekt
+Första gången på en ny dator: följ [docs/installera.md](docs/installera.md) steg för steg (git, uv, bok, din bok och en säkerhetskopia).
 
-När ramverket utvecklas vidare (nya roller, skärpta briefer, nya scripts) kan ett
-befintligt projekt uppgraderas icke-destruktivt med `upgrade-existing-project.sh`:
+Öppna mappen i Claude Code eller Conductor och börja prata: om en idé, en person, en scen eller hur boken ska låta. Har du redan chattat om boken: lägg chattarna i `inkorg/` och be Claude gå igenom dem.
 
-```bash
-cd ~/code/programmatic-writing-stack
-git pull
-./upgrade-existing-project.sh ~/projects/min-bok --dry-run    # förhandsgranska
-./upgrade-existing-project.sh ~/projects/min-bok              # på riktigt
+**Med Conductor.** `bok init` gör mappen till ett git-repo (grenen `main`) med en första commit, och tillåter `bok`, `git add` och `git commit` i `.claude/settings.json` (som följer med i repot) så att Claude Code inte frågar om lov vid varje steg. Lägg sedan till bokens mapp som ett repository i Conductor. Varje workspace är en egen gren: slå ihop godkänt arbete tillbaka till main.
+
+Uppgradera ramverket i en befintlig bok:
+
+```sh
+uv tool upgrade bok
+cd min-bok && bok init
 ```
 
-Tre kategorier av filer hanteras automatiskt:
+Bokens egna filer rörs aldrig. Ramverkets filer i `.claude/` skrivs om; dina egna inställningar i `.claude/settings.json` behålls.
 
-| Kategori | Filer | Beteende |
-|---|---|---|
-| **SAFE** | `roles/`, `hantverk/`, `scripts/`, `docs/` | ersätts utan att fråga |
-| **DIFF** | `process.md`, `canon.md`, `tics-katalog.md`, `tools.md` | visar diff, frågar `behåll/ersätt/skippa` |
-| **NEVER** | `CLAUDE.md`, `manuskript/`, `learnings.md`, `koncept/`, `plot/`, `stil/`, `forlag/`, `meta/`, story-graph med content, `*-rapporter/` | rörs aldrig |
+## Hur det fungerar
 
-Säkerhetskopia skapas i `.cache/upgrade-backup-<datum>/` före varje ändring och en
-rapport landar i `.context/upgrade-rapport-<datum>.md`. Flaggor: `--dry-run`,
-`--force` (auto-ersätt SAFE), `--templates DIR`.
+1. **Förberedelse i fritt samtal.** Koncept, karaktärer, plot, röst och kapitelplan, i vilken ordning som helst. I **stilverkstaden** visar du texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer.
+2. **Skrivloopen per kapitel.** Scenkort (du säger ja), utkast, granskning av Redaktör och Språkgranskare, högst två revisioner, kontinuitet, och till sist din läsning.
+3. **Aktgränser.** Förläggaren läser varje akt och hela boken. När boken fått A läser Sensitivitetsläsaren den.
 
-### Onboarding-flöde (9 steg, ~1-2h)
+`bok status` säger alltid var boken står och vad som är nästa steg.
 
-Se `docs/PRD.md` sektion 9 för komplett guide. Kort:
-
-1. Fyll i `CLAUDE.md` med din boks premise + distinguishing features
-2. Skriv `.context/koncept/premiss.md` + `logline.md` + `central-fraga.md`
-3. Skissa POV-karaktärer i `.context/story-graph/character-deepening/`
-4. Lägg ut grov plot i `.context/plot/through-line.md` + `struktur.md`
-5. Dispatcha **Plot-arkitekt** (FAS 0) för scenkort kap 1
-6. Dispatcha **Writer** (FAS 2) för utkast
-7. FAS 3-loop: Redaktör → Prosa-städ → Dialog-coach → NAGELFAREN → fix
-8. FAS 4 Förläggare när alla kapitel ≥9.0
-9. FAS 5+6: lärdomar in i `learnings.md`, graf-uppdatering
-
----
-
-## Arkitektur
-
-### De 13 rollerna
-
-| FAS | Roll | Veto-rätt |
-|---|---|---|
-| **0** | Plot-arkitekt | flaggar plot-konflikter |
-| **0+** | Researcher | — |
-| **2** | Writer | — |
-| **3** | Redaktör | — |
-| **3** | Prosa-städ | BLOCKERANDE |
-| **3** | Dialog-coach | POV-axeln |
-| **3** | NAGELFAREN | redaktör-rapport |
-| **4** | Förläggare | A/B/C |
-| **4** | Sensitivity-läsare | publikation |
-| **Löpande** | Graf-vakt | flaggar canon |
-| **Separat** | Världsbyggare | — (rådgivande) |
-| **8** | Audiobook-direktör | — |
-| **9** | Marknadsförare | — |
-
-### De 9 lagren av artefakter
+## Vad som hamnar i repot
 
 ```
-.context/
-├── koncept/          # Lager 1 — premiss, logline, genre, central fråga
-├── varld/            # Lager 2 — tidsperiod + research-dossier
-├── story-graph/      # Lager 3+5 — characters, events, secrets, etc.
-├── plot/             # Lager 4 — through-line, scenkort, clue-economy
-├── stil/             # Lager 6 — motiv, rytm, dialog, POV
-├── prosa-anteckningar/  # Lager 7
-├── forlag/           # Lager 8 — respons, beta, manuskriptformatering
-├── meta/             # Lager 9 — beslutslogg, ambition, hantverksstandarder
-└── hantverk/         # Del III — tekniker, kvalitetsgrindar, anti-monster
+bok.toml          titel, genre, ramverksversion, moduler
+CLAUDE.md         ett bok-block + dina egna regler
+inkorg/           råmaterial
+manuskript/       kapitlen
+bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
+                  story-graph, sammanfattningar, rapporter, canon, lärdomar
+.claude/          skillen bok, elva roller och ramverket (genereras)
 ```
 
-### Kvalitetsgrindar mellan faser
+## Kommandon
 
-| Grind | Mellan | Ägare |
-|---|---|---|
-| I.1 Karaktärsgrind | Före FAS 0 | Plot-arkitekt |
-| I.2 Plotgrind | Före kapitelplan | Plot-arkitekt |
-| I.3 Scenkortsgrind | Före FAS 2 | Plot-arkitekt → Writer |
-| I.4 Stilgrind | Före FAS 2 | Writer |
-| I.5 Prosagrind | FAS 3 | Redaktör |
-| I.6 Boggrind | Före FAS 4 | Förläggare |
-| I.7 Seriegrind | Före nästa bok | Världsbyggare |
+| Kommando | Gör |
+|---|---|
+| `bok init` | gör en mapp till ett bokrepo, eller uppgradera ramverket |
+| `bok status` | var boken står och nästa steg |
+| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad` |
+| `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var` |
+| `bok tics` | ord och vändningar som blivit vana |
+| `bok validate` | förbjudna namn och namn som saknas i grafen |
+| `bok rapport spara` | sparar granskningar och godkännanden |
+| `bok annotations` | läsarnoter från Apple Böcker (macOS) |
+| `bok forslag` | skicka förslag till dem som bygger verktyget och se vad som hänt med dem |
 
----
+## Förslag
 
-## Förutsättningar
+Märker du något som kunde vara bättre, säg det till Claude i samtalet ("det här var krångligt", "jag önskar att…"). Du får se exakt vad som skickas och säga ja eller nej. Ingen text ur din bok skickas, och du behöver inget konto.
 
-**Hårda dependencies:**
-- Git
-- Python 3.11+ (stdlib only — inga externa paket)
-- Bash 4+ (för shell-scripts)
-- LLM med subagent-stöd (Claude Code, motsvarande)
+- `bok forslag` visar dina förslag och vad som hänt med dem.
+- `bok forslag av` stänger av förslag och all nätkontakt.
+- `bok forslag installning` visar om förslag är på eller av.
 
-**Mjuka dependencies:**
-- Apple Books (för läsarnoter-flödet) — endast om författaren använder denna feedback
-- TTS-pipeline (för audiobook-produktion)
+## Roller
 
-**Kompatibilitet:** macOS, Linux. Windows via WSL.
+Plot-arkitekt, Writer, Redaktör, Språkgranskare, Kontinuitet och Förläggare i skrivloopen. Sensitivitetsläsaren när boken fått A. Researcher, Världsbyggare, Audiobook-regissör och Marknadsförare vid behov. Vill du ändra hur en roll arbetar i din bok: skriv `bok/roller/<roll>.local.md`.
 
----
+## Utveckling
 
-## Dokumentation
+```sh
+uv run pytest
+```
 
-- **`docs/PRD.md`** — komplett operativ spec (~1500 rader). Onboarding-guide i sektion 9.
-- **`docs/stack.html`** — visuell guide för läsning, delning, reflektion. Öppna i webbläsare.
-- **`templates/`** — master-katalog som klonas till nya bokprojekt.
+Ändringar i de genererade filerna (`src/bok/data/genererat/`) når befintliga böcker först när versionen i `src/bok/__init__.py` höjs.
 
----
+Design: `docs/superpowers/specs/2026-10-03-bok-cli-design.md`. Den tidigare versionen ligger i `docs/arkiv/v1.2/`.
 
-## Validerat resultat
+## Filosofi
 
-Ramverket är validerat mot ett fullskaligt thriller-projekt:
-- 26 enheter (prolog + 22 kap + epilog + 2 interludier)
-- ~70 000 ord
-- Snitt 9.13/10 över alla axlar efter FAS 3-pass
-- Differens redaktör/verklighet sjönk från 2.1 → <0.5 över fyra rundor
-- 673 noder i kunskapsgrafen
-- ~50 commits över två sessioner
-
-Bok 2 förväntas vara 5x snabbare än bok 1 efter implementation.
-
----
-
-## Filosofi-anchor
-
-> Bra prosa är inte tekniker. Bra prosa är uppmärksamhet.
->
-> Det som tekniker gör är att frigöra författaren från att tänka på saker som kan bli vana. När man inte längre tänker på meningsrytm eller specifikitet eller subtext, då kan man tänka på det som inte kan reduceras till teknik: människan, situationen, ögonblicket.
->
-> Tekniker är hantverkets nedre nittio procent. Den övre tio är vad som inte kan läras. Men nittio procent är värt att lära.
-
-Hantverket finns i `templates/.context/hantverk/`.
-
----
+> Bra prosa är inte tekniker. Bra prosa är uppmärksamhet. Tekniker är hantverkets nedre nittio procent; de frigör uppmärksamheten till det som inte kan läras.
 
 ## Licens
 
-Fritt att använda, anpassa och distribuera för icke-kommersiell såväl som kommersiell användning. Ingen attribuering krävs men uppskattas.
-
-Idéerna och processen är synteser av etablerad mjukvaru-engineering, lean methodology, agile process design, och beprövad redaktörspraxis. Innovationen ligger i att applicera dessa systematiskt på författarskap.
-
----
-
-## Bidra
-
-Detta ramverk växer med användning. Om du upptäcker nya mönster, fixar buggar i scripts, eller skriver roll-briefer som är skarpare än default — skicka en PR.
-
-Speciellt välkommet:
-- Genre-anpassningar (fantasy-specifika tics, sci-fi-research-mönster, etc.)
-- Nya queries i `graph-query.py`
-- Förbättrade `tag-manuscript.py`-heuristiker
-- Integration med fler TTS-pipelines för audiobook-direktören
-- Lärdomar från egna bokprojekt (cross-bok learnings-bibliotek)
-
----
-
-**Senaste uppdatering:** 2026-05-19 (v1.2)
+Fritt att använda, anpassa och distribuera. Ingen attribuering krävs men uppskattas.
