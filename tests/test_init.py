@@ -217,3 +217,17 @@ def test_installningar_som_lista_lamnas(tmp_path):
     actions = init_repo(tmp_path, titel="X", git=False)
     assert (tmp_path / ".claude/settings.json").read_text() == "[]"
     assert any(a.startswith("VARNING: .claude/settings.json") for a in actions)
+
+
+def test_bokens_las_mig_for_forfattaren(tmp_path):
+    init_repo(tmp_path, titel="X", git=False)
+    text = (tmp_path / "README.md").read_text(encoding="utf-8")
+    for fras in ("Var är vi?", "Gå igenom inkorgen", "uv tool upgrade bok", "bok forslag av"):
+        assert fras in text, fras
+    assert "{{" not in text
+
+
+def test_befintlig_readme_rors_inte(tmp_path):
+    skriv(tmp_path, "README.md", "# Mitt repo\n")
+    init_repo(tmp_path, titel="X", git=False)
+    assert (tmp_path / "README.md").read_text() == "# Mitt repo\n"

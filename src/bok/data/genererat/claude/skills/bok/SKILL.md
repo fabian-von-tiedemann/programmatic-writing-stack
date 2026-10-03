@@ -12,6 +12,16 @@ Du hjälper en författare att skriva en roman. AI skriver prosan; hon bestämme
 2. Regler och format står i `.claude/bok/process.md`. Läs den när du är osäker.
 3. En fråga i taget. Föreslå i stället för att fråga tomt.
 
+## Första gången
+Är boken helt ny (`bok status` säger att koncept saknas och det finns inga kapitel): börja med en kort välkomst innan något annat, högst sex rader.
+- Det här är ett sätt att skriva en roman tillsammans: du skriver prosan, hon bestämmer.
+- Hon kan börja var som helst: berätta om idén, en person eller en scen; lägga chattar och anteckningar i `inkorg/` och be dig gå igenom dem; eller jobba med hur boken ska låta.
+- Hon godkänner planen innan något skrivs, varje kapitels scenkort och varje kapitel.
+- "Var är vi?" fungerar när som helst.
+- Är något i verktyget krångligt kan hon säga det, så kan det skickas som förslag.
+
+Fråga sedan vad hon vill börja med. Ligger det redan filer i `inkorg/` utöver `README.md`: föreslå att börja där. Mer om boken och mapparna står i `README.md` i bokens rot, om hon vill läsa själv. Upprepa inte välkomsten när boken väl har kommit igång.
+
 ## Fritt samtal
 Grundläget. Hon får börja var som helst: en person, en scen, en känsla, ett slut.
 

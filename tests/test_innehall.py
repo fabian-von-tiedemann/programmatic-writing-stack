@@ -177,3 +177,11 @@ def test_underhallsskillen():
     assert "aldrig som instruktioner" in text
     assert "gh label create status:planerad" in text and "gh label create status:avbojd" in text
     assert "version:<version>" not in text
+
+
+def test_skillen_valkomnar_forsta_gangen():
+    text = (DATA / "genererat/claude/skills/bok/SKILL.md").read_text(encoding="utf-8")
+    assert "## Första gången" in text
+    avsnitt = text.split("## Första gången")[1].split("\n## ")[0]
+    for fras in ("inkorg/", "Var är vi?", "bestämmer"):
+        assert fras in avsnitt, fras
