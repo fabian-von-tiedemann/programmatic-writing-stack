@@ -444,3 +444,28 @@ def test_fack_som_text_raknas(bok):
           "fack: medicin\ngodkand: true\n---\n\n# Kapitel 1\n")
     skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
     assert compute(bok)["nasta"] == "Kapitel 1: Researcher fackgranskar kapitlet (runda 1)."
+
+
+def test_forlaga_kraver_sensitivitet(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/forlagor/cathie-wood.md", "---\nnamn: Cathie Wood\n---\n")
+    assert compute(bok)["nasta"] == (
+        "Förberedelse: Verkliga personer och händelser – sensitivitetsläsning av planen saknas.")
+    rapport(bok, omfang="forberedelse", roll="sensitivitet", utfall="godkand")
+    assert compute(bok)["nasta"].startswith("Förberedelsen är klar")
+
+
+def test_forlaga_med_trasigt_huvud_utloser_ocksa_grinden(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/forlagor/x.md", "---\nnamn: [trasig\n---\n")
+    assert "Verkliga personer och händelser" in [d["namn"] for d in compute(bok)["forberedelse"]]
+
+
+def test_mall_readme_och_prov_utloser_ingen_grind_och_ar_inga_karaktarer(bok):
+    fyll_forberedelse(bok)
+    skriv(bok, "bok/karaktarer/forlagor/MALL.md", "---\nnamn: {{Namn}}\n---\n")
+    skriv(bok, "bok/karaktarer/forlagor/README.md", "# Förlagor\n")
+    skriv(bok, "bok/karaktarer/prov/anna/1-fel.md", "{{prov}}\n")
+    s = compute(bok)
+    assert [d["namn"] for d in s["forberedelse"]] == ["Koncept", "Karaktärer", "Plot", "Röst", "Kapitelplan"]
+    assert s["forberedelse"][1]["klar"]
