@@ -252,4 +252,36 @@ def test_status_street_view_inte_aktiverat(falsk, capsys):
     falsk.metadata = lambda plats: {"status": "REQUEST_DENIED", "error_message": "This API project is not authorized"}
     assert main(["karta", "status"]) == 0
     ut = capsys.readouterr().out
-    assert "får inte använda Street View Static API" in ut and "frivilligt" in ut
+    assert "Street View Static API är inte aktiverat" in ut and "frivilligt" in ut
+
+
+def test_status_hanvisar_till_ratt_steg_i_guiden(falsk, capsys):
+    from pathlib import Path
+    guide = (Path(__file__).resolve().parents[1] / "docs/google-maps.md").read_text(encoding="utf-8")
+    steg = re.search(r"^## (\d+)\. Street View", guide, re.M).group(1)
+    falsk.metadata = lambda plats: {"status": "REQUEST_DENIED", "error_message": "not activated"}
+    main(["karta", "status"])
+    assert f"se steg {steg} i guiden" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("avbrott", [EOFError, KeyboardInterrupt])
+def test_nyckel_avbruten(monkeypatch, capsys, avbrott):
+    monkeypatch.setattr(sys, "stdin", _Terminal())
+
+    def getpass_(prompt=""):
+        raise avbrott
+
+    monkeypatch.setattr(getpass, "getpass", getpass_)
+    assert main(["karta", "nyckel"]) == 2
+    assert "Avbrutet" in capsys.readouterr().err
+    assert not (katalog() / "google-maps-nyckel").exists()
+
+
+def test_udda_svar_fran_routes_kraschar_inte(bok, falsk, capsys):
+    falsk.rutter = {"TRANSIT": {"routes": [{"duration": "600s", "legs": 5}]}}
+    assert main(["karta", "restid", "A gatan 1", "B gatan 2", "--satt", "kollektivt"]) == 0
+    falsk.rutter = {"TRANSIT": {"routes": [{"duration": "600s", "legs": [{"steps": [
+        {"travelMode": "TRANSIT", "transitDetails": {"transitLine": "x", "localizedValues": [1]}},
+        {"travelMode": "TRANSIT", "transitDetails": {"transitLine": {"vehicle": "x", "name": "Linje 7"}}}]}]}]}}
+    assert main(["karta", "restid", "A gatan 1", "B gatan 2", "--satt", "kollektivt"]) == 0
+    assert "Linje 7" in capsys.readouterr().out

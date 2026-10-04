@@ -53,10 +53,11 @@ def ny_mapp(prefix: str) -> Path:
 
 
 def stada() -> int:
-    mappar = _mappar()
-    for mapp in mappar:
+    borta = 0
+    for mapp in _mappar():
         shutil.rmtree(mapp, ignore_errors=True)
-    return len(mappar)
+        borta += not mapp.exists()
+    return borta
 
 
 class _Omdirigering(urllib.request.HTTPRedirectHandler):

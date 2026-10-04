@@ -135,3 +135,36 @@ def test_gatuvy_rensar_gamla_och_stada(bok, falsk, capsys):
     assert main(["karta", "stada"]) == 0
     assert "Rensade 2 tillfälliga mappar." in capsys.readouterr().out
     assert _mappar() == []
+
+
+def test_gatuvy_ingen_bild_har_parentes(bok, falsk, capsys):
+    _rutt(falsk)
+    falsk.metadata = lambda plats: {"status": "ZERO_RESULTS"} if plats.startswith("59.000000") else \
+        {"status": "OK", "pano_id": plats, "date": "2023"}
+    main(["karta", "gatuvy", "A gatan 1", "B gatan 2", "--antal", "2"])
+    assert "ingen gatubild           (start)" in capsys.readouterr().out
+
+
+def test_gatuvy_fel_mitt_i_visar_mappen(bok, falsk, capsys):
+    _rutt(falsk)
+    falsk.metadata = lambda plats: {"status": "OK", "date": "2023",
+                                     "pano_id": "forsta" if plats.startswith("59.000000") else "andra"}
+    falsk.bilder = {"andra": 429}
+    assert main(["karta", "gatuvy", "A gatan 1", "B gatan 2", "--antal", "2"]) == 2
+    [mapp] = _mappar()
+    assert str(mapp) in capsys.readouterr().out
+    assert [p.name for p in mapp.iterdir()] == ["01.jpg"]
+
+
+def test_gatuvy_nan(bok, falsk, capsys):
+    assert main(["karta", "gatuvy", "A gatan 1", "B gatan 2", "--mellanrum", "nan"]) == 2
+    assert falsk.anrop == []
+
+
+def test_gatuvy_udda_svar(bok, falsk, capsys):
+    falsk.rutter = {"WALK": {"routes": [{"polyline": "x"}]}}
+    assert main(["karta", "gatuvy", "A gatan 1", "B gatan 2"]) == 2
+    assert "Ingen rutt hittades" in capsys.readouterr().err
+    falsk.metadata = lambda plats: {"status": "OK", "pano_id": "p", "location": "x"}
+    assert main(["karta", "gatuvy", "A gatan 1"]) == 0
+    assert "Öppna i webbläsaren" not in capsys.readouterr().out

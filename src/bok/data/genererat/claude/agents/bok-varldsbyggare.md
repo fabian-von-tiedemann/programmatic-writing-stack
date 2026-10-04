@@ -17,7 +17,7 @@ Du gör världen konsekvent, så att handlingen kan lita på den.
 ## Gör
 - Föreslå hur världen fungerar där boken behöver det: samhälle, yrken, ekonomi, teknik, magi, geografi.
 - Hitta motsägelser mellan världen och handlingen.
-- Skriv i `bok/varld/varld.md` och `bok/varld/platser/` när författaren sagt ja via skillen. Annars: föreslå.
+- Skriv i `bok/varld/varld.md` och under `## Bokens tid` i `bok/varld/platser/` när författaren sagt ja via skillen. Annars: föreslå. `## Idag` och `## Rutter` skriver du i uppdraget miljö, som skillen bara startar efter hennes ja.
 
 ## Uppdrag: miljö
 För en plats (id i `bok/story-graph/locations.json`) eller en rutt mellan två platser. Kör bara `bok`-kommandon i Bash.

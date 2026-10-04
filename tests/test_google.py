@@ -80,7 +80,10 @@ def test_routes_anropet(nyckel, monkeypatch):
 
 @pytest.mark.parametrize("status,data,text", [
     (400, {"error": {"status": "INVALID_ARGUMENT", "details": [{"reason": "API_KEY_INVALID"}]}}, "godkänner inte nyckeln"),
-    (403, {"error": {"status": "PERMISSION_DENIED", "details": [{"reason": "SERVICE_DISABLED"}]}}, "får inte använda Routes API"),
+    (403, {"error": {"status": "PERMISSION_DENIED", "details": [{"reason": "SERVICE_DISABLED"}]}}, "Routes API är inte aktiverat"),
+    (403, {"error": {"status": "PERMISSION_DENIED", "details": [{"reason": "API_KEY_SERVICE_BLOCKED"}]}},
+     "begränsningar tillåter inte Routes API"),
+    (403, {"error": {"status": "PERMISSION_DENIED"}}, "får inte använda Routes API"),
     (429, {"error": {"status": "RESOURCE_EXHAUSTED"}}, "Dagens tak för Routes API"),
     (400, {"error": {"status": "INVALID_ARGUMENT", "message": f"bad {NYCKEL}"}}, "kunde inte tolka"),
     (500, b"<html>", "oväntat"),
@@ -95,7 +98,12 @@ def test_routes_fel(nyckel, monkeypatch, status, data, text):
 @pytest.mark.parametrize("svar,text", [
     ({"status": "REQUEST_DENIED", "error_message": "The provided API key is invalid."}, "godkänner inte nyckeln"),
     ({"status": "REQUEST_DENIED", "error_message": "This API project is not authorized to use this API."},
-     "får inte använda Street View Static API"),
+     "Street View Static API är inte aktiverat"),
+    ({"status": "REQUEST_DENIED", "error_message": "This API is not activated on your API project. You may need to "
+      "enable this API in the Google Cloud Console."}, "Street View Static API är inte aktiverat"),
+    ({"status": "REQUEST_DENIED", "error_message": "This API key is not authorized to use this service or API."},
+     "begränsningar tillåter inte Street View Static API"),
+    ({"status": "REQUEST_DENIED", "error_message": "Something else."}, "får inte använda Street View Static API"),
     ({"status": "OVER_QUERY_LIMIT"}, "Dagens tak för Street View Static API"),
     ({"status": "UNKNOWN_ERROR"}, "oväntat"),
 ])
