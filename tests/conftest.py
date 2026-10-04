@@ -20,10 +20,7 @@ def _ingen_google(tmp_path, monkeypatch):
     tmp = tmp_path / "tmp"
     tmp.mkdir()
     monkeypatch.setattr(tempfile, "tempdir", str(tmp))
-    try:
-        from bok import google
-    except ImportError:  # före Task 3
-        return
+    from bok import google
 
     def stopp(*args, **kwargs):
         raise AssertionError("ett test försökte nå Google på riktigt")
