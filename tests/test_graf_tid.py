@@ -129,3 +129,31 @@ def test_trasiga_listvarden_kraschar_inte(bok, capsys):
     assert "Hemlig" in graf.vem_vet("s1")
     skriv(bok, "manuskript/kapitel-01.md", "Text.\n")
     assert main(["validate"]) == 0
+
+
+PLATSFIL = ("# Kontoret\n\n## Bokens tid\nLysrör och linoleum.\n\n## Idag\nKälla: Google Street View\n"
+            "Fotograferat: 2019-06 – 2023-08\nHämtat: 2026-10-04\nGlas och betong.\n\n## Rutter\n")
+
+
+def test_context_med_platsfil(graf):
+    text = graf.context(1, [], ["kontoret"], [], datum=Datum(1989, 11, 9), platsfiler={"kontoret": PLATSFIL})
+    avsnitt = text.split("## Platser", 1)[1].split("## Bågar", 1)[0]
+    assert avsnitt.index("#### Bokens tid") < avsnitt.index("Lysrör") < avsnitt.index("#### Idag") < avsnitt.index("Glas")
+    assert "fotograferat 2019–2023; kapitlet utspelar sig 1989 (30–34 år tidigare)" in avsnitt
+
+
+def test_context_platsfil_utan_datum_och_ny_plats(graf):
+    text = graf.context(1, [], ["kontoret", "torget"], [], platsfiler={"torget": PLATSFIL})
+    assert "Underlaget Idag" not in text
+    assert "Ny i kapitlet (finns inte i grafen än).\n#### Bokens tid" in text
+
+
+def test_cli_context_laser_platsfiler(bok, capsys):
+    skriv_tidgraf(bok)
+    skriv(bok, "bok/varld/platser/kontoret.md", PLATSFIL)
+    skriv(bok, "bok/varld/platser/annan.md", PLATSFIL.replace("Lysrör", "Annat"))
+    skriv(bok, "bok/plot/kapitel/kapitel-01.md",
+          "---\nkapitel: 1\npov: marlene\nkaraktarer: [marlene]\nplatser: [kontoret]\nbagar: []\n---\n\n# Kapitel 1\n")
+    assert main(["graph", "context", "--kapitel", "1"]) == 0
+    ut = capsys.readouterr().out
+    assert "Lysrör" in ut and "Annat" not in ut and "(30–34 år tidigare)" in ut
