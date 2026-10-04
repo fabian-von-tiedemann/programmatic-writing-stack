@@ -96,7 +96,7 @@ AGENTER = DATA / "genererat/claude/agents"
 TILLATNA_VERKTYG = {"Read", "Write", "Edit", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"}
 GRANSKARE = {"redaktor", "sprakgranskare", "forlaggare", "sensitivitet"}
 ROLLER = {"plot-arkitekt", "writer", "redaktor", "sprakgranskare", "kontinuitet", "forlaggare",
-          "researcher", "varldsbyggare", "sensitivitet", "audiobook", "marknad"}
+          "researcher", "varldsbyggare", "sensitivitet", "audiobook", "marknad", "vagval", "idekritiker"}
 
 
 def test_alla_roller_finns():
@@ -347,3 +347,17 @@ def test_ramverkets_kommandon_finns():
     text = "".join(_las(r) for r in ("skills/bok/SKILL.md", "bok/process.md", "bok/verktyg.md"))
     for kommando in set(re.findall(r"`bok ([a-z]+)", text)):
         assert kommando in sub.choices, kommando
+
+
+def test_vagvalsrollerna():
+    vagval = _las("agents/bok-vagval.md")
+    for fras in ("## Uppdrag: uppenbart", "## Uppdrag: gren", "## Uppdrag: utveckla",
+                 "Läs aldrig `uppenbart.md`", "utvecklar v3"):
+        assert fras in vagval, fras
+    kritik = _las("agents/bok-idekritiker.md")
+    for fras in ("## Uppdrag: kritik", "**Värde:**", "**Rimlighet:**", "**Djävulens advokat:**",
+                 "## Strukna", "Inga betyg"):
+        assert fras in kritik, fras
+    for text in (vagval, kritik):
+        meta, _ = split(text)
+        assert not {v.strip() for v in meta["tools"].split(",")} & {"Write", "Edit", "Bash"}
