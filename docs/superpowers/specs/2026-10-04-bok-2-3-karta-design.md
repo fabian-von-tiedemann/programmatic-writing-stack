@@ -44,7 +44,7 @@ Ny modul `src/bok/karta.py`. Den registrerar `bok karta` och `bok bild`. Bara st
 | Kommando | Gör | Sparar |
 |---|---|---|
 | `bok karta nyckel` | frågar efter API-nyckeln med `getpass` (syns inte). `--signering` frågar efter Street Views URL-signeringshemlighet. `--ta-bort` raderar båda | `~/.config/bok/google-maps-nyckel`, `~/.config/bok/google-maps-signering` (0600, katalogen 0700) |
-| `bok karta status` | om nyckeln finns och var den kommer ifrån (fil eller miljövariabel, aldrig värdet), och om den fungerar: ett gratis metadataanrop mot Street View | inget |
+| `bok karta status` | om nyckeln finns och var den kommer ifrån (fil eller miljövariabel, aldrig värdet), och om den fungerar: ett gratis metadataanrop mot Street View och ett ruttanrop (inom gratiskvoten) mot Routes | inget |
 | `bok karta restid <från> <till> [--satt gang,cykel,bil,kollektivt] [--avgang HH:MM] [--ankomst HH:MM] [--dag ÅÅÅÅ-MM-DD]` | restid och avstånd per färdsätt, och linjer, byten och gångsträckor för kollektivt | inget |
 | `bok karta gatuvy <plats> [<till>] [--satt gang] [--antal 8] [--mellanrum 150]` | gatubilder på en plats eller längs en rutt, till en tillfällig mapp | bara den tillfälliga mappen |
 | `bok karta stada` | raderar alla tillfälliga mappar från `gatuvy` och `bok bild` | — |
@@ -265,7 +265,7 @@ Alla fel i `karta.py` är `KartaFel(BokFel)` och ger exitkod 2 via `cli.main`. I
 | ingen gatubild | på punktens rad: ingen gatubild |
 | nätet nere eller timeout (10 s) | Kunde inte nå Google Maps just nu. |
 | platsen saknar adress | Platsen <id> har ingen adress. Lägg till adress i locations.json. |
-| okänt id (ett argument utan mellanslag, siffror och kommatecken tolkas som id) | Platsen <id> finns inte i locations.json. Skriv en adress i stället, eller lägg till platsen. |
+| okänt id (ett argument med bara gemener, siffror, `-` och `_` tolkas som id, som i grafen) | Platsen <id> finns inte i locations.json. Lägg till den, eller skriv en adress (till exempel "Slussen, Stockholm"). |
 | `bok bild`: fel schema, inte bild, för stor | Bara bilder via https, högst 15 MB. |
 
 ## 6. Guiden `docs/google-maps.md`
