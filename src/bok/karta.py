@@ -8,10 +8,11 @@ from __future__ import annotations
 import argparse
 import getpass
 import re
+import shutil
 import sys
 from datetime import date, datetime, time, timedelta
 
-from bok import bild, google
+from bok import bild, geo, google
 from bok.google import KartaFel
 from bok.graf import Graf
 from bok.platser import Plats, tolka
@@ -261,5 +262,87 @@ def _kor(args: argparse.Namespace) -> int:
     return _gatuvy(fran, till, args.satt, args.antal, args.mellanrum)
 
 
+def _fotodatum(datum: list[str]) -> str:
+    unika = sorted(set(datum))
+    if not unika:
+        return "okänt"
+    return unika[0] if len(unika) == 1 else f"{unika[0]} – {unika[-1]}"
+
+
+def _vyer_langs(fran: Plats, till: Plats, satt: str, antal: int, mellanrum: float) -> list[tuple[dict, float, str]]:
+    kropp = {"origin": fran.routes(), "destination": till.routes(), "travelMode": SATT[satt][0]}
+    rutt = _forsta_rutt(google.routes(kropp, POLY_FALT))
+    poly = ((rutt or {}).get("polyline") or {}).get("encodedPolyline")
+    if not isinstance(poly, str) or not poly:
+        raise KartaFel(f"Ingen rutt hittades mellan {fran.namn} och {till.namn}.")
+    try:
+        linje = geo.avkoda_polyline(poly)  # bara i minnet
+    except ValueError:
+        raise KartaFel("Google svarade med en trasig rutt.") from None
+    punkter = geo.punkter_langs(linje, mellanrum, antal)
+    vyer = []
+    for nr, (punkt, meter, riktning) in enumerate(punkter):
+        etikett = "start" if nr == 0 else "mål" if nr == len(punkter) - 1 else f"{round(meter)} m"
+        vyer.append((google.gatuvy_metadata(f"{punkt[0]:.6f},{punkt[1]:.6f}"), riktning, etikett))
+    return vyer
+
+
 def _gatuvy(fran: Plats, till: Plats | None, satt: str, antal: int, mellanrum: float) -> int:
-    raise KartaFel("bok karta gatuvy kommer i nästa steg.")  # ersätts i Task 7
+    if not 1 <= antal <= MAX_ANTAL:
+        raise KartaFel(f"--antal ska vara mellan 1 och {MAX_ANTAL}.")
+    if mellanrum < 10:
+        raise KartaFel("--mellanrum ska vara minst 10 meter.")
+    if till is None:
+        meta = google.gatuvy_metadata(fran.streetview())
+        if meta.get("status") != "OK":
+            raise KartaFel(f"Det finns ingen gatubild inom 50 meter från {fran.namn}.")
+        vyer = [(meta, float(riktning), "") for riktning in (0, 90, 180, 270)]
+        rubrik = f"runt {fran.namn}"
+    else:
+        vyer = _vyer_langs(fran, till, satt, antal, mellanrum)
+        rubrik = f"längs {fran.namn} → {till.namn}"
+    mapp = bild.ny_mapp("bok-gatuvy-")
+    rader: list[str] = []
+    datum: list[str] = []
+    forsta = None
+    forra_pano = None
+    try:
+        for meta, riktning, etikett in vyer:
+            pano = meta.get("pano_id") if meta.get("status") == "OK" else None
+            if till is not None and pano and pano == forra_pano:
+                continue
+            if not isinstance(pano, str) or not pano:
+                rader.append(f"  –       ingen gatubild           {etikett}".rstrip())
+                continue
+            forra_pano = pano
+            try:
+                data = google.gatuvy_bild(pano, riktning)
+            except google.IngenBild:
+                rader.append(f"  –       ingen gatubild           {etikett}".rstrip())
+                continue
+            fil = f"{sum(1 for _ in mapp.iterdir()) + 1:02d}.jpg"
+            (mapp / fil).write_bytes(data)
+            d = meta.get("date") if isinstance(meta.get("date"), str) else None
+            if d:
+                datum.append(d)
+            if forsta is None:
+                forsta = (meta, riktning)
+            rader.append(f"  {fil}  fotograferat {d or 'okänt':<8}  mot {geo.vaderstreck(riktning):<9} {etikett}".rstrip())
+    except BaseException:
+        if forsta is None:
+            shutil.rmtree(mapp, ignore_errors=True)
+        raise
+    if forsta is None:
+        shutil.rmtree(mapp, ignore_errors=True)
+        print("Inga gatubilder hittades.")
+        return 0
+    print(f"Gatubilder (Google Street View) {rubrik} i {mapp}/")
+    print("\n".join(rader))
+    print(f"Fotograferat: {_fotodatum(datum)}. Hämtat {date.today().isoformat()}. Dagens värld, inte bokens tid.")
+    plats = forsta[0].get("location") or {}
+    lat, lng = plats.get("lat"), plats.get("lng")
+    if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+        print(f"Öppna i webbläsaren: https://www.google.com/maps/@?api=1&map_action=pano"
+              f"&viewpoint={lat}%2C{lng}&heading={round(forsta[1])}")
+    print("Rensa när beskrivningen är skriven: bok karta stada")
+    return 0
