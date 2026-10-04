@@ -140,12 +140,122 @@ def _tal(x: float) -> str:
     return f"{x:.2f}".rstrip("0").rstrip(".")
 
 
+def _fw(text: str, ord_: list[str]) -> dict[str, float]:
+    alla = ord_i(text)
+    n = len(alla) or 1
+    antal = {w: 0 for w in ord_}
+    for w in alla:
+        if w in antal:
+            antal[w] += 1
+    return {w: antal[w] / n for w in ord_}
+
+
+def delta(text: str, rost: list[str], kontroll: list[str]) -> tuple[float, float]:
+    """Burrows Delta på funktionsorden: avståndet från texten till röstens och kontrollens centroid."""
+    ord_ = funktionsord()
+    ref = [_fw(t, ord_) for t in rost + kontroll]
+    medel = {w: statistics.fmean(v[w] for v in ref) for w in ord_}
+    sd = {w: statistics.pstdev([v[w] for v in ref]) for w in ord_}
+    drag = [w for w in ord_ if sd[w] > 0]
+    if not drag:
+        return 0.0, 0.0
+
+    def z(v: dict[str, float]) -> dict[str, float]:
+        return {w: (v[w] - medel[w]) / sd[w] for w in drag}
+
+    def centroid(grupp: list[str]) -> dict[str, float]:
+        zs = [z(_fw(t, ord_)) for t in grupp]
+        return {w: statistics.fmean(x[w] for x in zs) for w in drag}
+
+    zt = z(_fw(text, ord_))
+    return tuple(statistics.fmean(abs(zt[w] - c[w]) for w in drag) for c in (centroid(rost), centroid(kontroll)))
+
+
+def utanfor(kapitel: dict, prof: dict) -> list[tuple[str, float, float, float]]:
+    ut = []
+    for namn in MATT:
+        v, s = kapitel[namn], prof["matt"][namn]
+        spann = s["max"] - s["min"]
+        tol = TOLERANS * (spann if spann > 0 else abs(s["median"]))
+        if v < s["min"] - tol or v > s["max"] + tol:
+            ut.append((namn, v, s["min"], s["max"]))
+    return ut
+
+
+def pastisch(text: str, kallor: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """Sekvenser om minst NGRAM ord som texten delar med en källa, sammanslagna och med källan."""
+    ord_ = ord_i(text)
+    ut = []
+    for namn, kalltext in kallor:
+        k = ord_i(kalltext)
+        gram = {tuple(k[i:i + NGRAM]) for i in range(len(k) - NGRAM + 1)}
+        tackt = [False] * len(ord_)
+        for i in range(len(ord_) - NGRAM + 1):
+            if tuple(ord_[i:i + NGRAM]) in gram:
+                tackt[i:i + NGRAM] = [True] * NGRAM
+        i = 0
+        while i < len(ord_):
+            if not tackt[i]:
+                i += 1
+                continue
+            j = i
+            while j < len(ord_) and tackt[j]:
+                j += 1
+            ut.append((" ".join(ord_[i:j]), namn))
+            i = j
+    return ut
+
+
+def drift(root: Path, fil: Path) -> dict:
+    krav_modul(root)
+    text = ren_text(las_kapitel(fil))
+    bank, kontroll = texter(root, "provbank"), texter(root, "kontroll")
+    kallor = [(p.relative_to(root).as_posix(), t) for p, _, t in bank + texter(root, "exempel")]
+    ut = {
+        "fil": fil.relative_to(root).as_posix() if fil.is_relative_to(root) else str(fil),
+        "underlag": {"provbank": len(bank), "kontroll": len(kontroll)},
+        "delta": None,
+        "utanfor": [],
+        "pastisch": [{"text": s, "kalla": k} for s, k in pastisch(text, kallor)],
+    }
+    if len(bank) >= MIN_BANK and len(kontroll) >= MIN_KONTROLL:
+        d_rost, d_kontroll = delta(text, [t for *_, t in bank], [t for *_, t in kontroll])
+        ut["delta"] = {"rost": round(d_rost, 3), "kontroll": round(d_kontroll, 3),
+                       "narmare_kontroll": d_kontroll < d_rost}
+        ut["utanfor"] = [{"matt": n, "varde": v, "min": lo, "max": hi}
+                         for n, v, lo, hi in utanfor(matt(text), profil([t for *_, t in bank]))]
+    return ut
+
+
+def som_text_drift(d: dict) -> str:
+    u = d["underlag"]
+    rader = [d["fil"], f"  Underlag: {u['provbank']} provstycken, {u['kontroll']} kontrollvarianter."]
+    if d["delta"] is None:
+        rader.append(f"  För lite underlag för rösten (minst {MIN_BANK} provstycken och {MIN_KONTROLL} "
+                     "kontrollvarianter); bara pastischkontrollen körs.")
+    elif d["delta"]["narmare_kontroll"]:
+        rader.append(f"  VARNING: närmare AI-genomsnittet än rösten (delta rösten {d['delta']['rost']}, "
+                     f"kontrollen {d['delta']['kontroll']}).")
+    for x in d["utanfor"]:
+        rader.append(f"  Utanför röstens spridning: {x['matt']} {_tal(x['varde'])} "
+                     f"(provbanken {_tal(x['min'])}–{_tal(x['max'])}).")
+    for x in d["pastisch"]:
+        rader.append(f"  Pastisch: \"{x['text']}\" ({x['kalla']}).")
+    if len(rader) == 2 and d["delta"] is not None:
+        rader.append(f"  Inga anmärkningar (delta rösten {d['delta']['rost']}, kontrollen {d['delta']['kontroll']}).")
+    return "\n".join(rader)
+
+
 def register(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("rost", help="rösten i siffror: profil, drift och urval (modulen rostlabb)")
     r = p.add_subparsers(dest="rostdel", metavar="<del>", required=True)
     a = r.add_parser("profil", help="provbankens profil")
     a.add_argument("--json", action="store_true", help="maskinläsbart, för skillen")
     a.set_defaults(func=_kor_profil)
+    b = r.add_parser("drift", help="ett kapitel mot rösten och AI-genomsnittet, och pastisch")
+    b.add_argument("fil", help="kapitelfilen, till exempel manuskript/kapitel-03.md")
+    b.add_argument("--json", action="store_true", help="maskinläsbart, för skillen")
+    b.set_defaults(func=_kor_drift)
 
 
 def _kor_profil(args: argparse.Namespace) -> int:
@@ -156,4 +266,11 @@ def _kor_profil(args: argparse.Namespace) -> int:
     print(f"Provbanken: {p['antal']} provstycken")
     for namn, v in p["matt"].items():
         print(f"  {namn:<30} median {_tal(v['median'])}  ({_tal(v['min'])}–{_tal(v['max'])})")
+    return 0
+
+
+def _kor_drift(args: argparse.Namespace) -> int:
+    root = find_root()
+    d = drift(root, Path(args.fil).resolve())
+    print(json.dumps(d, ensure_ascii=False) if args.json else som_text_drift(d))
     return 0
