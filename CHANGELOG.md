@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+### Ändrat
+- Bokens `README.md` (i nya böcker) nämner Röstlabbet.
+
 ## [2.5.1] — 2026-10-04
 
 ### Fixat

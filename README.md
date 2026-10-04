@@ -35,6 +35,8 @@ Bokens egna filer rörs aldrig. Ramverkets filer i `.claude/` skrivs om; dina eg
 2. **Skrivloopen per kapitel.** Scenkort (du säger ja), utkast, granskning av Redaktör och Språkgranskare, högst två revisioner, kontinuitet, och till sist din läsning.
 3. **Aktgränser.** Förläggaren läser varje akt och hela boken. När boken fått A läser Sensitivitetsläsaren den.
 
+Med en egen nyckel till Google Maps tar Claude fram restider mellan bokens platser och tittar på gatubilder för att beskriva miljöerna ([guiden](docs/google-maps.md)). Inga bilder sparas i boken.
+
 `bok status` säger alltid var boken står och vad som är nästa steg. Hela genomgången: [docs/hur-det-fungerar.md](docs/hur-det-fungerar.md).
 
 ## Vad som hamnar i repot
@@ -46,7 +48,7 @@ inkorg/           råmaterial
 manuskript/       kapitlen
 bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
                   story-graph, sammanfattningar, rapporter, canon, lärdomar
-.claude/          skillen bok, elva roller och ramverket (genereras)
+.claude/          skillen bok, tretton roller och ramverket (genereras)
 ```
 
 ## Kommandon
@@ -60,9 +62,11 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 | `bok tics` | ord och vändningar som blivit vana |
 | `bok rost` | röstens profil, ett kapitels drift mot rösten och AI-genomsnittet, och provstycken till Writer (modulen rostlabb) |
 | `bok validate` | förbjudna namn och förlagor, tidslinjen och namn/åldrar att kontrollera |
-| `bok fron` | slumpade frön till vägval |
+| `bok fron` | slumpade frön till vägval och Röstlabbet |
 | `bok rapport spara` | sparar granskningar och godkännanden |
 | `bok annotations` | läsarnoter från Apple Böcker (macOS) |
+| `bok karta …` | restider och gatubilder från Google Maps med egen nyckel: `nyckel`, `status`, `restid`, `gatuvy`, `stada` |
+| `bok bild` | hämtar en arkivbild tillfälligt, utanför boken, så att Claude kan titta på den |
 | `bok forslag` | skicka förslag till dem som bygger verktyget och se vad som hänt med dem |
 
 ## Förslag
