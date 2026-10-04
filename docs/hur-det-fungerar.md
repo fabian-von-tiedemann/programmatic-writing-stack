@@ -81,6 +81,12 @@ Rollerna läser sammanfattningar och utdrag ur grafen i stället för hela manus
 
 `bok validate` använder grafen för att hitta tidsfel (en person med i en händelse innan hon är född, kapitel som hoppar bakåt i tiden utan att vara en tillbakablick) och åldrar i texten som inte stämmer.
 
+## Platser och miljöer
+
+Med en egen nyckel till Google Maps ([guiden](google-maps.md)) kan Claude svara på hur lång tid det tar att gå, cykla, åka bil eller åka kollektivt mellan bokens platser, och titta på gatubilder för att beskriva hur det ser ut. Beskrivningarna hamnar i `bok/varld/platser/<id>.md` under två rubriker: *Idag* (vad gatubilderna visar, med fotodatum) och *Bokens tid* (det som är belagt eller som du har bestämt om platsen vid bokens tid). `bok graph context` visar båda för kapitlets platser, och hur många år som skiljer bilderna från kapitlets tid. När glappet är stort kan Researchern söka i arkiv efter hur platsen såg ut då.
+
+När du har godkänt ett scenkort frågar Claude om miljön ska tas fram för platser som saknar beskrivning. Inget från Google sparas i boken: inga bilder och inga restider, bara egna formuleringar.
+
 ## Moduler
 
 Vissa delar läggs bara till när boken behöver dem: `bok mall tidslinje`, `serie`, `spanning`, `graf-extra`, och när boken är klar `forlag`, `audiobook`, `marknad`. Claude föreslår dem när det passar.
