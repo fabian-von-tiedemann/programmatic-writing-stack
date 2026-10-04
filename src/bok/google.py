@@ -136,7 +136,7 @@ def _oppna(req: urllib.request.Request, timeout: float = TIMEOUT) -> Svar:
             data = b""
         typ = exc.headers.get("Content-Type", "") if exc.headers is not None else ""
         return Svar(exc.code, typ, data)
-    except (urllib.error.URLError, TimeoutError, OSError, http.client.HTTPException, ValueError):
+    except Exception:  # alla andra fel också: deras text kan innehålla URL:en med nyckeln
         raise KartaFel("Kunde inte nå Google Maps just nu.") from None
 
 

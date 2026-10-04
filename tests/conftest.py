@@ -23,7 +23,8 @@ def _ingen_google(tmp_path, monkeypatch):
     from bok import google
 
     def stopp(*args, **kwargs):
-        raise AssertionError("ett test försökte nå Google på riktigt")
+        # pytest.fail är ett BaseException och fångas inte av google._oppna.
+        pytest.fail("ett test försökte nå Google på riktigt")
 
     monkeypatch.setattr(google._OPPNARE, "open", stopp)
 

@@ -169,7 +169,9 @@ def _http_fel(req):
     lambda req: TimeoutError(req.full_url),
     lambda req: http.client.RemoteDisconnected(req.full_url),
     lambda req: ValueError(req.full_url),
-], ids=["http", "url", "timeout", "frankopplad", "valueerror"])
+    lambda req: TypeError(req.full_url),
+    lambda req: LookupError(req.full_url),
+], ids=["http", "url", "timeout", "frankopplad", "valueerror", "typeerror", "lookuperror"])
 def test_nyckeln_lacker_aldrig(nyckel, monkeypatch, fel):
     monkeypatch.setattr(google, "_OPPNARE", _Kastar(fel))
     for anrop in (lambda: google.gatuvy_metadata("59.3,18.0"), lambda: google.gatuvy_bild("p1", 0),

@@ -252,7 +252,7 @@ def test_skillen_2_3():
     avsnitt = text.split("## Platser och miljöer", 1)[1].split("\n## ", 1)[0]
     for fras in ("bok karta status", "bok karta restid", "~/.config/bok/google-maps-", "bok karta nyckel",
                  "bok-varldsbyggare", "uppdraget **miljö**", "uppdraget **platsens historia**",
-                 "bok karta stada", "`## Rutter`"):
+                 "bok karta stada", "`## Rutter`", "BOK_GOOGLE_MAPS_NYCKEL"):
         assert fras in avsnitt, fras
     assert "bok/varld/platser/<id>.md" in text.split("## Fritt samtal", 1)[1].split("\n## ", 1)[0]
 
