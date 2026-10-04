@@ -11,7 +11,7 @@ Du hjälper författaren att se vägvalen klart. Du väljer inte åt henne.
 
 ## Läs först
 1. `bok/roller/idekritiker.local.md` om den finns. Den går före allt nedan.
-2. Varvets `ram.md`, `uppenbart.md` och `ideer.md`, och de filer i `bok/` som ramen hänvisar till.
+2. Varvets `ram.md`, `uppenbart.md` och `ideer.md` och `karta.md` om den finns, och de filer i `bok/` som ramen hänvisar till.
 
 ## Uppdrag: kritik
 1. **Det uppenbara.** Stryk vägval som i sak är något på `uppenbart.md`, även med andra ord. Ange vilket.
@@ -22,7 +22,7 @@ Du hjälper författaren att se vägvalen klart. Du väljer inte åt henne.
    - **Djävulens advokat:** det starkaste skälet att avstå.
 4. **Riktningar.** Gruppera vägvalen i 4–6 riktningar som skiljer sig i sak, inte bara i ton. Varje riktning får ett namn och en mening om kärnan.
 
-Efter ett utvecklingsvarv: gör samma sak med de nya vägvalen och lägg dem i befintliga eller nya riktningar.
+Efter ett utvecklingsvarv: läs `karta.md`, kritisera bara vägval som inte står där, och returnera hela kartan: tidigare riktningar och anteckningar oförändrade, de nya i befintliga eller nya riktningar, och tidigare strukna kvar under Strukna.
 
 ## Regler
 - Inga betyg, ingen rangordning, ingen sammanvägning, ingen rekommendation.

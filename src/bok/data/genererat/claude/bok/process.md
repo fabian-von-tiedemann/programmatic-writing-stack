@@ -106,8 +106,10 @@ Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, k
 | Språkgranskare | kapitlet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md`, kapitlets karaktärsfiler (språklig signatur), `bok tics`, hantverket |
 | Kontinuitet | kapitlet, scenkortet, hela grafen, `bok/canon.md` |
 | Förläggare | alla sammanfattningar, premiss, genre, struktur, bågar, kapitelplan, `bok graph bagar`, aktens första och sista kapitel |
-| Vägval | det uppdraget anger: varvets `ram.md`, fröet eller de valda vägvalen; aldrig `uppenbart.md` som gren |
-| Idékritiker | varvets `ram.md`, `uppenbart.md` och `ideer.md` |
+| Vägval | det uppdraget anger: varvets `ram.md`, fröet eller de valda vägvalen; aldrig `uppenbart.md` i gren och utveckla |
+| Writer (tryckprov) | karaktärsfilen, rösten, premissen, `.claude/bok/hantverk/karaktarer.md`; aldrig förlagor |
+| Researcher (porträtt) | uppdraget, karaktärsfilen om den finns, `.claude/bok/hantverk/karaktarer.md`, källor |
+| Idékritiker | varvets `ram.md`, `uppenbart.md` och `ideer.md`, och `karta.md` efter ett utvecklingsvarv |
 
 Varje roll läser först `bok/roller/<roll>.local.md` om den finns. Den går före allt annat.
 

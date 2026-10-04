@@ -96,6 +96,14 @@ def test_cli_spara_lagger_till(bok):
     assert text.count("# Frön") == 1
 
 
+def test_cli_spara_relativt_ligger_under_bokens_rot(bok, monkeypatch):
+    (bok / "manuskript").mkdir(exist_ok=True)
+    monkeypatch.chdir(bok / "manuskript")
+    assert main(["fron", "--slump", "1", "--spara", "bok/vagval/x"]) == 0
+    assert (bok / "bok/vagval/x/fron.md").is_file()
+    assert not (bok / "manuskript/bok").exists()
+
+
 def test_cli_okand_klass(bok):
     with pytest.raises(SystemExit):
         main(["fron", "--klass", "planeter"])

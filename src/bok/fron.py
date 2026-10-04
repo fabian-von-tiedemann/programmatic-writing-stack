@@ -109,6 +109,7 @@ def _kor(args: argparse.Namespace) -> int:
         root = None
     drag = dra(args.antal, args.klass, args.antagande, args.slump, root)
     if args.spara:
-        spara(Path(args.spara), drag)
+        mapp = Path(args.spara)
+        spara(root / mapp if root and not mapp.is_absolute() else mapp, drag)
     print(json.dumps(drag, ensure_ascii=False) if args.json else som_text(drag))
     return 0

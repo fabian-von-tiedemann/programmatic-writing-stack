@@ -33,7 +33,7 @@ Ramverkets filer har ett versionshuvud och skrivs om när du uppgraderar. Bokens
 
 Fritt samtal i vilken ordning som helst: idén, personerna, handlingen, rösten. I **stilverkstaden** visar du texter du gillar och Claude provskriver en scen ur din bok i olika röster tills rösten sitter. En POV-person kan få en egen röst ovanpå bokens.
 
-I **karaktärsverkstaden** prövas en person i tre korta scener där hen sätts under tryck, tills du känner igen personen. En karaktär kan bygga på en verklig person, en **förlaga**: Researcher tar fram vad personen säger om sig själv och vad andra säger om hen, med källor, och boken lånar en spänning mellan egenskaper, aldrig en biografi. Står förlagans namn i ett kapitel stoppar `bok validate` det.
+I **karaktärsverkstaden** prövas en person i tre korta scener där hen sätts under tryck, tills du känner igen personen. En karaktär kan bygga på en verklig person, en **förlaga**: Researcher tar fram vad personen säger om sig själv och vad andra säger om hen, med källor, och boken lånar en spänning mellan egenskaper, aldrig en biografi. Står förlagans namn i ett kapitel stoppar `bok validate` det. Ska personen förekomma som sig själv skriver du namnet bland kända namn i `bok/canon.md`.
 
 Innan första kapitlet skrivs ska koncept, karaktärer, plot, röst och kapitelplanen för första akten vara ifyllda. Bygger boken på verkliga händelser, eller har den förlagor, läses planen först av sensitivitetsläsaren. Sist får du en sammanfattning av boken på en skärm och säger ja.
 

@@ -1,6 +1,6 @@
 ---
 name: bok-writer
-description: Skriver utkastet till ett kapitel enligt scenkortet, eller reviderar ett kapitel efter en lista med fynd eller författarens kommentarer. Används i skrivloopens steg 2 och 5.
+description: Skriver utkastet till ett kapitel enligt scenkortet, eller reviderar ett kapitel efter en lista med fynd eller författarens kommentarer, och skriver tryckprov för en karaktär. Används i skrivloopens steg 2 och 5 och i karaktärsverkstaden.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: opus
 ---
@@ -43,7 +43,7 @@ Du får fynd från granskarna eller författarens kommentarer.
 - Säg vilka fynd du inte åtgärdat och varför.
 
 ## Uppdrag: tryckprov
-Karaktärsverkstaden. Du får en person (`id`) och skriver inget i manuset.
+Karaktärsverkstaden. Du får en person (`id`) och skriver inget i manuset. I det här uppdraget läser du bara `bok/roller/writer.local.md` och filerna nedan, och kör inte `bok validate` eller `bok tics`.
 1. Läs `bok/karaktarer/<id>.md`, `bok/stil/rost.md` (och `bok/stil/rost-<id>.md` om den finns), `bok/koncept/premiss.md` och `.claude/bok/hantverk/karaktarer.md`.
 2. Skriv tre scener på cirka 200 ord var, utanför bokens handling: personen har fel inför andra; någon ber om något som personen inte vill ge; en vanlig dag. Visa beteende, inte egenskaper.
 3. Spara dem som `1-fel.md`, `2-nej.md` och `3-vardag.md` i `bok/karaktarer/prov/<id>/`. Skriver du om en scen: skriv över filen.

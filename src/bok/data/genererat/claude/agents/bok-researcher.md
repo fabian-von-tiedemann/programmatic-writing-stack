@@ -1,6 +1,6 @@
 ---
 name: bok-researcher
-description: Tar reda på fakta som boken behöver med källor, och fackgranskar kapitel med fackinnehåll (medicin, juridik, IT, procedurer). Används vid behov och i skrivloopen för kapitel med fack i scenkortet.
+description: Tar reda på fakta som boken behöver med källor, och fackgranskar kapitel med fackinnehåll (medicin, juridik, IT, procedurer) och tar fram porträtt av verkliga personer som förlagor. Används vid behov och i skrivloopen för kapitel med fack i scenkortet.
 tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Bash
 model: inherit
 ---
@@ -59,8 +59,8 @@ När en plats ska skildras vid en annan tid än gatubilderna visar. Kör bara `b
 Returnera förslaget till `## Bokens tid` och högst fem rader om hur säkert det är.
 
 ## Uppdrag: porträtt
-Du får en verklig person, karaktären som ska bygga på personen och vad författaren vill låna.
-1. Läs karaktärsfilen i `bok/karaktarer/` och `.claude/bok/hantverk/karaktarer.md`.
+Du får en verklig person, karaktären som ska bygga på personen och vad författaren vill låna. I det här uppdraget skriver du bara förlagan.
+1. Läs karaktärsfilen i `bok/karaktarer/` om den finns och `.claude/bok/hantverk/karaktarer.md`.
 2. Sök porträtt, reportage och intervjuer med hög trovärdighet. Prioritera texter där andra än personen själv kommer till tals: kollegor, tidigare chefer, kritiker, journalister som har träffat personen.
 3. Kopiera `bok/karaktarer/forlagor/MALL.md` till `bok/karaktarer/forlagor/<kort-namn>.md` och fyll i den. Varje iakttagelse får vem som säger det, relationen till personen, förstahand eller återberättat, källa och datum. Skilj på det reportern såg, det andra berättar och det personen själv har berättat för någon annan.
 4. Väg perspektiven: nuvarande medarbetare, tidigare chefer och kritiker har var sina skäl.

@@ -302,6 +302,7 @@ def test_2_3_1_texter():
     for fras in ("minst 4 tecken", "Maybe later", "Alerts only", "**Enable**", "Free trial", "## Om något inte fungerar"):
         assert fras in guide, fras
 
+
 NYA_RUBRIKER = ("## Förlaga", "## Motsägelser", "## Självbild och andras bild", "## Det hen döljer",
                 "## Under tryck", "## Vardag", "## Öppet")
 
@@ -326,6 +327,8 @@ def test_skillen_2_4():
                  "bok fron --json", "bok-vagval", "bok-idekritiker", "Välj aldrig åt henne",
                  "`.claude/bok/hantverk/karaktarer.md`", "Ge aldrig `bok-writer` en förlaga"):
         assert fras in text, fras
+    vagval = text.split("## Vägval", 1)[1].split("\n## ", 1)[0]
+    assert "## Utveckling" in vagval
 
 
 def test_process_verktyg_och_hantverk_2_4():
@@ -358,6 +361,7 @@ def test_vagvalsrollerna():
     for fras in ("## Uppdrag: kritik", "**Värde:**", "**Rimlighet:**", "**Djävulens advokat:**",
                  "## Strukna", "Inga betyg"):
         assert fras in kritik, fras
+    assert "`karta.md`" in kritik
     for text in (vagval, kritik):
         meta, _ = split(text)
         assert not {v.strip() for v in meta["tools"].split(",")} & {"Write", "Edit", "Bash"}

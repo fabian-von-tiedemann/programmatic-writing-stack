@@ -12,7 +12,7 @@ Kommandon som rollerna och skillen kör. Alla fungerar var som helst i bokens ma
 | `bok graph var <plats>` | händelser på en plats |
 | `bok graph tidslinje [--fran ÅR] [--till ÅR]` | daterade händelser i tidsordning, med åldrar |
 | `bok validate manuskript/kapitel-NN.md` | förbjudna namn, förlagornas namn och tidsfel i grafen stoppar (exitkod 1); namn som saknas i grafen och åldrar som inte stämmer är varningar |
-| `bok fron [--antal N] [--klass KLASS] [--antagande TEXT] [--slump TAL] [--spara MAPP]` | slumpade frön till ett vägval (`--json` för skillen); klasserna är doman, omvandning, begransning, process och forlaga |
+| `bok fron [--antal N] [--klass KLASS …] [--antagande TEXT …] [--slump TAL] [--spara MAPP]` | slumpade frön till ett vägval (`--json` för skillen); klasserna är doman, omvandning, begransning, process och forlaga |
 | `bok tics manuskript/kapitel-NN.md` | tics per kapitel; `--bok` för hela boken |
 | `bok rapport spara -` | spara en rapport från stdin; avvisar fel frontmatter |
 | `bok mall <modul>` | lägg till en tillvalsmodul; utan namn listas modulerna |

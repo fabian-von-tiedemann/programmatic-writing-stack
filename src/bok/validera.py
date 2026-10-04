@@ -149,7 +149,7 @@ def _kapitel_i_tid(root: Path, graf: Graf) -> list[tuple[int, Datum | None, bool
 
 
 def register(sub: argparse._SubParsersAction) -> None:
-    p = sub.add_parser("validate", help="förbjudna namn, tidslinjen och namn/åldrar att kontrollera")
+    p = sub.add_parser("validate", help="förbjudna namn och förlagor, tidslinjen och namn/åldrar att kontrollera")
     p.add_argument("filer", nargs="*", help="kapitelfiler (standard: alla i manuskript/)")
     p.set_defaults(func=_kor)
 
