@@ -37,6 +37,27 @@ def _dictar(v) -> list[dict]:
     return [x for x in v if isinstance(x, dict)] if isinstance(v, list) else []
 
 
+def _text(v, annars: str) -> str:
+    """Namn och rubriker ur json: en icke-tom sträng, annars `annars`."""
+    return v.strip() if isinstance(v, str) and v.strip() else annars
+
+
+def namnformer(x: dict) -> list[str]:
+    """Namn och alias ur json; bara icke-tomma strängar räknas."""
+    alias = x.get("alias")
+    alias = alias if isinstance(alias, list) else [alias]
+    return [n.strip() for n in [x.get("namn"), *alias] if isinstance(n, str) and n.strip()]
+
+
+def fakta_rader(v) -> list[str]:
+    """Fakta ur json som rader. Ett objekt är det vanliga; en lista eller text visas som den är."""
+    if isinstance(v, dict):
+        return [f"- {k}: {x}" for k, x in v.items()]
+    if isinstance(v, list):
+        return [f"- {x}" for x in v if x not in (None, "")]
+    return [f"- {v}"] if isinstance(v, (str, int, float)) and not isinstance(v, bool) and str(v).strip() else []
+
+
 def ar_oppen(t: dict) -> bool:
     """Är bågen öppen? Status `oppen` (eller `öppen`, oavsett versaler); saknas status räknas den som öppen."""
     status = t.get("status") or "oppen"
@@ -61,20 +82,20 @@ def relation_vid(rel: dict, kapitel: int | None) -> str:
 
 def _olosta(t: dict) -> list[dict]:
     """Planteringar som aldrig lösts."""
-    return [p for p in t.get("planteringar") or [] if isinstance(p, dict) and not p.get("loses_i")]
+    return [p for p in _dictar(t.get("planteringar")) if not p.get("loses_i")]
 
 
 def _oppna_vid(t: dict, kapitel: int) -> list[dict]:
     """Planteringar som var öppna när kapitel `kapitel` började."""
     return [
-        p for p in t.get("planteringar") or []
-        if isinstance(p, dict) and _kap(p.get("kapitel")) < kapitel
+        p for p in _dictar(t.get("planteringar"))
+        if _kap(p.get("kapitel")) < kapitel
         and (not _kap(p.get("loses_i")) or _kap(p.get("loses_i")) >= kapitel)
     ]
 
 
 def _steg(t: dict) -> list[dict]:
-    return sorted((s for s in t.get("steg") or [] if isinstance(s, dict)), key=lambda s: _kap(s.get("kapitel")))
+    return sorted(_dictar(t.get("steg")), key=lambda s: _kap(s.get("kapitel")))
 
 
 @dataclass
@@ -123,7 +144,7 @@ class Graf:
     def namn(self, id_: str) -> str:
         for nyckel in ("characters", "locations", "objects", "organizations"):
             if (x := self._finns(nyckel, id_)) is not None:
-                return x.get("namn") or id_
+                return _text(x.get("namn"), id_)
         return id_
 
     def kapitel_datum(self, kapitel: int, fran_scenkort=None) -> Datum | None:
@@ -224,9 +245,9 @@ class Graf:
 
     def karaktar(self, id_: str) -> str:
         c = self.hitta("characters", id_)
-        r = [f"# {c.get('namn', id_)} ({id_})", ""]
-        if fakta := c.get("fakta") or {}:
-            r += ["## Fakta", *(f"- {k}: {v}" for k, v in fakta.items()), ""]
+        r = [f"# {_text(c.get('namn'), id_)} ({id_})", ""]
+        if fakta := fakta_rader(c.get("fakta")):
+            r += ["## Fakta", *fakta, ""]
         if rel := self._relationer(id_):
             r += ["## Relationer", *(f"- {self.namn(a)}: {relation_vid(x, None)}" for a, x in rel), ""]
         kap = sorted({_kap(e.get("kapitel")) for e in self.lista("events")
@@ -241,9 +262,9 @@ class Graf:
 
     def var(self, plats: str, kapitel: int | None = None) -> str:
         p = self.hitta("locations", plats)
-        r = [f"# {p.get('namn', plats)}", ""]
-        if fakta := p.get("fakta") or {}:
-            r += [*(f"- {k}: {v}" for k, v in fakta.items()), ""]
+        r = [f"# {_text(p.get('namn'), plats)}", ""]
+        if fakta := fakta_rader(p.get("fakta")):
+            r += [*fakta, ""]
         ev = [e for e in self.lista("events")
               if e.get("plats") == plats and (kapitel is None or e.get("kapitel") == kapitel)]
         r.append("## Händelser")
@@ -261,7 +282,7 @@ class Graf:
             r.append("Inga bågar i threads.json än.")
         for t in tr:
             steg = _steg(t)
-            r.append(f"## {t.get('namn', t.get('id'))} ({t.get('id')}, {t.get('typ', '?')}, {t.get('status', 'oppen')})")
+            r.append(f"## {_text(t.get('namn'), str(t.get('id')))} ({t.get('id')}, {t.get('typ', '?')}, {t.get('status', 'oppen')})")
             r.append(f"Senast i kapitel {steg[-1].get('kapitel')}." if steg else "Inte påbörjad i texten.")
             r += [f"- Kapitel {s.get('kapitel', '?')}: {s.get('vad', '')}" for s in steg]
             r += [f"- Olöst plantering (kapitel {p.get('kapitel', '?')}): {p.get('vad', '')}" for p in _olosta(t)]
@@ -279,8 +300,8 @@ class Graf:
             if c is None:
                 r += [f"### {cid}", "Ny i kapitlet (finns inte i grafen än).", ""]
                 continue
-            r.append(f"### {c.get('namn', cid)} ({cid})")
-            r += [f"- {k}: {v}" for k, v in (c.get("fakta") or {}).items()]
+            r.append(f"### {_text(c.get('namn'), cid)} ({cid})")
+            r += fakta_rader(c.get("fakta"))
             if datum is not None and (a := self.alder_vid(cid, datum)):
                 r.append(f"- Ålder: {a}")
             r += [f"- Relation till {self.namn(a)}: {relation_vid(x, kapitel)}" for a, x in self._relationer(cid)]
@@ -299,8 +320,8 @@ class Graf:
                 if p is None:
                     r += [f"### {pid}", "Ny i kapitlet (finns inte i grafen än).", ""]
                     continue
-                r.append(f"### {p.get('namn', pid)} ({pid})")
-                r += [f"- {k}: {v}" for k, v in (p.get("fakta") or {}).items()]
+                r.append(f"### {_text(p.get('namn'), pid)} ({pid})")
+                r += fakta_rader(p.get("fakta"))
                 r.append("")
         valda = bagar or [t.get("id") for t in self.lista("threads") if ar_oppen(t)]
         r += ["## Bågar", ""]
@@ -309,7 +330,7 @@ class Graf:
             if t is None:
                 r += [f"### {tid}", "Planerad båge som inte påbörjats i texten än.", ""]
                 continue
-            r.append(f"### {t.get('namn', tid)} ({tid})")
+            r.append(f"### {_text(t.get('namn'), str(tid))} ({tid})")
             r += [f"- Kapitel {s.get('kapitel')}: {s.get('vad', '')}" for s in _steg(t) if _kap(s.get("kapitel")) < kapitel]
             r += [f"- Olöst plantering (kapitel {p.get('kapitel')}): {p.get('vad', '')}" for p in _oppna_vid(t, kapitel)]
             r.append("")

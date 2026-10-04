@@ -6,7 +6,7 @@ import argparse
 import re
 from pathlib import Path
 
-from bok.graf import Graf, scenkort_om_finns
+from bok.graf import Graf, namnformer, scenkort_om_finns
 from bok.rot import find_root
 from bok.tics import kapitelfiler, las_kapitel
 from bok.tid import Datum, alder, som_text, tolka
@@ -26,10 +26,9 @@ def kanda_namn(graf: Graf, canon_text: str) -> set[str]:
     kanda = set(block(canon_text, "kanda-namn"))
     for nyckel in ("characters", "locations", "organizations", "objects"):
         for x in graf.lista(nyckel):
-            for n in [x.get("namn"), *(x.get("alias") or [])]:
-                if isinstance(n, str) and n.strip():
-                    kanda.add(n.strip())
-                    kanda.update(n.split())
+            for n in namnformer(x):
+                kanda.add(n)
+                kanda.update(n.split())
     return kanda
 
 
@@ -76,9 +75,10 @@ def personer_med_fodd(graf: Graf) -> list[tuple[str, list[str], Datum, Datum | N
         fodd = tolka(c.get("fodd"))
         if fodd is None:
             continue
-        namn = [n.strip() for n in [c.get("namn"), *(c.get("alias") or [])] if isinstance(n, str) and n.strip()]
+        namn = namnformer(c)
         former = set(namn) | {n.split()[0] for n in namn}
-        ut.append((c.get("namn") or c.get("id", "?"), sorted(former, key=len, reverse=True), fodd, tolka(c.get("dod"))))
+        etikett = c.get("namn") if isinstance(c.get("namn"), str) and c["namn"].strip() else str(c.get("id", "?"))
+        ut.append((etikett, sorted(former, key=len, reverse=True), fodd, tolka(c.get("dod"))))
     return ut
 
 

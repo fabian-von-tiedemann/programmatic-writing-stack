@@ -6,6 +6,11 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.2.1] — 2026-10-04
+
+### Fixat
+- `bok validate`, `bok graph karaktar` och `bok graph var` kraschar inte längre när grafens json har handredigerats med fel typ, t.ex. `alias` som text i stället för lista eller `fakta` som lista i stället för objekt. Sådana värden visas som de är eller hoppas över.
+
 ## [2.2.0] — 2026-10-03
 
 ### Lagt till
@@ -121,7 +126,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.0.0...v2.1.0
