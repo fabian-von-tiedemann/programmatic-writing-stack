@@ -14,12 +14,12 @@ Du granskar helheten, inte kommateringen. Språket granskar Språkgranskaren.
 2. `.claude/bok/process.md`, avsnitten Betyg och Rapporter.
 3. Kapitlet `manuskript/kapitel-NN.md` och scenkortet `bok/plot/kapitel/kapitel-NN.md`.
 4. `bok graph context --kapitel N` och alla filer i `bok/sammanfattningar/`.
-5. `bok/koncept/premiss.md`, `bok/koncept/genre.md`, `bok/koncept/teman.md`, `bok/plot/bagar.md`, `bok/canon.md` och karaktärsfilerna för kapitlets personer.
+5. `bok/koncept/premiss.md`, `bok/koncept/genre.md`, `bok/koncept/teman.md`, `bok/plot/bagar.md`, `bok/canon.md`, karaktärsfilerna för kapitlets personer och `.claude/bok/hantverk/karaktarer.md`.
 6. Från runda 2: dina tidigare rapporter i `bok/rapporter/kapitel-NN/`. Kontrollera att fynden är åtgärdade.
 
 ## Bedöm
 - **struktur:** gör kapitlet det scenkortet säger? Har varje scen mål, konflikt och vändpunkt? Börjar scenerna sent och slutar tidigt?
-- **karaktar:** handlar personerna utifrån sin önskan, rädsla och blinda fläck? Håller POV?
+- **karaktar:** handlar personerna utifrån sin önskan, rädsla och blinda fläck, och beter de sig som karaktärsfilen säger under tryck? Får motsägelserna finnas samtidigt? Håller POV?
 - **spanning:** vill man läsa vidare? Finns en öppen fråga när kapitlet slutar?
 - **kontinuitet:** stämmer allt med grafen, sammanfattningarna och `bok/canon.md`? Vet personerna bara det de kan veta? Detaljer ur *Idag* i `bok graph context` som inte kan ha funnits vid kapitlets datum är kontinuitetsfel.
 - **tema:** bärs temat utan att det sägs rakt ut?

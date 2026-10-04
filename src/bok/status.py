@@ -9,6 +9,7 @@ from pathlib import Path
 
 from bok import boktoml, frontmatter
 from bok.graf import Graf, GrafFel, ar_oppen
+from bok.forlagor import forlagor
 from bok.rapport import GRANSKARE_AXLAR, las_alla
 from bok.rot import find_root
 from bok.validera import block
@@ -43,15 +44,18 @@ _REVISION = re.compile(r"^\s*- \[ \] (?:kapitel\s+(\d+)|(alla))\s*:", re.M | re.
 
 
 def _verkliga_del(root: Path, rapporter: list[dict]) -> dict | None:
-    """Sensitivitetsläsning av planen, bara när canon.md listar verkliga händelser."""
+    """Sensitivitetsläsning av planen, när canon.md listar verkliga händelser eller boken har förlagor."""
     path = root / "bok" / "canon.md"
-    if not path.is_file() or not block(path.read_text(encoding="utf-8"), "verkliga-handelser"):
+    handelser = path.is_file() and bool(block(path.read_text(encoding="utf-8"), "verkliga-handelser"))
+    personer = bool(forlagor(root))
+    if not handelser and not personer:
         return None
+    namn = "Verkliga personer och händelser" if personer else "Verkliga händelser"
     s = _senaste(rapporter, omfang="forberedelse", roll="sensitivitet")
     if s and s["utfall"] == "godkand":
-        return {"namn": "Verkliga händelser", "klar": True, "saknas": []}
+        return {"namn": namn, "klar": True, "saknas": []}
     saknas = "sensitivitetsläsaren vill ha ändringar i planen" if s else "sensitivitetsläsning av planen saknas"
-    return {"namn": "Verkliga händelser", "klar": False, "saknas": [saknas]}
+    return {"namn": namn, "klar": False, "saknas": [saknas]}
 
 
 def revisioner(root: Path) -> dict:

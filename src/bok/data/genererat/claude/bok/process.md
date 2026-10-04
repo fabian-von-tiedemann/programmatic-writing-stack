@@ -21,10 +21,10 @@ Fritt samtal, i vilken ordning som helst. För att börja skriva kapitel 1 kräv
 | Plot (grind I.2) | `bok/plot/struktur.md`, `bok/plot/bagar.md` | central fråga, inciting incident, mittpunkt, klimax och varje akts funktion |
 | Röst | `bok/stil/rost.md` | ifylld och godkänd i stilverkstaden |
 | Kapitelplan | `bok/plot/kapitelplan.md` | åtminstone första akten |
-| Verkliga händelser | blocket `verkliga-handelser` i `bok/canon.md` | bara om blocket har rader: rapport `omfang: forberedelse`, `roll: sensitivitet`, `utfall: godkand` |
+| Verkliga händelser och personer | blocket `verkliga-handelser` i `bok/canon.md`, förlagor i `bok/karaktarer/forlagor/` | bara om blocket har rader eller boken har förlagor: rapport `omfang: forberedelse`, `roll: sensitivitet`, `utfall: godkand` |
 | Hennes ja | rapport med `omfang: forberedelse`, `roll: forfattare`, `utfall: godkand` | efter en sammanfattning av boken på en skärm |
 
-`bok status` ser bara om filerna är ifyllda. Om innehållet håller bedömer `bok-plot-arkitekt` (uppdrag *grind*).
+`bok status` ser bara om filerna är ifyllda. Om innehållet håller bedömer `bok-plot-arkitekt` (uppdrag *grind*), också om POV-personerna har motsägelser och ett konkret beteende under tryck (se `.claude/bok/hantverk/karaktarer.md`).
 
 ## Skrivloopen per kapitel
 
@@ -101,11 +101,15 @@ Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, k
 
 | Roll | Läser |
 |---|---|
-| Writer | scenkortet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md` om den finns (går före `bok/stil/rost.md`), öppna rader i `bok/revisioner.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md`, `.claude/bok/hantverk/` |
+| Writer | scenkortet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md` om den finns (går före `bok/stil/rost.md`), öppna rader i `bok/revisioner.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md`, `.claude/bok/hantverk/`, aldrig `bok/karaktarer/forlagor/` |
 | Redaktör | kapitlet, scenkortet, `bok graph context`, sammanfattningarna, premiss, genre, teman, bågar, canon, kapitlets karaktärsfiler, `.claude/bok/hantverk/` |
 | Språkgranskare | kapitlet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md`, kapitlets karaktärsfiler (språklig signatur), `bok tics`, hantverket |
 | Kontinuitet | kapitlet, scenkortet, hela grafen, `bok/canon.md` |
 | Förläggare | alla sammanfattningar, premiss, genre, struktur, bågar, kapitelplan, `bok graph bagar`, aktens första och sista kapitel |
+| Vägval | det uppdraget anger: varvets `ram.md`, fröet eller de valda vägvalen; aldrig `uppenbart.md` i gren och utveckla |
+| Writer (tryckprov) | karaktärsfilen, rösten, premissen, `.claude/bok/hantverk/karaktarer.md`; aldrig förlagor |
+| Researcher (porträtt) | uppdraget, karaktärsfilen om den finns, `.claude/bok/hantverk/karaktarer.md`, källor |
+| Idékritiker | varvets `ram.md`, `uppenbart.md` och `ideer.md`, och `karta.md` efter ett utvecklingsvarv |
 
 Varje roll läser först `bok/roller/<roll>.local.md` om den finns. Den går före allt annat.
 
@@ -116,6 +120,18 @@ Respons utifrån (lektör, betaläsare, förlag) blir beslut i `bok/beslut.md` o
 ## Tid
 
 Personer har `fodd` (och `dod`), händelser och scenkort har `datum`. Ingen roll räknar ålder själv: `bok graph context` gör det. `bok validate` stoppar tidsfel i grafen och varnar för åldrar i texten som inte stämmer.
+
+## Karaktärer och förlagor
+
+Karaktärsfilens rubriker står i `.claude/bok/hantverk/karaktarer.md`. Allt ovanför Öppet är beslutat; datum och godkännanden skrivs i `bok/beslut.md`.
+
+En förlaga är en verklig person som en karaktär bygger på, i `bok/karaktarer/forlagor/`. `bok-researcher` skriver den med uppdraget *porträtt*. Writer läser aldrig förlagor. `bok validate` stoppar kapitel där en förlagas namn eller alias står, utom namn som står bland kända namn i `bok/canon.md`. Finns det förlagor läser `bok-sensitivitet` planen innan första kapitlet.
+
+Karaktärsverkstaden prövar en person i tre korta scener utanför handlingen (`bok-writer`, uppdraget *tryckprov*), sparade i `bok/karaktarer/prov/`.
+
+## Vägval
+
+Ett vägvalsvarv ger 4–6 distinkta riktningar för en fråga där den första idén inte räcker. Skillen ramar in frågan med författaren, `bok-vagval` listar det uppenbara i egen kontext, `bok fron` drar frön, fyra `bok-vagval` tar ett frö var, och `bok-idekritiker` sållar och grupperar. Grenarna ser aldrig det uppenbara. Kritikern ger inga betyg och rekommenderar inget; författaren väljer. Varvet sparas i `bok/vagval/`.
 
 ## Platser
 

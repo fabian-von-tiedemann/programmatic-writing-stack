@@ -1,3 +1,4 @@
+import argparse
 import re
 from pathlib import Path
 
@@ -95,7 +96,7 @@ AGENTER = DATA / "genererat/claude/agents"
 TILLATNA_VERKTYG = {"Read", "Write", "Edit", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"}
 GRANSKARE = {"redaktor", "sprakgranskare", "forlaggare", "sensitivitet"}
 ROLLER = {"plot-arkitekt", "writer", "redaktor", "sprakgranskare", "kontinuitet", "forlaggare",
-          "researcher", "varldsbyggare", "sensitivitet", "audiobook", "marknad"}
+          "researcher", "varldsbyggare", "sensitivitet", "audiobook", "marknad", "vagval", "idekritiker"}
 
 
 def test_alla_roller_finns():
@@ -300,3 +301,82 @@ def test_2_3_1_texter():
     guide = (ROOT / "docs/google-maps.md").read_text(encoding="utf-8")
     for fras in ("minst 4 tecken", "Maybe later", "Alerts only", "**Enable**", "Free trial", "## Om något inte fungerar"):
         assert fras in guide, fras
+
+
+NYA_RUBRIKER = ("## Förlaga", "## Motsägelser", "## Självbild och andras bild", "## Det hen döljer",
+                "## Under tryck", "## Vardag", "## Öppet")
+
+
+def test_bokfiler_2_4():
+    mall = (DATA / "bok/bok/karaktarer/MALL.md").read_text(encoding="utf-8")
+    for rubrik in NYA_RUBRIKER:
+        assert rubrik in mall, rubrik
+    assert "{{" not in mall.split("## Förlaga", 1)[1], "de nya rubrikerna ska vara frivilliga"
+    meta, _ = split((DATA / "bok/bok/karaktarer/forlagor/MALL.md").read_text(encoding="utf-8"))
+    assert {"namn", "alias", "karaktarer"} <= set(meta)
+    for rel in ("bok/bok/karaktarer/forlagor/README.md", "bok/bok/karaktarer/prov/README.md",
+                "bok/bok/vagval/README.md"):
+        assert (DATA / rel).is_file(), rel
+    las_mig = (DATA / "bok/README.md").read_text(encoding="utf-8")
+    assert "karaktärsverkstaden" in las_mig.lower() and "vägval" in las_mig.lower()
+
+
+def test_skillen_2_4():
+    text = _las("skills/bok/SKILL.md")
+    for fras in ("## Karaktärsverkstaden", "## Vägval", "uppdraget **porträtt**", "uppdraget **tryckprov**",
+                 "bok fron --json", "bok-vagval", "bok-idekritiker", "Välj aldrig åt henne",
+                 "`.claude/bok/hantverk/karaktarer.md`", "Ge aldrig `bok-writer` en förlaga"):
+        assert fras in text, fras
+    vagval = text.split("## Vägval", 1)[1].split("\n## ", 1)[0]
+    assert "## Utveckling" in vagval
+
+
+def test_process_verktyg_och_hantverk_2_4():
+    process = _las("bok/process.md")
+    for fras in ("## Karaktärer och förlagor", "## Vägval", "Writer läser aldrig förlagor",
+                 "Verkliga händelser och personer", "| Vägval |", "| Idékritiker |"):
+        assert fras in process, fras
+    verktyg = _las("bok/verktyg.md")
+    assert "`bok fron" in verktyg and "förlagornas namn" in verktyg
+    hantverk = _las("bok/hantverk/karaktarer.md")
+    for fras in ("## Förlagor", "## Tryckprov", "Under tryck", "Öppet", "`bok/beslut.md`"):
+        assert fras in hantverk, fras
+
+
+def test_ramverkets_kommandon_finns():
+    from bok.cli import build_parser
+
+    sub = next(a for a in build_parser()._actions if isinstance(a, argparse._SubParsersAction))
+    text = "".join(_las(r) for r in ("skills/bok/SKILL.md", "bok/process.md", "bok/verktyg.md"))
+    for kommando in set(re.findall(r"`bok ([a-z]+)", text)):
+        assert kommando in sub.choices, kommando
+
+
+def test_vagvalsrollerna():
+    vagval = _las("agents/bok-vagval.md")
+    for fras in ("## Uppdrag: uppenbart", "## Uppdrag: gren", "## Uppdrag: utveckla",
+                 "Läs aldrig `uppenbart.md`", "utvecklar v3"):
+        assert fras in vagval, fras
+    kritik = _las("agents/bok-idekritiker.md")
+    for fras in ("## Uppdrag: kritik", "**Värde:**", "**Rimlighet:**", "**Djävulens advokat:**",
+                 "## Strukna", "Inga betyg"):
+        assert fras in kritik, fras
+    assert "`karta.md`" in kritik
+    for text in (vagval, kritik):
+        meta, _ = split(text)
+        assert not {v.strip() for v in meta["tools"].split(",")} & {"Write", "Edit", "Bash"}
+
+
+def test_roller_2_4():
+    res = _las("agents/bok-researcher.md")
+    for fras in ("## Uppdrag: porträtt", "`bok/karaktarer/forlagor/MALL.md`", "förstahand eller återberättat",
+                 "diagnoser"):
+        assert fras in res, fras
+    writer = _las("agents/bok-writer.md")
+    assert "## Uppdrag: tryckprov" in writer and "Läs inte `bok/karaktarer/forlagor/`" in writer
+    plot = _las("agents/bok-plot-arkitekt.md")
+    assert "under tryck" in plot and "vägval" in plot
+    sens = _las("agents/bok-sensitivitet.md")
+    assert "`bok/karaktarer/forlagor/`" in sens and "igenkännbar" in sens
+    red = _las("agents/bok-redaktor.md")
+    assert "`.claude/bok/hantverk/karaktarer.md`" in red and "under tryck" in red

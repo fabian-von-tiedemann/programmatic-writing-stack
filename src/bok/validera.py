@@ -1,4 +1,4 @@
-"""bok validate: förbjudna namn ur canon.md och namn som inte finns i grafen."""
+"""bok validate: förbjudna namn och förlagor ur canon.md och bok/karaktarer/forlagor/, och namn som inte finns i grafen."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from bok.graf import Graf, namnformer, scenkort_om_finns
+from bok.forlagor import forlagor
 from bok.rot import find_root
 from bok.tics import kapitelfiler, las_kapitel
 from bok.tid import Datum, alder, som_text, tolka
@@ -36,9 +37,24 @@ def blacklist_traffar(text: str, namn: list[str]) -> list[tuple[int, str]]:
     ut = []
     for nr, rad in enumerate(text.splitlines(), 1):
         for n in namn:
-            if re.search(rf"(?<!\w){re.escape(n)}(?!\w)", rad):
+            if re.search(rf"(?<!\w){re.escape(n)}s?(?!\w)", rad):
                 ut.append((nr, n))
     return ut
+
+
+def forlageskydd(root: Path, canon_text: str) -> tuple[dict[str, str], list[str]]:
+    """Förlagornas namn och alias (namn → fil), utom de som står bland kända namn i canon,
+    och de förlagor vars namn inte går att läsa."""
+    undantag = set(block(canon_text, "kanda-namn"))
+    skydd: dict[str, str] = {}
+    utan: list[str] = []
+    for f in forlagor(root):
+        if f["namn"] is None:
+            utan.append(f["fil"])
+        for n in ([f["namn"]] if f["namn"] else []) + f["alias"]:
+            if n not in undantag:
+                skydd.setdefault(n, f["fil"])
+    return skydd, utan
 
 
 def okanda(text: str, kanda: set[str]) -> list[tuple[int, str]]:
@@ -133,7 +149,7 @@ def _kapitel_i_tid(root: Path, graf: Graf) -> list[tuple[int, Datum | None, bool
 
 
 def register(sub: argparse._SubParsersAction) -> None:
-    p = sub.add_parser("validate", help="förbjudna namn, tidslinjen och namn/åldrar att kontrollera")
+    p = sub.add_parser("validate", help="förbjudna namn och förlagor, tidslinjen och namn/åldrar att kontrollera")
     p.add_argument("filer", nargs="*", help="kapitelfiler (standard: alla i manuskript/)")
     p.set_defaults(func=_kor)
 
@@ -143,12 +159,17 @@ def _kor(args: argparse.Namespace) -> int:
     canon_path = root / "bok" / "canon.md"
     canon = las_kapitel(canon_path) if canon_path.is_file() else ""
     forbjudna = block(canon, "blacklist")
+    skydd, utan_namn = forlageskydd(root, canon)
     graf = Graf.load(root)
     kanda = kanda_namn(graf, canon)
     filer = [Path(f).resolve() for f in args.filer] or kapitelfiler(root)
     if not filer:
         print("Inga kapitel att kontrollera i manuskript/.")
         return 0
+    if utan_namn:
+        print("Förlagor")
+        for fil in utan_namn:
+            print(f"  {fil} saknar namn i huvudet; namnet skyddas inte i manuset.")
     kapitel = _kapitel_i_tid(root, graf)
     datum = {n: d for n, d, _ in kapitel}
     personer = personer_med_fodd(graf)
@@ -164,7 +185,10 @@ def _kor(args: argparse.Namespace) -> int:
         traffar = blacklist_traffar(text, forbjudna)
         for nr, namn in traffar:
             print(f"  BLOCKERANDE rad {nr}: {namn} står i canon.md som förbjudet namn.")
-        stopp = stopp or bool(traffar)
+        forlagetraffar = blacklist_traffar(text, list(skydd))
+        for nr, namn in forlagetraffar:
+            print(f"  BLOCKERANDE rad {nr}: {namn} är förlaga ({skydd[namn]}) och får inte stå i manuset.")
+        stopp = stopp or bool(traffar) or bool(forlagetraffar)
         if nya := okanda(text, kanda):
             lista = ", ".join(f"{n} (rad {nr})" for nr, n in nya)
             print(f"  Okända namn (lägg i grafen, eller i canon.md under kända namn): {lista}")
@@ -173,6 +197,6 @@ def _kor(args: argparse.Namespace) -> int:
             varningar = aldersvarningar(text, personer, d)
         for nr, rad in varningar:
             print(f"  Ålder att kontrollera rad {nr}: {rad}")
-        if not traffar and not nya and not varningar:
+        if not traffar and not forlagetraffar and not nya and not varningar:
             print("  Inga anmärkningar.")
     return 1 if stopp else 0

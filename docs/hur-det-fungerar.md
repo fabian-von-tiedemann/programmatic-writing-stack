@@ -19,7 +19,7 @@ Claude anropar kommandona själv. Du behöver aldrig skriva dem.
 | Var | Vad | Vem äger det |
 |---|---|---|
 | `inkorg/` | ditt råmaterial: chattar, anteckningar, gamla utkast, lektörsbrev | du |
-| `bok/` | planen och minnet: idén, personerna, handlingen, rösten, världen, besluten, sammanfattningar per kapitel, grafen och granskningarna | boken |
+| `bok/` | planen och minnet: idén, personerna och deras förlagor, handlingen, rösten, världen, besluten, vägvalen, sammanfattningar per kapitel, grafen och granskningarna | boken |
 | `manuskript/` | kapitlen | boken |
 | `bok.toml` | titel och inställningar | boken |
 | `.claude/skills/bok/`, `.claude/agents/bok-*.md`, `.claude/bok/` | ramverket: skillen, rollerna, processen, hantverksreglerna | verktyget |
@@ -33,7 +33,9 @@ Ramverkets filer har ett versionshuvud och skrivs om när du uppgraderar. Bokens
 
 Fritt samtal i vilken ordning som helst: idén, personerna, handlingen, rösten. I **stilverkstaden** visar du texter du gillar och Claude provskriver en scen ur din bok i olika röster tills rösten sitter. En POV-person kan få en egen röst ovanpå bokens.
 
-Innan första kapitlet skrivs ska koncept, karaktärer, plot, röst och kapitelplanen för första akten vara ifyllda. Bygger boken på verkliga händelser läses planen först av sensitivitetsläsaren. Sist får du en sammanfattning av boken på en skärm och säger ja.
+I **karaktärsverkstaden** prövas en person i tre korta scener där hen sätts under tryck, tills du känner igen personen. En karaktär kan bygga på en verklig person, en **förlaga**: Researcher tar fram vad personen säger om sig själv och vad andra säger om hen, med källor, och boken lånar en spänning mellan egenskaper, aldrig en biografi. Står förlagans namn i ett kapitel stoppar `bok validate` det. Ska personen förekomma som sig själv skriver du namnet bland kända namn i `bok/canon.md`.
+
+Innan första kapitlet skrivs ska koncept, karaktärer, plot, röst och kapitelplanen för första akten vara ifyllda. Bygger boken på verkliga händelser, eller har den förlagor, läses planen först av sensitivitetsläsaren. Sist får du en sammanfattning av boken på en skärm och säger ja.
 
 ### Skrivloopen, kapitel för kapitel
 
@@ -54,19 +56,25 @@ Du kan alltid fråga "var är vi?" och få svaret från `bok status`.
 
 Ett lektörsbrev eller betaläsarnas kommentarer läggs i `inkorg/` eller klistras in. Claude delar upp responsen i punkter och föreslår för varje punkt om du ska ta till dig, avböja eller fundera. Det du tar till dig blir rader i `bok/revisioner.md`, som Writer arbetar efter.
 
+### Vägval
+
+När det finns flera möjliga vägar och den första idén inte räcker kan du be om vägval. Claude ramar in frågan med dig, en roll listar det uppenbara för sig, `bok fron` drar slumpade frön ur listor som följer med verktyget, fyra roller tar ett frö var, och en kritiker sållar bort det uppenbara och det som bryter mot boken. Du får 4–6 riktningar med vad som är bra, vad som är rimligt och det starkaste skälet att avstå, men inga betyg. Du väljer och kan be om ett varv till. Varven sparas i `bok/vagval/`.
+
 ## Rollerna
 
 | Roll | Gör |
 |---|---|
 | Plot-arkitekt | struktur, bågar, scenkort; bedömer om planen håller |
-| Writer | skriver och reviderar prosan |
+| Writer | skriver och reviderar prosan; tryckprov i karaktärsverkstaden |
 | Redaktör | granskar struktur, karaktär, spänning, kontinuitet och tema |
 | Språkgranskare | granskar prosa, dialog och röst |
 | Kontinuitet | håller grafen och sammanfattningarna; flaggar motsägelser |
-| Researcher | research och fackgranskning mot källor |
+| Researcher | research, fackgranskning mot källor och porträtt av förlagor |
 | Världsbyggare | världens regler, platser och historia |
 | Sensitivitet | verkliga personer och händelser, representation, respekt |
 | Förläggare | läser akter och hela boken som en förlagsläsare |
+| Vägval | tar fram vägval: det uppenbara, en gren ur ett frö, en utveckling av det du valt |
+| Idékritiker | sållar och grupperar vägvalen, utan betyg |
 | Audiobook, Marknad | tillval när boken är klar |
 
 Rollerna läser sammanfattningar och utdrag ur grafen i stället för hela manuset, så att de håller sig skarpa även i en lång bok.
