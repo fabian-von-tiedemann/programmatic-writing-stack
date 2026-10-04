@@ -1,4 +1,4 @@
-# Design: `bok` 2.3 – förlagor, karaktärsverkstad och vägval
+# Design: `bok` 2.4 – förlagor, karaktärsverkstad och vägval
 
 **Datum:** 2026-10-04
 **Status:** Utkast för granskning
@@ -198,7 +198,7 @@ Båda är genererade ramverksfiler med versionshuvud och kan kompletteras med `b
 | nya bokfiler | `karaktarer/forlagor/README.md`, `karaktarer/forlagor/MALL.md`, `karaktarer/prov/README.md`, `vagval/README.md` |
 | nya ramverksfiler | `agents/bok-vagval.md`, `agents/bok-idekritiker.md`, `bok/hantverk/karaktarer.md` |
 | `docs/hur-det-fungerar.md`, `README.md` (bokens) | förlagor, karaktärsverkstaden, vägval |
-| `CHANGELOG.md` | under [Unreleased]; släpps som 2.3.0 |
+| `CHANGELOG.md` | under [Unreleased]; släpps som 2.4.0 |
 
 ## 7. Test
 

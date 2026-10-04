@@ -1,4 +1,4 @@
-# bok 2.3: förlagor, karaktärsverkstad och vägval – implementationsplan
+# bok 2.4: förlagor, karaktärsverkstad och vägval – implementationsplan
 
 > **För agenter som exekverar:** OBLIGATORISK UNDER-SKILL: använd superpowers:subagent-driven-development (rekommenderas) eller superpowers:executing-plans för att genomföra planen uppgift för uppgift. Stegen har kryssrutor (`- [ ]`) för uppföljning.
 
@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-04-karaktarer-och-vagval-design.md`
 
-**Innan start:** Utvecklaren arbetar i en annan worktree. Börja först när det arbetet är mergat: `git fetch origin && git rebase origin/main` på den här grenen, och kör `uv run pytest -q` så att allt är grönt innan första uppgiften. Har filerna nedan ändrats på `main` sedan planen skrevs: läs dem igen och anpassa ersättningarna, ändra inte riktningen.
+**Innan start:** Grenen är rebasad på `main` med 2.3.1 (platser och miljöer). Kör `uv run pytest -q` så att allt är grönt innan första uppgiften. Befintliga tester heter redan `test_skillen_2_3`, `test_roller_2_3` m.fl. (platser); de nya heter `…_2_4` och de gamla rörs inte. Har filerna nedan ändrats på `main` sedan planen skrevs: läs dem igen och anpassa ersättningarna, ändra inte riktningen.
 
 ## Globala villkor
 
@@ -22,7 +22,7 @@
 - Agentfiler: frontmatter `name` = filnamnet, `description` över 40 tecken, `tools` bara ur Read, Write, Edit, Glob, Grep, Bash, WebSearch, WebFetch; brödtexten nämner `` `bok/roller/<roll>.local.md` ``.
 - Inga nya obligatoriska fält i `bok status`. Den enda nya grinden: sensitivitetsläsning av planen när boken har förlagor.
 - Fel som visas för användaren är `BokFel` och ger exitkod 2 via `bok.cli.main`.
-- Versionen höjs inte i den här planen. Ändringarna skrivs under `## [Unreleased]` i `CHANGELOG.md`; releasen görs efteråt med skillen `release` (2.3.0).
+- Versionen höjs inte i den här planen. Ändringarna skrivs under `## [Unreleased]` i `CHANGELOG.md`; releasen görs efteråt med skillen `release` (2.4.0).
 
 ## Granskningsfokus
 
@@ -869,9 +869,9 @@ Ersätt `_moduler`:
 
 ```python
 def _moduler() -> list:
-    from bok import annotations, forslag, fron, graf, init, mallar, rapport, status, tics, validera
+    from bok import annotations, bild, forslag, fron, graf, init, karta, mallar, rapport, status, tics, validera
 
-    return [init, status, mallar, graf, tics, validera, fron, rapport, annotations, forslag]
+    return [init, status, mallar, graf, tics, validera, fron, rapport, annotations, forslag, karta, bild]
 ```
 
 - [ ] **Steg 6: Kör testerna**
@@ -913,7 +913,7 @@ NYA_RUBRIKER = ("## Förlaga", "## Motsägelser", "## Självbild och andras bild
                 "## Under tryck", "## Vardag", "## Öppet")
 
 
-def test_bokfiler_2_3():
+def test_bokfiler_2_4():
     mall = (DATA / "bok/bok/karaktarer/MALL.md").read_text(encoding="utf-8")
     for rubrik in NYA_RUBRIKER:
         assert rubrik in mall, rubrik
@@ -959,7 +959,7 @@ def test_uppgradering_skapar_nya_bokfiler_men_ror_inte_mallen(tmp_path):
 
 - [ ] **Steg 2: Kör testerna och se dem falla**
 
-Kör: `uv run pytest tests/test_innehall.py::test_bokfiler_2_3 tests/test_init.py::test_uppgradering_skapar_nya_bokfiler_men_ror_inte_mallen -q`
+Kör: `uv run pytest tests/test_innehall.py::test_bokfiler_2_4 tests/test_init.py::test_uppgradering_skapar_nya_bokfiler_men_ror_inte_mallen -q`
 Förväntat: FAIL (rubrikerna och filerna saknas). `test_nya_rubriker_i_karaktarsmallen_ar_frivilliga` passerar redan med dagens mall; den skyddar mot att de nya rubrikerna får platshållare.
 
 - [ ] **Steg 3: Skriv om `src/bok/data/bok/bok/karaktarer/MALL.md`**
@@ -1143,7 +1143,7 @@ git commit -m "feat: karaktärsmallen får motsägelser, under tryck och förlag
 Sist i `tests/test_innehall.py`:
 
 ```python
-def test_skillen_2_3():
+def test_skillen_2_4():
     text = _las("skills/bok/SKILL.md")
     for fras in ("## Karaktärsverkstaden", "## Vägval", "uppdraget **porträtt**", "uppdraget **tryckprov**",
                  "bok fron --json", "bok-vagval", "bok-idekritiker", "Välj aldrig åt henne",
@@ -1151,7 +1151,7 @@ def test_skillen_2_3():
         assert fras in text, fras
 
 
-def test_process_verktyg_och_hantverk_2_3():
+def test_process_verktyg_och_hantverk_2_4():
     process = _las("bok/process.md")
     for fras in ("## Karaktärer och förlagor", "## Vägval", "Writer läser aldrig förlagor",
                  "Verkliga händelser och personer", "| Vägval |", "| Idékritiker |"):
@@ -1176,8 +1176,8 @@ Lägg till `import argparse` överst i `tests/test_innehall.py`.
 
 - [ ] **Steg 2: Kör testerna och se dem falla**
 
-Kör: `uv run pytest tests/test_innehall.py -q -k "2_3 or kommandon"`
-Förväntat: `test_skillen_2_3` och `test_process_verktyg_och_hantverk_2_3` FAIL; `test_ramverkets_kommandon_finns` PASS (bok fron finns redan).
+Kör: `uv run pytest tests/test_innehall.py -q -k "2_4 or kommandon"`
+Förväntat: `test_skillen_2_4` och `test_process_verktyg_och_hantverk_2_4` FAIL; `test_ramverkets_kommandon_finns` PASS (bok fron finns redan).
 
 - [ ] **Steg 3: Skapa `src/bok/data/genererat/claude/bok/hantverk/karaktarer.md`**
 
@@ -1526,7 +1526,7 @@ git commit -m "feat: rollerna Vägval och Idékritiker"
 Sist i `tests/test_innehall.py`:
 
 ```python
-def test_roller_2_3():
+def test_roller_2_4():
     res = _las("agents/bok-researcher.md")
     for fras in ("## Uppdrag: porträtt", "`bok/karaktarer/forlagor/MALL.md`", "förstahand eller återberättat",
                  "diagnoser"):
@@ -1543,7 +1543,7 @@ def test_roller_2_3():
 
 - [ ] **Steg 2: Kör testet och se det falla**
 
-Kör: `uv run pytest tests/test_innehall.py::test_roller_2_3 -q`
+Kör: `uv run pytest tests/test_innehall.py::test_roller_2_4 -q`
 Förväntat: FAIL på första frasen.
 
 - [ ] **Steg 3: Researcher**
