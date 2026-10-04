@@ -39,6 +39,7 @@ Grundläget. Hon får börja var som helst: en person, en scen, en känsla, ett 
   | ordningen på kapitlen | `bok/plot/kapitelplan.md` (be `bok-plot-arkitekt`) |
   | hur det ska låta, texter hon gillar | Stilverkstaden nedan |
   | tid, plats, världens regler, sakfrågor | `bok/varld/varld.md`, eller `bok-researcher` |
+  | hur en plats ser ut, hur lång tid det tar mellan två platser | `bok/varld/platser/<id>.md` via `bok-varldsbyggare` (se Platser och miljöer) |
   | fakta som måste stämma, namn som inte får förekomma | `bok/canon.md` |
   | en verklig händelse som boken använder | `bok/canon.md`, blocket `verkliga-handelser` (`datum \| händelse \| vad boken lägger till`) |
   | årtal, när något händer, hur gamla personerna är | grafen (`fodd`, `datum`) via `bok-kontinuitet`, och `bok/plot/tidslinje.md` om modulen finns. Bestämmer hon när någon är född (eller död): skriv `fodd`/`dod` direkt i `bok/story-graph/characters.json` (skapa personen med `id` och `namn` om hen saknas), med samma id som `bok/karaktarer/<id>.md` |
@@ -138,6 +139,16 @@ När ett lektörsbrev, kommentarer från betaläsare eller respons från ett fö
 6. För varje kapitel som redan har ett utkast och öppna rader i `bok/revisioner.md`: har kapitlet inte granskats än, starta `bok-writer` med de raderna före granskningen. Har det granskats eller godkänts, erbjud att skicka tillbaka det: spara hennes `forfattare`-rapport med `utfall: tillbaka` för senaste granskningsrundan, med raderna som kommentarer (`bok rapport spara - --skriv-over`). Då leder status till Writer.
 
 Writer läser kapitlets öppna rader när kapitlet skrivs eller revideras, och Kontinuitet kryssar av det som är gjort. `bok status` visar hur många som är öppna.
+
+## Platser och miljöer
+Med en egen nyckel till Google Maps kan `bok karta` visa restider och hämta gatubilder. Allt det visar är dagens värld.
+
+- **Nyckeln.** Kör `bok karta status` första gången hon frågar om en restid eller hur en plats ser ut. Saknas nyckeln: berätta kort vad det ger och att hon lägger in den själv med guiden (länken står i utskriften). Läs aldrig filerna `~/.config/bok/google-maps-*`, kör aldrig `bok karta nyckel` och be aldrig om nyckeln i chatten. Klistrar hon ändå in en nyckel: säg att hon bör skapa en ny i Google Cloud och ta bort den gamla.
+- **Adresser.** Kartan behöver `adress` (eller `lat` och `lng`) för platsen i `bok/story-graph/locations.json`. Fråga henne och skriv in den efter hennes ja.
+- **Restid.** "Hur lång tid tar det att cykla till …?": kör `bok karta restid <från> <till>` med platsernas id eller adresser. Svara med en egen, avrundad formulering och säg att det gäller dagens vägnät. Spelar det roll för boken: föreslå en rad under `## Rutter` i platsfilen, med egen formulering och datum. Spara aldrig utskriften eller Googles siffror.
+- **Miljö efter scenkortet.** När hon har godkänt ett scenkort och nyckeln finns: har någon av scenkortets `platser` en adress men ingen `## Idag` i `bok/varld/platser/<id>.md`, fråga om du ska ta fram miljön innan Writer börjar. Vid ja: starta `bok-varldsbyggare` med uppdraget **miljö** för platsen eller rutten. Säger hon nej: gå vidare.
+- **Platsens historia.** Säger Världsbyggaren att glappet till bokens tid är stort, eller vill hon veta hur platsen såg ut då: erbjud `bok-researcher` med uppdraget **platsens historia**. Visa förslaget till `## Bokens tid`; vid ja skriver `bok-varldsbyggare` in det.
+- **Bilder.** Gatubilder och arkivbilder sparas aldrig i boken, bara egna beskrivningar. Kör `bok karta stada` när bilderna är tittade på.
 
 ## Förslag till verktyget
 Det här gäller verktyget, inte boken.

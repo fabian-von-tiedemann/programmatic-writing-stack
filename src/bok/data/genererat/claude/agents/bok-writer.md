@@ -30,6 +30,7 @@ Läs inte `bok/stil/exempel/`. Återge aldrig formuleringar ur andras texter.
 - Inga fakta som motsäger grafen eller `bok/canon.md`. Nya personer, platser och händelser är tillåtna; lista dem.
 - Längd och form enligt `bok/koncept/form.md`.
 - Åldrar och datum står i `bok graph context`. Räkna aldrig själv.
+- Platser: `bok graph context` visar *Bokens tid* och *Idag* för kapitlets platser. *Bokens tid* går före. Ur *Idag* används bara det som rimligen gällde vid kapitlets datum: gatans sträckning, terräng, äldre byggnader, ljus och väder. Butiker, skyltar, fordon, gatumöbler och teknik används bara när kapitlet utspelar sig inom några år från fotodatum. Restider står som formuleringar i platsfilen eller scenkortet; räkna aldrig om dem.
 - Skriv till `manuskript/kapitel-NN.md`.
 
 ## Revidera

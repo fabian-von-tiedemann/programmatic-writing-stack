@@ -245,3 +245,49 @@ def test_slutgranskningens_rattningar():
     assert "när boken har fasta årtal" in _las("agents/bok-plot-arkitekt.md")
     assert "ta bort eventuell `ålder`" in _las("agents/bok-kontinuitet.md")
     assert "som `fodd`" in (DATA / "bok/bok/karaktarer/README.md").read_text(encoding="utf-8")
+
+
+def test_skillen_2_3():
+    text = _las("skills/bok/SKILL.md")
+    avsnitt = text.split("## Platser och miljöer", 1)[1].split("\n## ", 1)[0]
+    for fras in ("bok karta status", "bok karta restid", "~/.config/bok/google-maps-", "bok karta nyckel",
+                 "bok-varldsbyggare", "uppdraget **miljö**", "uppdraget **platsens historia**",
+                 "bok karta stada", "`## Rutter`"):
+        assert fras in avsnitt, fras
+    assert "bok/varld/platser/<id>.md" in text.split("## Fritt samtal", 1)[1].split("\n## ", 1)[0]
+
+
+def test_roller_2_3():
+    for roll in ("varldsbyggare", "researcher"):
+        meta, _ = split(_las(f"agents/bok-{roll}.md"))
+        assert "Bash" in meta["tools"], roll
+    varld = _las("agents/bok-varldsbyggare.md")
+    for fras in ("## Uppdrag: miljö", "bok karta gatuvy", "bok karta stada", "Fotograferat",
+                 "Skriv aldrig av skyltar", "`## Bokens tid`"):
+        assert fras in varld, fras
+    research = _las("agents/bok-researcher.md")
+    for fras in ("## Uppdrag: platsens historia", "bok bild", "bok/varld/research/plats-<id>.md", "licens"):
+        assert fras in research, fras
+    assert "bok karta restid" in _las("agents/bok-plot-arkitekt.md")
+    writer = _las("agents/bok-writer.md")
+    assert "*Bokens tid*" in writer and "*Idag*" in writer
+    assert "*Idag*" in _las("agents/bok-redaktor.md")
+    for path in AGENTER.glob("bok-*.md"):
+        assert "google-maps-nyckel" not in path.read_text(encoding="utf-8"), path.name
+
+
+def test_ramverket_2_3():
+    assert "## Platser" in _las("bok/process.md")
+    verktyg = _las("bok/verktyg.md")
+    for fras in ("bok karta restid", "bok karta gatuvy", "bok karta stada", "bok karta status", "bok bild"):
+        assert fras in verktyg, fras
+    graf = _las("bok/story-graph.md")
+    assert '"adress"' in graf and "`lat`" in graf and "bok/varld/platser/<id>.md" in graf
+
+
+def test_mallar_2_3():
+    platser = (DATA / "bok/bok/varld/platser/README.md").read_text(encoding="utf-8")
+    for fras in ("## Bokens tid", "## Idag", "## Rutter", "Fotograferat:"):
+        assert fras in platser, fras
+    assert "plats-<id>.md" in (DATA / "bok/bok/varld/research/README.md").read_text(encoding="utf-8")
+    assert "docs/google-maps.md" in (DATA / "bok/README.md").read_text(encoding="utf-8")

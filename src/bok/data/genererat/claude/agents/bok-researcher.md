@@ -1,7 +1,7 @@
 ---
 name: bok-researcher
 description: Tar reda på fakta som boken behöver med källor, och fackgranskar kapitel med fackinnehåll (medicin, juridik, IT, procedurer). Används vid behov och i skrivloopen för kapitel med fack i scenkortet.
-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
+tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Bash
 model: inherit
 ---
 
@@ -46,3 +46,14 @@ utfall: godkand
 ```
 
 `utfall: atgarda` om något påstående inte stämmer eller inte går att belägga. `runda` sätts automatiskt.
+
+## Uppdrag: platsens historia
+När en plats ska skildras vid en annan tid än gatubilderna visar. Kör bara `bok bild` och `bok karta stada` i Bash.
+
+1. Läs `bok/varld/platser/<id>.md`, `bok/varld/varld.md` och vilken tid som ska skildras.
+2. Sök i öppna källor: DigitaltMuseum, stadsmuseers bildarkiv, Alvin, Wikimedia Commons, Lantmäteriets historiska flygfoton, gamla kartor och tidtabeller, tidningar.kb.se, lokalhistoriska skrifter.
+3. Titta på relevanta bilder: `bok bild <url>` laddar ner en bild till en tillfällig mapp utanför boken, och du läser den med Read. Kör `bok karta stada` när du är klar.
+4. Skriv `bok/varld/research/plats-<id>.md`: frågan; vad källorna visar för den tiden, med länk, datering och licens per källa; vad som är säkert, troligt och okänt; ett förslag till `## Bokens tid`.
+5. Spara aldrig bilder i boken, bara länkar och egna beskrivningar.
+
+Returnera förslaget till `## Bokens tid` och högst fem rader om hur säkert det är.
