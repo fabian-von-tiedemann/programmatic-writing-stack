@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-10-04
+
 ### Lagt till
 - Restider och miljöer från Google Maps med en egen nyckel. `bok karta restid` visar dagens restid till fots, med cykel, bil och kollektivt. `bok karta gatuvy` hämtar gatubilder på en plats eller längs en rutt, som Claude tittar på och beskriver med egna ord i `bok/varld/platser/<id>.md`. Bilder och restider sparas aldrig i boken. Guiden `docs/google-maps.md` visar hur man skaffar nyckeln och lägger in den med `bok karta nyckel`; `bok karta status` visar om den fungerar.
 - Platsfiler med *Bokens tid* och *Idag*. `bok graph context` visar dem för kapitlets platser, och hur många år som skiljer gatubildernas fotodatum från kapitlets tid.
@@ -135,7 +137,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.1...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.1...v2.2.0
 [2.1.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.0...v2.1.1
