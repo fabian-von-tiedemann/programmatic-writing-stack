@@ -10,6 +10,27 @@ def _isolera_forslag(tmp_path, monkeypatch):
     monkeypatch.setenv("BOK_FORSLAG_URL", "http://127.0.0.1:9")
 
 
+@pytest.fixture(autouse=True)
+def _ingen_google(tmp_path, monkeypatch):
+    # Inga tester får nå Google, använda en riktig nyckel eller lägga bilder i den riktiga temp-katalogen.
+    import tempfile
+
+    monkeypatch.delenv("BOK_GOOGLE_MAPS_NYCKEL", raising=False)
+    monkeypatch.delenv("BOK_GOOGLE_MAPS_SIGNERING", raising=False)
+    tmp = tmp_path / "tmp"
+    tmp.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(tmp))
+    try:
+        from bok import google
+    except ImportError:  # före Task 3
+        return
+
+    def stopp(*args, **kwargs):
+        raise AssertionError("ett test försökte nå Google på riktigt")
+
+    monkeypatch.setattr(google._OPPNARE, "open", stopp)
+
+
 @pytest.fixture
 def bok(tmp_path, monkeypatch):
     root = tmp_path / "min-bok"

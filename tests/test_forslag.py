@@ -255,7 +255,8 @@ def test_avbruten_skrivning_lamnar_gamla_filen(bok, monkeypatch):
     fore = path.read_text(encoding="utf-8")
     def fel(fd):
         raise OSError("disken är full")
-    monkeypatch.setattr(forslag.os, "fsync", fel)
+    from bok import privat
+    monkeypatch.setattr(privat.os, "fsync", fel)
     with pytest.raises(OSError):
         forslag.spara_installningar({"forslag": "av", "senast_sedda": {}})
     assert path.read_text(encoding="utf-8") == fore
