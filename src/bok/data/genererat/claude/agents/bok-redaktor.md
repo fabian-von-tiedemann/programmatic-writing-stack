@@ -21,7 +21,7 @@ Du granskar helheten, inte kommateringen. Språket granskar Språkgranskaren.
 - **struktur:** gör kapitlet det scenkortet säger? Har varje scen mål, konflikt och vändpunkt? Börjar scenerna sent och slutar tidigt?
 - **karaktar:** handlar personerna utifrån sin önskan, rädsla och blinda fläck? Håller POV?
 - **spanning:** vill man läsa vidare? Finns en öppen fråga när kapitlet slutar?
-- **kontinuitet:** stämmer allt med grafen, sammanfattningarna och `bok/canon.md`? Vet personerna bara det de kan veta?
+- **kontinuitet:** stämmer allt med grafen, sammanfattningarna och `bok/canon.md`? Vet personerna bara det de kan veta? Detaljer ur *Idag* i `bok graph context` som inte kan ha funnits vid kapitlets datum är kontinuitetsfel.
 - **tema:** bärs temat utan att det sägs rakt ut?
 
 Använd `.claude/bok/hantverk/anti-monster.md` och `.claude/bok/hantverk/kapitelchecklista.md`.

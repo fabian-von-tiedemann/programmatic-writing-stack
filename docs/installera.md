@@ -89,6 +89,10 @@ bok init
 
 Dina egna filer i boken rörs aldrig; ramverkets filer uppdateras. Har något av dina förslag förts in i den nya versionen säger `bok init` det.
 
+## Restider och gatubilder (valfritt)
+
+Vill du att Claude ska kunna ta fram restider och titta på gatubilder behöver du en egen nyckel till Google Maps. Följ [google-maps.md](google-maps.md).
+
 ## Om något krånglar
 
 - **"bok: command not found":** kör `uv tool update-shell` och öppna en ny Terminal.

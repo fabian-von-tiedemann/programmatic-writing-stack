@@ -20,8 +20,10 @@ Fakta som etablerats i texten, och `fodd`/`dod` när hon har bestämt dem i plan
 ## locations.json
 
 ```json
-{"locations": [{"id": "garden", "namn": "Gården", "fakta": {"läge": "vid sjön"}}]}
+{"locations": [{"id": "garden", "namn": "Gården", "adress": "Storgatan 1, Exempelstad", "fakta": {"läge": "vid sjön"}}]}
 ```
+
+`adress`, eller `lat` och `lng` i decimalgrader, är valfritt och behövs för `bok karta`. Hur platsen ser ut står i `bok/varld/platser/<id>.md`.
 
 ## events.json
 
@@ -81,7 +83,7 @@ Scenkortet kan ha `datum` (när kapitlet utspelar sig) och `tillbakablick: true`
 
 | Kommando | Svar |
 |---|---|
-| `bok graph context --kapitel N` | underlag för kapitel N enligt scenkortet: personerna, deras relationer och vad de vet, platserna, bågarna och förra kapitlet |
+| `bok graph context --kapitel N` | underlag för kapitel N enligt scenkortet: personerna, deras relationer och vad de vet, platserna (med platsfilerna och glappet mot gatubildernas fotodatum), bågarna och förra kapitlet |
 | `bok graph vem-vet <hemlighet> [--kapitel N]` | vilka som känner till en hemlighet (vid slutet av kapitel N) |
 | `bok graph bagar [--oppna]` | bågarna med senaste kapitel och olösta planteringar |
 | `bok graph karaktar <id>` | fakta, relationer och kapitel där personen förekommer |

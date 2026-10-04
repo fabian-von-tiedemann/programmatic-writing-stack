@@ -47,6 +47,8 @@ Kopiera `bok/plot/kapitel/MALL.md` till `bok/plot/kapitel/kapitel-NN.md` och fyl
 
 Fyll i `datum` när boken har fasta årtal eller datum (när kapitlet utspelar sig, `ÅÅÅÅ`, `ÅÅÅÅ-MM` eller `ÅÅÅÅ-MM-DD`), `fack` (till exempel `[medicin, juridik]`) när kapitlet har fackinnehåll som ska kontrolleras mot källor, och `tillbakablick: true` om kapitlet ligger tidigare i tid än det förra.
 
+Förflyttar sig personerna mellan platser som har `adress` (eller `lat` och `lng`) i grafen, och säger `bok karta status` att nyckeln finns: kör `bok karta restid <från> <till>` och skriv en egen, avrundad formulering under Plats och tid ("cykeln tar en dryg kvart i dag"). Skriv aldrig Googles siffror, och tänk på att det är dagens vägnät, inte bokens tid.
+
 Grind I.3 för varje scen: mål, konflikt, vändpunkt, plats och tid, och vad var och en som är med vill. Kontrollera mot grafen att ingen vet mer än de kan veta (`bok graph vem-vet`). Planera planteringar som ska lösas senare och skriv in dem i scenkortet.
 
 ## Regler

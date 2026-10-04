@@ -26,6 +26,10 @@ Du godkänner planen innan något skrivs, varje kapitels scenkort innan kapitlet
 
 Du behöver inte öppna filerna själv, Claude håller ordning på dem. Men allt går att läsa.
 
+## Platser och miljöer
+
+Med en egen nyckel till Google Maps kan Claude ta fram restider mellan bokens platser och titta på gatubilder för att beskriva miljöer. Guiden finns i verktygets repo: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/blob/main/docs/google-maps.md. Inga bilder sparas i boken.
+
 ## Uppdatera verktyget
 
 Kör i Terminal, i den här mappen:

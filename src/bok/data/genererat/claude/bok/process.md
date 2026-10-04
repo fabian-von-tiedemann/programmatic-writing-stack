@@ -117,6 +117,10 @@ Respons utifrån (lektör, betaläsare, förlag) blir beslut i `bok/beslut.md` o
 
 Personer har `fodd` (och `dod`), händelser och scenkort har `datum`. Ingen roll räknar ålder själv: `bok graph context` gör det. `bok validate` stoppar tidsfel i grafen och varnar för åldrar i texten som inte stämmer.
 
+## Platser
+
+Platser med `adress` (eller `lat` och `lng`) i `bok/story-graph/locations.json` kan få restider och gatubilder med `bok karta`, om författaren har lagt in en egen nyckel. Miljön beskrivs i `bok/varld/platser/<id>.md` under `## Bokens tid`, `## Idag` och `## Rutter`. När ett scenkort är godkänt erbjuder skillen att Världsbyggaren tar fram miljön för platser som saknar `## Idag` (uppdraget miljö); det är ett erbjudande, inte ett steg. När glappet till bokens tid är stort tar Researcher fram platsens historia ur arkiv. Inget från Google sparas i boken: inga bilder och inga restider, bara egna beskrivningar och formuleringar. `bok graph context` visar platsfilerna och glappet mellan fotodatum och kapitlets datum.
+
 ## Lärdomar
 
 När samma fynd återkommer i två kapitel föreslår skillen en regel. Efter författarens ja skrivs den under Aktiva regler i `bok/learnings.md` (högst ungefär tjugo). Regler som blivit vana flyttas till Arkiv. Regler för en enskild roll hamnar i `bok/roller/<roll>.local.md`.

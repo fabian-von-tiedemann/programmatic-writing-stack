@@ -6,13 +6,11 @@ nyckel till mottagaren. Allt sparas också lokalt, så att inget går förlorat.
 from __future__ import annotations
 
 import argparse
-import contextlib
 import http.client
 import json
 import os
 import secrets
 import sys
-import tempfile
 import urllib.error
 import urllib.request
 import uuid
@@ -20,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from bok import __version__, frontmatter
+from bok.privat import katalog, skriv_privat as _skriv_privat
 from bok.rot import BokFel, find_root
 
 # Mottagaren (mottagare/) på Fabians privata Cloudflare-konto. BOK_FORSLAG_URL ersätter den i tester.
@@ -44,37 +43,8 @@ class MottagarFel(ForslagFel):
         super().__init__(text)
 
 
-def katalog() -> Path:
-    bas = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
-    return Path(bas) / "bok"
-
-
 def _url() -> str:
     return os.environ.get("BOK_FORSLAG_URL", STANDARD_URL).rstrip("/") + "/v1/forslag"
-
-
-def _skapa_katalog(path: Path) -> None:
-    ny = not path.exists()
-    os.makedirs(path, mode=0o700, exist_ok=True)
-    if ny:
-        os.chmod(path, 0o700)
-
-
-def _skriv_privat(path: Path, text: str) -> None:
-    """Skriver hela filen eller inget: först till en tillfällig fil bredvid, sedan byts den in."""
-    _skapa_katalog(path.parent)
-    fd, tillfallig = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            os.chmod(tillfallig, 0o600)
-            fh.write(text)
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(tillfallig, path)
-    except BaseException:
-        with contextlib.suppress(OSError):
-            os.unlink(tillfallig)
-        raise
 
 
 def _las(path: Path) -> str:

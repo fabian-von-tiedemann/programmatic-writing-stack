@@ -16,6 +16,11 @@ Kommandon som rollerna och skillen kör. Alla fungerar var som helst i bokens ma
 | `bok rapport spara -` | spara en rapport från stdin; avvisar fel frontmatter |
 | `bok mall <modul>` | lägg till en tillvalsmodul; utan namn listas modulerna |
 | `bok annotations --sedan ÅÅÅÅ-MM-DD` | läsarnoter från Apple Böcker (macOS) |
+| `bok karta status` | om nyckeln till Google Maps finns och fungerar (visar aldrig nyckeln) |
+| `bok karta restid <från> <till>` | restid och avstånd i dag till fots, med cykel, bil och kollektivt (`--satt`, `--avgang 08:15`, `--ankomst 08:15`, `--dag ÅÅÅÅ-MM-DD`). Sparas aldrig |
+| `bok karta gatuvy <plats> [<till>]` | gatubilder på en plats eller längs en rutt, till en tillfällig mapp utanför boken (`--antal`, `--mellanrum`, `--satt`) |
+| `bok karta stada` | rensa de tillfälliga bilderna |
+| `bok bild <url>` | ladda ner en arkivbild till en tillfällig mapp för att titta på den |
 | `bok init` | uppgradera ramverket efter `uv tool upgrade bok` |
 
 Spara en rapport från en roll:

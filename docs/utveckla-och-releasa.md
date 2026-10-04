@@ -15,12 +15,13 @@ För den som bygger `bok`. Hur verktyget fungerar för den som skriver står i [
 | Underhållsskills | `.claude/skills/forslag/`, `.claude/skills/release/` | gå igenom förslag; göra en release. |
 | Design | `docs/superpowers/specs/`, `docs/superpowers/plans/` | specar och planer per version. |
 
-Moduler i `src/bok/` i korthet: `cli` (kommandona), `init` och `genererat` (skriva ramverket), `status` (var boken står), `graf` och `tid` (grafen, datum, åldrar), `validera` och `tics` (kontroller), `rapport` (rapporter och rundor), `mallar` (moduler), `forslag` (skicka förslag), `annotations` (Apple Böcker).
+Moduler i `src/bok/` i korthet: `cli` (kommandona), `init` och `genererat` (skriva ramverket), `status` (var boken står), `graf` och `tid` (grafen, datum, åldrar), `validera` och `tics` (kontroller), `rapport` (rapporter och rundor), `mallar` (moduler), `forslag` (skicka förslag), `annotations` (Apple Böcker), `privat` (privata filer i `~/.config/bok`), `karta` (restider och gatubilder), `google` (nyckeln och anropen till Google Maps; det enda stället som ser nyckeln), `geo` (rutternas geometri), `platser` (platsargument och platsfiler), `bild` (tillfälliga bilder och `bok bild`).
 
 ### Viktigt att veta
 
 - **Ramverket når böckerna bara när versionen höjs.** `bok init` skriver om en genererad fil bara om paketets version är nyare än filens huvud. En ändring i `src/bok/data/genererat/` utan versionshöjning når ingen.
 - **Bokens filer är bokens.** Ändringar i `src/bok/data/bok/` gäller bara nya böcker. Behöver befintliga böcker något nytt, skapa en ny fil som saknas, eller låt skillen föreslå ändringen.
+- **Google Maps-nyckeln lämnar aldrig `google.py`.** URL:er med nyckeln skapas och används bara där, och alla fel blir egna meddelanden utan URL. Testerna når aldrig Google (`tests/conftest.py`). Inget från Google får sparas i boken.
 - **Inget arv.** Mallar, roller och exempel ska vara genreneutrala och fria från tidigare böcker; `tests/test_innehall.py` vaktar det.
 
 ## Tester

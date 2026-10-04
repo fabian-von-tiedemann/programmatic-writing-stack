@@ -8,7 +8,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from bok import frontmatter
+from bok import frontmatter, platser as platsmodul
 from bok.rot import BokFel, find_root
 from bok.tid import Datum, alder, sakert_fore, som_text, tolka
 
@@ -290,7 +290,8 @@ class Graf:
         return "\n".join(r)
 
     def context(self, kapitel: int, karaktarer: list[str], platser: list[str], bagar: list[str],
-                datum: Datum | None = None, rostfil: str | None = None) -> str:
+                datum: Datum | None = None, rostfil: str | None = None,
+                platsfiler: dict[str, str] | None = None) -> str:
         r = [f"# Underlag för kapitel {kapitel}", ""]
         if datum is not None:
             r += [f"Kapitlet utspelar sig: {datum}", ""]
@@ -318,10 +319,11 @@ class Graf:
             for pid in platser:
                 p = self._finns("locations", pid)
                 if p is None:
-                    r += [f"### {pid}", "Ny i kapitlet (finns inte i grafen än).", ""]
-                    continue
-                r.append(f"### {_text(p.get('namn'), pid)} ({pid})")
-                r += fakta_rader(p.get("fakta"))
+                    r += [f"### {pid}", "Ny i kapitlet (finns inte i grafen än)."]
+                else:
+                    r.append(f"### {_text(p.get('namn'), pid)} ({pid})")
+                    r += fakta_rader(p.get("fakta"))
+                r += platsmodul.underlag((platsfiler or {}).get(pid), datum)
                 r.append("")
         valda = bagar or [t.get("id") for t in self.lista("threads") if ar_oppen(t)]
         r += ["## Bågar", ""]
@@ -396,9 +398,12 @@ def _kor(args: argparse.Namespace) -> int:
         graf = Graf.load(root)
         pov = meta.get("pov")
         rost = root / "bok" / "stil" / f"rost-{pov}.md" if isinstance(pov, str) else None
+        platsfiler = {pid: text for pid in _ids(meta, "platser")
+                      if (text := platsmodul.platsfil(root, pid)) is not None}
         print(graf.context(args.kapitel, _ids(meta, "karaktarer"), _ids(meta, "platser"), _ids(meta, "bagar"),
                            datum=graf.kapitel_datum(args.kapitel, meta.get("datum")),
-                           rostfil=rost.relative_to(root).as_posix() if rost and rost.is_file() else None))
+                           rostfil=rost.relative_to(root).as_posix() if rost and rost.is_file() else None,
+                           platsfiler=platsfiler))
         return 0
     graf = Graf.load(root)
     if args.fraga == "tidslinje":
