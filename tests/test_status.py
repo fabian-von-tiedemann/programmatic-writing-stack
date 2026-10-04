@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 import pytest
 
@@ -469,3 +470,11 @@ def test_mall_readme_och_prov_utloser_ingen_grind_och_ar_inga_karaktarer(bok):
     s = compute(bok)
     assert [d["namn"] for d in s["forberedelse"]] == ["Koncept", "Karaktärer", "Plot", "Röst", "Kapitelplan"]
     assert s["forberedelse"][1]["klar"]
+
+
+def test_nya_rubriker_i_karaktarsmallen_ar_frivilliga(bok):
+    fyll_forberedelse(bok)
+    mall = (bok / "bok/karaktarer/MALL.md").read_text(encoding="utf-8")
+    fylld = re.sub(r"\{\{[^}]*\}\}", "ifyllt", mall).replace("pov: ifyllt", "pov: true")
+    skriv(bok, "bok/karaktarer/anna.md", fylld)
+    assert compute(bok)["forberedelse"][1] == {"namn": "Karaktärer", "klar": True, "saknas": []}

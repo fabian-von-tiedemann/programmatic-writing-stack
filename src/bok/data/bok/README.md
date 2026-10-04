@@ -9,6 +9,8 @@ Den här mappen är din bok. Du skriver den tillsammans med Claude: Claude skriv
 - **"Hej, jag vill skriva en bok."** Claude berättar hur det går till.
 - **"Gå igenom inkorgen."** Om du har lagt chattar, anteckningar eller gamla utkast i `inkorg/`.
 - **"Jag vill jobba med tonen."** Stilverkstaden: du visar texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer.
+- **"Den här personen känns platt."** Karaktärsverkstaden: Claude provskriver korta scener där personen sätts under tryck, och du säger vad som stämmer. Du kan också peka ut en verklig person som förlaga; då tas ett porträtt fram ur intervjuer och ur vad andra säger om personen.
+- **"Ge mig vägval."** När du inte vet hur något ska gå: flera roller tar fram alternativ från olika håll, och du väljer.
 - **"Var är vi?"** Var boken står och vad som är nästa steg. Fungerar när som helst.
 
 Du kan börja var som helst: med en idé, en person, en scen eller ett slut. Claude sorterar in det du säger och föreslår formuleringar som du säger ja eller nej till.

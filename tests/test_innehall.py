@@ -300,3 +300,20 @@ def test_2_3_1_texter():
     guide = (ROOT / "docs/google-maps.md").read_text(encoding="utf-8")
     for fras in ("minst 4 tecken", "Maybe later", "Alerts only", "**Enable**", "Free trial", "## Om något inte fungerar"):
         assert fras in guide, fras
+
+NYA_RUBRIKER = ("## Förlaga", "## Motsägelser", "## Självbild och andras bild", "## Det hen döljer",
+                "## Under tryck", "## Vardag", "## Öppet")
+
+
+def test_bokfiler_2_4():
+    mall = (DATA / "bok/bok/karaktarer/MALL.md").read_text(encoding="utf-8")
+    for rubrik in NYA_RUBRIKER:
+        assert rubrik in mall, rubrik
+    assert "{{" not in mall.split("## Förlaga", 1)[1], "de nya rubrikerna ska vara frivilliga"
+    meta, _ = split((DATA / "bok/bok/karaktarer/forlagor/MALL.md").read_text(encoding="utf-8"))
+    assert {"namn", "alias", "karaktarer"} <= set(meta)
+    for rel in ("bok/bok/karaktarer/forlagor/README.md", "bok/bok/karaktarer/prov/README.md",
+                "bok/bok/vagval/README.md"):
+        assert (DATA / rel).is_file(), rel
+    las_mig = (DATA / "bok/README.md").read_text(encoding="utf-8")
+    assert "karaktärsverkstaden" in las_mig.lower() and "vägval" in las_mig.lower()

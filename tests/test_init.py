@@ -231,3 +231,19 @@ def test_befintlig_readme_rors_inte(tmp_path):
     skriv(tmp_path, "README.md", "# Mitt repo\n")
     init_repo(tmp_path, titel="X", git=False)
     assert (tmp_path / "README.md").read_text() == "# Mitt repo\n"
+
+
+NYA_BOKFILER = ("bok/karaktarer/forlagor/README.md", "bok/karaktarer/forlagor/MALL.md",
+                "bok/karaktarer/prov/README.md", "bok/vagval/README.md")
+
+
+def test_uppgradering_skapar_nya_bokfiler_men_ror_inte_mallen(tmp_path):
+    root = tmp_path / "bok"
+    init_repo(root, titel="T", git=False)
+    for rel in NYA_BOKFILER:
+        (root / rel).unlink()
+    (root / "bok/karaktarer/MALL.md").write_text("gammal mall\n", encoding="utf-8")
+    init_repo(root, git=False)
+    for rel in NYA_BOKFILER:
+        assert (root / rel).is_file(), rel
+    assert (root / "bok/karaktarer/MALL.md").read_text(encoding="utf-8") == "gammal mall\n"
