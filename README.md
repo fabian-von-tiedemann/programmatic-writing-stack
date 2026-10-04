@@ -31,7 +31,7 @@ Bokens egna filer rörs aldrig. Ramverkets filer i `.claude/` skrivs om; dina eg
 
 ## Hur det fungerar
 
-1. **Förberedelse i fritt samtal.** Koncept, karaktärer, plot, röst och kapitelplan, i vilken ordning som helst. I **stilverkstaden** visar du texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer.
+1. **Förberedelse i fritt samtal.** Koncept, karaktärer, plot, röst och kapitelplan, i vilken ordning som helst. I **stilverkstaden** visar du texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer. I **karaktärsverkstaden** prövas en person i korta scener under tryck, gärna med en verklig person som förlaga. Vid vägskäl ger **vägval** flera distinkta alternativ i stället för det första som dyker upp.
 2. **Skrivloopen per kapitel.** Scenkort (du säger ja), utkast, granskning av Redaktör och Språkgranskare, högst två revisioner, kontinuitet, och till sist din läsning.
 3. **Aktgränser.** Förläggaren läser varje akt och hela boken. När boken fått A läser Sensitivitetsläsaren den.
 
@@ -58,7 +58,8 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 | `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad`, `tidslinje` |
 | `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var`, `tidslinje` |
 | `bok tics` | ord och vändningar som blivit vana |
-| `bok validate` | förbjudna namn, tidslinjen och namn/åldrar att kontrollera |
+| `bok validate` | förbjudna namn och förlagor, tidslinjen och namn/åldrar att kontrollera |
+| `bok fron` | slumpade frön till vägval |
 | `bok rapport spara` | sparar granskningar och godkännanden |
 | `bok annotations` | läsarnoter från Apple Böcker (macOS) |
 | `bok forslag` | skicka förslag till dem som bygger verktyget och se vad som hänt med dem |
@@ -73,7 +74,7 @@ Märker du något som kunde vara bättre, säg det till Claude i samtalet ("det 
 
 ## Roller
 
-Plot-arkitekt, Writer, Redaktör, Språkgranskare, Kontinuitet och Förläggare i skrivloopen. Sensitivitetsläsaren när boken fått A. Researcher, Världsbyggare, Audiobook-regissör och Marknadsförare vid behov. Vill du ändra hur en roll arbetar i din bok: skriv `bok/roller/<roll>.local.md`.
+Plot-arkitekt, Writer, Redaktör, Språkgranskare, Kontinuitet och Förläggare i skrivloopen. Sensitivitetsläsaren när boken fått A. Vägval och Idékritiker när du vill ha flera vägar att välja mellan. Researcher, Världsbyggare, Audiobook-regissör och Marknadsförare vid behov. Vill du ändra hur en roll arbetar i din bok: skriv `bok/roller/<roll>.local.md`.
 
 ## Utveckling
 

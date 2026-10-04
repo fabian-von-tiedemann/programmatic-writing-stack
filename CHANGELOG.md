@@ -6,6 +6,14 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+### Lagt till
+- Förlagor: en karaktär kan bygga på en verklig person. Researcher tar fram ett porträtt ur intervjuer och vad andra säger, med källor, i `bok/karaktarer/forlagor/`. `bok validate` stoppar kapitel där förlagans namn står, och sensitivitetsläsaren läser planen när boken har förlagor.
+- Karaktärsverkstaden: personer prövas i tre korta scener under tryck. Karaktärsmallen har nya, frivilliga rubriker: förlaga, motsägelser, självbild och andras bild, det hen döljer, under tryck, vardag och öppet.
+- Vägval: flera distinkta alternativ för en fråga i boken, från rollerna Vägval och Idékritiker, med slumpade frön från `bok fron`. Varven sparas i `bok/vagval/`.
+
+### Fixat
+- `bok validate` stoppar förbjudna namn också i genitiv ("Olof Palmes").
+
 ## [2.3.1] — 2026-10-04
 
 ### Fixat
