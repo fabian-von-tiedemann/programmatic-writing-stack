@@ -35,7 +35,7 @@ Bokens egna filer rörs aldrig. Ramverkets filer i `.claude/` skrivs om; dina eg
 2. **Skrivloopen per kapitel.** Scenkort (du säger ja), utkast, granskning av Redaktör och Språkgranskare, högst två revisioner, kontinuitet, och till sist din läsning.
 3. **Aktgränser.** Förläggaren läser varje akt och hela boken. När boken fått A läser Sensitivitetsläsaren den.
 
-`bok status` säger alltid var boken står och vad som är nästa steg.
+`bok status` säger alltid var boken står och vad som är nästa steg. Hela genomgången: [docs/hur-det-fungerar.md](docs/hur-det-fungerar.md).
 
 ## Vad som hamnar i repot
 
@@ -82,6 +82,10 @@ uv run pytest
 ```
 
 Ändringar i de genererade filerna (`src/bok/data/genererat/`) når befintliga böcker först när versionen i `src/bok/__init__.py` höjs.
+
+- [Hur bok fungerar](docs/hur-det-fungerar.md): för den som skriver, eller vill förstå.
+- [Utveckla och releasa](docs/utveckla-och-releasa.md): arkitektur, tester, changelog och releaseprocessen. Skillen `release` gör stegen ("gör en release").
+- [CHANGELOG](CHANGELOG.md): vad som ändrats i varje version.
 
 Design: `docs/superpowers/specs/2026-10-03-bok-cli-design.md`. Den tidigare versionen ligger i `docs/arkiv/v1.2/`.
 

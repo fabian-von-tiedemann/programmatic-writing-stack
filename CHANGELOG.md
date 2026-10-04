@@ -1,6 +1,10 @@
-# CHANGELOG
+# Changelog
 
-Alla större ändringar i Programmatic Writing Stack dokumenteras här. Följer [Keep a Changelog](https://keepachangelog.com/)-formatet.
+Alla ändringar i `bok` som märks för den som använder verktyget dokumenteras här.
+
+Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och versionerna följer [semantisk versionshantering](https://semver.org/lang/sv/). Kategorierna heter Lagt till, Ändrat, Fixat, Borttaget och Säkerhet. Nya ändringar skrivs under [Unreleased] och flyttas till en version när den släpps; se `docs/utveckla-och-releasa.md`.
+
+## [Unreleased]
 
 ## [2.2.0] — 2026-10-03
 
@@ -117,24 +121,11 @@ Alla större ändringar i Programmatic Writing Stack dokumenteras här. Följer 
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
----
-
-**Planerade kommande versioner:**
-
-## [1.3] — Planerad
-
-- Cross-bok learnings-bibliotek (lärdomar som ärvs mellan bokprojekt)
-- World-bible-format för flerboks-serier
-- Automatisk plot-skeleton-query (`graph-query.py plot-skeleton --thread X`)
-
-## [1.4] — Planerad
-
-- Web-baserad onboarding-wizard
-- Validation-CI för bokprojekt (GitHub Actions-template)
-- Cross-projekt scripts (sync-improvements between bokprojekt)
-
-## [2.0] — Långsiktigt
-
-- Multi-författar-stöd (kollaborativt skrivande)
-- Internationalisering (engelsk/tysk översättning av briefer)
-- Integration med Scrivener/Obsidian som export-mål
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.1...v2.2.0
+[2.1.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/37fbd05...v2.0.0
+[1.2]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/tree/37fbd05
+[1.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/tree/37fbd05
+[1.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/tree/37fbd05
