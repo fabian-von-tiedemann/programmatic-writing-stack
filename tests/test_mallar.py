@@ -40,3 +40,11 @@ def test_cli_listar(bok, capsys):
 def test_cli_lagger_till(bok, capsys):
     assert main(["mall", "serie"]) == 0
     assert "bok/plot/serie.md" in capsys.readouterr().out
+
+
+def test_lagg_till_rostlabb(bok):
+    skapade = lagg_till(bok, "rostlabb")
+    for rel in ("bok/stil/labb/README.md", "bok/stil/labb/provscener.md", "bok/stil/provbank/README.md",
+                "bok/stil/kontroll/README.md", "bok/stil/pekningar/README.md"):
+        assert rel in skapade, rel
+    assert read(bok)["moduler"] == ["rostlabb"]

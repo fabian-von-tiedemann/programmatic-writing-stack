@@ -380,3 +380,18 @@ def test_roller_2_4():
     assert "`bok/karaktarer/forlagor/`" in sens and "igenkännbar" in sens
     red = _las("agents/bok-redaktor.md")
     assert "`.claude/bok/hantverk/karaktarer.md`" in red and "under tryck" in red
+
+
+def test_bokfiler_2_5():
+    mall = (DATA / "bok/bok/plot/kapitel/MALL.md").read_text(encoding="utf-8")
+    meta, _ = split(mall)
+    assert "vagar" in meta and "lage" in meta
+    labb = (DATA / "moduler/rostlabb/bok/stil/labb/README.md").read_text(encoding="utf-8")
+    for fras in ("## Recept", "## Antiröst", "## Form", "Formprov", "Röstprov", "kontroll"):
+        assert fras in labb, fras
+    pek = (DATA / "moduler/rostlabb/bok/stil/pekningar/README.md").read_text(encoding="utf-8")
+    for fras in ("## Lever", "## Dött", "## Upplåst"):
+        assert fras in pek, fras
+    bank = (DATA / "moduler/rostlabb/bok/stil/provbank/README.md").read_text(encoding="utf-8")
+    for fras in ("lage:", "kalla:", "datum:", "15"):
+        assert fras in bank, fras
