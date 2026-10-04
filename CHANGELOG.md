@@ -6,6 +6,15 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.5.1] — 2026-10-04
+
+### Fixat
+- `bok rost` räknar tät dialog (repliker på egna rader utan tomrad) som dialog, hoppar över scenbrytningar som `* * *`, och delar inte meningar efter förkortningar som "t.ex." men väl före en mening som börjar med en siffra eller efter en parentes.
+- `bok rost profil` visar de vanligaste funktionsorden; `--json` har allas frekvenser.
+- `bok rost urval` matchar `lage` utan hänsyn till stora och små bokstäver, sorterar datum som datum (`2026-9-4` före `2026-10-01`) och avvisar `--antal` under 1.
+- `bok rost drift --json` avrundar måtten till tre decimaler.
+- `bok validate` hittar låsta ställen även när ord i kapitlet är kursiverade med `*`, och säger inte "Inga anmärkningar" när pekningsfilen inte gick att läsa.
+
 ## [2.5.0] — 2026-10-04
 
 ### Lagt till
@@ -166,7 +175,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.1...HEAD
+[2.5.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...v2.3.1

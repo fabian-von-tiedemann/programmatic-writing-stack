@@ -25,7 +25,9 @@ MATT = ("meningslangd_median", "meningslangd_kvartilavstand", "andel_korta", "an
         "fragetecken", "pronomenstart")
 
 _ORD = re.compile(r"[A-Za-zÅÄÖåäöÉéÜü]+(?:-[A-Za-zÅÄÖåäöÉéÜü]+)*")
-_SLUT = re.compile(r"(?:(?<=[.!?…])|(?<=[.!?…][\"”»']))\s+(?=[\"”«»„–—]?\s*[A-ZÅÄÖÉ])")
+_SLUT = re.compile(r"(?:(?<=[.!?…])|(?<=[.!?…][\"”»')]))\s+(?=[\"”«»„–—]?\s*[A-ZÅÄÖÉ0-9])")
+_FORKORTNING = re.compile(r"(?:^|\s)(?:t\.ex|bl\.a|d\.v\.s|dvs|m\.m|m\.fl|osv|s\.k|p\.g\.a|ca|jfr|resp|kl|nr|ev|dr|st)\.$",
+                          re.IGNORECASE)
 _REPLIK = ("–", "—", '"', "”", "«", "»", "„")
 _KOMMENTAR = re.compile(r"<!--.*?-->", re.S)
 
@@ -63,11 +65,34 @@ def ord_i(text: str) -> list[str]:
 
 
 def stycken(text: str) -> list[str]:
-    return [" ".join(s.split()) for s in re.split(r"\n\s*\n", text) if s.strip()]
+    """Stycken skilda av tomma rader. En replik på egen rad är ett eget stycke, så att tät dialog
+    räknas som dialog med luft. Stycken utan ord (scenbrytningar som * * *) räknas inte."""
+    ut = []
+    for block in re.split(r"\n\s*\n", text):
+        aktuell: list[str] = []
+        forra_replik = False
+        for rad in (r.strip() for r in block.splitlines()):
+            if not rad:
+                continue
+            replik = rad.startswith(_REPLIK)
+            if aktuell and (replik or forra_replik):
+                ut.append(" ".join(aktuell))
+                aktuell = []
+            aktuell.append(rad)
+            forra_replik = replik
+        if aktuell:
+            ut.append(" ".join(aktuell))
+    return [" ".join(s.split()) for s in ut if ord_i(s)]
 
 
 def dela_meningar(stycke: str) -> list[str]:
-    return [m.strip() for m in _SLUT.split(stycke) if ord_i(m)]
+    delar: list[str] = []
+    for del_ in (d.strip() for d in _SLUT.split(stycke)):
+        if delar and _FORKORTNING.search(delar[-1]):
+            delar[-1] += " " + del_
+        else:
+            delar.append(del_)
+    return [d for d in delar if ord_i(d)]
 
 
 def _tankstreck(st: list[str]) -> int:
@@ -102,7 +127,10 @@ def matt(text: str) -> dict[str, float]:
 
 def profil(texter_: list[str]) -> dict:
     alla = [matt(t) for t in texter_]
-    return {"antal": len(alla), "matt": {
+    ord_ = funktionsord()
+    frekvenser = [_fw(t, ord_) for t in texter_]
+    fo = {w: statistics.median(f[w] for f in frekvenser) for w in ord_ if any(f[w] for f in frekvenser)}
+    return {"antal": len(alla), "funktionsord": fo, "matt": {
         namn: {"median": statistics.median(m[namn] for m in alla),
                "min": min(m[namn] for m in alla), "max": max(m[namn] for m in alla)}
         for namn in MATT}}
@@ -228,7 +256,7 @@ def drift(root: Path, fil: Path) -> dict:
         d_rost, d_kontroll = delta(text, [t for *_, t in bank], [t for *_, t in kontroll])
         ut["delta"] = {"rost": round(d_rost, 3), "kontroll": round(d_kontroll, 3),
                        "narmare_kontroll": d_kontroll < d_rost}
-        ut["utanfor"] = [{"matt": n, "varde": v, "min": lo, "max": hi}
+        ut["utanfor"] = [{"matt": n, "varde": round(v, 3), "min": round(lo, 3), "max": round(hi, 3)}
                          for n, v, lo, hi in utanfor(matt(text), profil([t for *_, t in bank]))]
     return ut
 
@@ -254,16 +282,23 @@ def som_text_drift(d: dict) -> str:
     return "\n".join(rader)
 
 
+def _lage(v) -> str:
+    return str(v).strip().lower() if v else ""
+
+
 def urval(root: Path, kapitel: int, antal: int = 3) -> list[Path]:
     """Stycken ur provbanken med scenkortets lage, nyaste först (datum), sedan filnamn.
     Saknar scenkortet lage, eller har inget stycke det, väljs ur hela banken."""
     krav_modul(root)
-    lage = scenkort(root, kapitel).get("lage")
+    if antal < 1:
+        raise RostFel("--antal måste vara minst 1.")
+    lage = _lage(scenkort(root, kapitel).get("lage"))
     bank = texter(root, "provbank")
     if lage:
-        bank = [b for b in bank if b[1].get("lage") == lage] or bank
+        bank = [b for b in bank if _lage(b[1].get("lage")) == lage] or bank
     bank.sort(key=lambda b: b[0].name)
-    bank.sort(key=lambda b: str(b[1].get("datum") or ""), reverse=True)
+    bank.sort(key=lambda b: tuple(int(x) for x in re.findall(r"\d+", str(b[1].get("datum") or ""))[:3]),
+              reverse=True)
     return [p for p, _, _ in bank[:antal]]
 
 
@@ -290,6 +325,9 @@ def _kor_profil(args: argparse.Namespace) -> int:
         print(json.dumps(p, ensure_ascii=False))
         return 0
     print(f"Provbanken: {p['antal']} provstycken")
+    vanligast = sorted(p["funktionsord"], key=lambda w: -p["funktionsord"][w])[:10]
+    if vanligast:
+        print(f"  Vanligaste funktionsorden: {', '.join(vanligast)}")
     for namn, v in p["matt"].items():
         print(f"  {namn:<30} median {_tal(v['median'])}  ({_tal(v['min'])}–{_tal(v['max'])})")
     return 0
