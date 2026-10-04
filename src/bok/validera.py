@@ -145,7 +145,7 @@ _CITATRAD = re.compile(r'^"(.*?)"(?:[.,!?]*\s*(?:[:–—-]\s.*)?)$')
 
 
 def _norm(s: str) -> str:
-    return " ".join(s.translate(_CITATTECKEN).split())
+    return " ".join(s.translate(_CITATTECKEN).replace("*", "").split())
 
 
 def lasta_stallen(root: Path, kapitel: int) -> list[str]:
@@ -228,12 +228,13 @@ def _kor(args: argparse.Namespace) -> int:
         forlagetraffar = blacklist_traffar(text, list(skydd))
         for nr, namn in forlagetraffar:
             print(f"  BLOCKERANDE rad {nr}: {namn} är förlaga ({skydd[namn]}) och får inte stå i manuset.")
-        andrade = []
+        andrade, las_fel = [], False
         if (n := _nummer(fil)):
             try:
                 andrade = andrade_stallen(text, lasta_stallen(root, n))
             except BokFel as exc:
                 print(f"  Pekningarna för kapitlet kunde inte läsas: {exc}")
+                las_fel = True
         for citat in andrade:
             print(f'  BLOCKERANDE: låst ställe står inte längre ordagrant i kapitlet '
                   f'(bok/stil/pekningar/): "{citat}"')
@@ -246,6 +247,6 @@ def _kor(args: argparse.Namespace) -> int:
             varningar = aldersvarningar(text, personer, d)
         for nr, rad in varningar:
             print(f"  Ålder att kontrollera rad {nr}: {rad}")
-        if not traffar and not forlagetraffar and not andrade and not nya and not varningar:
+        if not traffar and not forlagetraffar and not andrade and not las_fel and not nya and not varningar:
             print("  Inga anmärkningar.")
     return 1 if stopp else 0

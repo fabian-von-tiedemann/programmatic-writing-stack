@@ -33,7 +33,7 @@ def test_ren_text_tal_crlf_bom_och_trasigt_huvud():
 
 def test_meningar_och_stycken():
     assert dela_meningar('Hon gick. – Kom hit, sa han. "Nej." Hon log! Vad? 3 st. och sen.') == [
-        "Hon gick.", "– Kom hit, sa han.", '"Nej."', "Hon log!", "Vad? 3 st. och sen."]
+        "Hon gick.", "– Kom hit, sa han.", '"Nej."', "Hon log!", "Vad?", "3 st. och sen."]
     assert stycken("Ett.\nTvå.\n\n\nTre.") == ["Ett. Två.", "Tre."]
     assert ord_i("Det var Åsa-Lena, 34 år.") == ["det", "var", "åsa-lena", "år"]
 

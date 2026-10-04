@@ -53,3 +53,16 @@ def test_citat_i_granskarnas_format(bok):
           '## Lever\n- "Han räknade stolarna två gånger.": rytmen bär\n- "Hon log".\n'
           '- "Han sa "nej" och gick."\n')
     assert lasta_stallen(bok, 3) == ["Han räknade stolarna två gånger.", "Hon log", 'Han sa "nej" och gick.']
+
+
+def test_last_citat_matchar_kapitel_med_betoning():
+    assert andrade_stallen("Han räknade *stolarna* två gånger.", ["Han räknade stolarna två gånger."]) == []
+
+
+def test_oläsbar_pekningsfil_ar_en_anmarkning(bok, capsys):
+    skriv(bok, "manuskript/kapitel-03.md", "Hon gick.\n")
+    (bok / "bok/stil/pekningar").mkdir(parents=True)
+    (bok / "bok/stil/pekningar/kapitel-03.md").write_bytes(b"## Lever\n- \"\xff\xfe\"\n")
+    main(["validate", "manuskript/kapitel-03.md"])
+    out = capsys.readouterr().out
+    assert "kunde inte läsas" in out and "Inga anmärkningar" not in out

@@ -6,6 +6,13 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+### Fixat
+- `bok rost` räknar tät dialog (repliker på egna rader utan tomrad) som dialog, hoppar över scenbrytningar som `* * *`, och delar inte meningar efter förkortningar som "t.ex." men väl före en mening som börjar med en siffra eller efter en parentes.
+- `bok rost profil` visar de vanligaste funktionsorden; `--json` har allas frekvenser.
+- `bok rost urval` matchar `lage` utan hänsyn till stora och små bokstäver, sorterar datum som datum (`2026-9-4` före `2026-10-01`) och avvisar `--antal` under 1.
+- `bok rost drift --json` avrundar måtten till tre decimaler.
+- `bok validate` hittar låsta ställen även när ord i kapitlet är kursiverade med `*`, och säger inte "Inga anmärkningar" när pekningsfilen inte gick att läsa.
+
 ## [2.5.0] — 2026-10-04
 
 ### Lagt till
