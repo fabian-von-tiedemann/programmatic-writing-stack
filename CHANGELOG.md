@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-10-04
+
 ### Lagt till
 - Röstlabbet (`bok mall rostlabb`): sök bokens röst och form genom att välja bland varianter i generationer, med recept av drag från förebilder och slumpade frön, en kontroll som visar AI-genomsnittet och pekningar på det som lever och det som är dött. Resultatet blir ett recept i `rost.md`, en provbank och en formlag.
 - `bok rost profil`, `bok rost drift` och `bok rost urval`: röstens profil, ett kapitel mätt mot rösten och AI-genomsnittet (och pastisch), och provstycken som Writer läser inför kapitlet.
@@ -164,7 +166,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.1...v2.3.0
