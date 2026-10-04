@@ -97,8 +97,10 @@ Design: `docs/superpowers/specs/2026-10-03-bok-cli-design.md`. Den tidigare vers
 
 ## Filosofi
 
-> Bra prosa är inte tekniker. Bra prosa är uppmärksamhet. Tekniker är hantverkets nedre nittio procent; de frigör uppmärksamheten till det som inte kan läras.
+Det mesta i att skriva en bok går att lära ut: en scen behöver en konflikt, personerna ska vilja något, ingen ska förklara det läsaren redan förstått, och ingen får veta något hen inte kan veta. Det är hantverk, och det sköter verktyget: rollerna, granskningen och kontrollerna.
+
+Det som gör en bok till din går inte att lära ut på samma sätt: vad berättelsen lägger märke till, vad den väljer att utelämna och hur den låter. Därför bestämmer du, och därför finns verkstäderna och Röstlabbet. Ju mindre tid du lägger på hantverket, desto mer uppmärksamhet har du kvar till det.
 
 ## Licens
 
-Fritt att använda, anpassa och distribuera. Ingen attribuering krävs men uppskattas.
+[MIT No Attribution](LICENSE) (MIT-0): fritt att använda, ändra och sprida, även kommersiellt, utan krav på att nämna var det kommer ifrån. Det uppskattas ändå. Inga garantier.

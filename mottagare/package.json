@@ -1,6 +1,7 @@
 {
   "name": "bok-forslag",
   "private": true,
+  "license": "MIT-0",
   "type": "module",
   "scripts": {
     "test": "vitest run",
