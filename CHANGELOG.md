@@ -6,6 +6,9 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+### Fixat
+- `bok validate`, `bok graph karaktar` och `bok graph var` kraschar inte längre när grafens json har handredigerats med fel typ, t.ex. `alias` som text i stället för lista eller `fakta` som lista i stället för objekt. Sådana värden visas som de är eller hoppas över.
+
 ## [2.2.0] — 2026-10-03
 
 ### Lagt till
