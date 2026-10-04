@@ -9,6 +9,7 @@ import statistics
 from pathlib import Path
 
 from bok import boktoml, frontmatter
+from bok.graf import scenkort
 from bok.init import DATA
 from bok.rot import BokFel, find_root
 from bok.tics import las_kapitel
@@ -246,6 +247,19 @@ def som_text_drift(d: dict) -> str:
     return "\n".join(rader)
 
 
+def urval(root: Path, kapitel: int, antal: int = 3) -> list[Path]:
+    """Stycken ur provbanken med scenkortets lage, nyaste först (datum), sedan filnamn.
+    Saknar scenkortet lage, eller har inget stycke det, väljs ur hela banken."""
+    krav_modul(root)
+    lage = scenkort(root, kapitel).get("lage")
+    bank = texter(root, "provbank")
+    if lage:
+        bank = [b for b in bank if b[1].get("lage") == lage] or bank
+    bank.sort(key=lambda b: b[0].name)
+    bank.sort(key=lambda b: str(b[1].get("datum") or ""), reverse=True)
+    return [p for p, _, _ in bank[:antal]]
+
+
 def register(sub: argparse._SubParsersAction) -> None:
     p = sub.add_parser("rost", help="rösten i siffror: profil, drift och urval (modulen rostlabb)")
     r = p.add_subparsers(dest="rostdel", metavar="<del>", required=True)
@@ -256,6 +270,11 @@ def register(sub: argparse._SubParsersAction) -> None:
     b.add_argument("fil", help="kapitelfilen, till exempel manuskript/kapitel-03.md")
     b.add_argument("--json", action="store_true", help="maskinläsbart, för skillen")
     b.set_defaults(func=_kor_drift)
+    c = r.add_parser("urval", help="stycken ur provbanken som Writer läser inför kapitlet")
+    c.add_argument("--kapitel", type=int, required=True)
+    c.add_argument("--antal", type=int, default=3)
+    c.add_argument("--json", action="store_true", help="maskinläsbart, för skillen")
+    c.set_defaults(func=_kor_urval)
 
 
 def _kor_profil(args: argparse.Namespace) -> int:
@@ -273,4 +292,15 @@ def _kor_drift(args: argparse.Namespace) -> int:
     root = find_root()
     d = drift(root, Path(args.fil).resolve())
     print(json.dumps(d, ensure_ascii=False) if args.json else som_text_drift(d))
+    return 0
+
+
+def _kor_urval(args: argparse.Namespace) -> int:
+    root = find_root()
+    valda = [p.relative_to(root).as_posix() for p in urval(root, args.kapitel, args.antal)]
+    if args.json:
+        lage = scenkort(root, args.kapitel).get("lage")
+        print(json.dumps({"kapitel": args.kapitel, "lage": lage, "stycken": valda}, ensure_ascii=False))
+    else:
+        print("\n".join(valda))
     return 0
