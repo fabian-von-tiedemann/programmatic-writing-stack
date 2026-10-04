@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.5.1] — 2026-10-04
+
 ### Fixat
 - `bok rost` räknar tät dialog (repliker på egna rader utan tomrad) som dialog, hoppar över scenbrytningar som `* * *`, och delar inte meningar efter förkortningar som "t.ex." men väl före en mening som börjar med en siffra eller efter en parentes.
 - `bok rost profil` visar de vanligaste funktionsorden; `--json` har allas frekvenser.
@@ -173,7 +175,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.1...HEAD
+[2.5.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.5.0...v2.5.1
 [2.5.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...v2.3.1
