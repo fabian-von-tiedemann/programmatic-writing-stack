@@ -361,3 +361,18 @@ def test_vagvalsrollerna():
     for text in (vagval, kritik):
         meta, _ = split(text)
         assert not {v.strip() for v in meta["tools"].split(",")} & {"Write", "Edit", "Bash"}
+
+
+def test_roller_2_4():
+    res = _las("agents/bok-researcher.md")
+    for fras in ("## Uppdrag: porträtt", "`bok/karaktarer/forlagor/MALL.md`", "förstahand eller återberättat",
+                 "diagnoser"):
+        assert fras in res, fras
+    writer = _las("agents/bok-writer.md")
+    assert "## Uppdrag: tryckprov" in writer and "Läs inte `bok/karaktarer/forlagor/`" in writer
+    plot = _las("agents/bok-plot-arkitekt.md")
+    assert "under tryck" in plot and "vägval" in plot
+    sens = _las("agents/bok-sensitivitet.md")
+    assert "`bok/karaktarer/forlagor/`" in sens and "igenkännbar" in sens
+    red = _las("agents/bok-redaktor.md")
+    assert "`.claude/bok/hantverk/karaktarer.md`" in red and "under tryck" in red

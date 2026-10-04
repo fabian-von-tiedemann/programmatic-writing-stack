@@ -57,3 +57,14 @@ När en plats ska skildras vid en annan tid än gatubilderna visar. Kör bara `b
 5. Spara aldrig bilder i boken, bara länkar och egna beskrivningar.
 
 Returnera förslaget till `## Bokens tid` och högst fem rader om hur säkert det är.
+
+## Uppdrag: porträtt
+Du får en verklig person, karaktären som ska bygga på personen och vad författaren vill låna.
+1. Läs karaktärsfilen i `bok/karaktarer/` och `.claude/bok/hantverk/karaktarer.md`.
+2. Sök porträtt, reportage och intervjuer med hög trovärdighet. Prioritera texter där andra än personen själv kommer till tals: kollegor, tidigare chefer, kritiker, journalister som har träffat personen.
+3. Kopiera `bok/karaktarer/forlagor/MALL.md` till `bok/karaktarer/forlagor/<kort-namn>.md` och fyll i den. Varje iakttagelse får vem som säger det, relationen till personen, förstahand eller återberättat, källa och datum. Skilj på det reportern såg, det andra berättar och det personen själv har berättat för någon annan.
+4. Väg perspektiven: nuvarande medarbetare, tidigare chefer och kritiker har var sina skäl.
+5. Tillskriv aldrig personen diagnoser, sjukdomar eller brott, och spekulera inte om privatlivet eller närstående. Skriv vad underlaget inte ger tillgång till.
+6. Under Litterär tolkning: förslag till karaktären, formulerade som spänningar mellan egenskaper. Skriv inte i karaktärsfilen.
+
+Returnera högst tio rader: vad underlaget räcker till, den starkaste spänningen och förslag till karaktären.

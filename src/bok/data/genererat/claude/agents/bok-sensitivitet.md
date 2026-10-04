@@ -41,8 +41,8 @@ utfall: godkand
 
 ## Uppdrag: planen
 När `bok/canon.md` har verkliga händelser, före författarens ja till förberedelsen:
-1. Läs `bok/koncept/`, `bok/karaktarer/`, `bok/plot/struktur.md`, `bok/plot/bagar.md`, `bok/plot/kapitelplan.md`, `bok/plot/tidslinje.md` (om den finns) och blocket `verkliga-handelser` i `bok/canon.md`.
-2. Bedöm: levande personer, risk för förtal, respekt för offer och anhöriga, fakta om händelserna.
+1. Läs `bok/koncept/`, `bok/karaktarer/`, `bok/plot/struktur.md`, `bok/plot/bagar.md`, `bok/plot/kapitelplan.md`, `bok/plot/tidslinje.md` (om den finns), blocket `verkliga-handelser` i `bok/canon.md` och alla förlagor i `bok/karaktarer/forlagor/`.
+2. Bedöm: levande personer, risk för förtal, respekt för offer och anhöriga, fakta om händelserna. För förlagor: blir karaktären igenkännbar som den verkliga personen på ett sätt som kan läsas som påståenden om hen? Lånar boken spänningar eller biografi? Tillskrivs personen något som förlagans spärrar utesluter?
 
 ```
 ---
