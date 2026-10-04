@@ -15,7 +15,7 @@ För den som bygger `bok`. Hur verktyget fungerar för den som skriver står i [
 | Underhållsskills | `.claude/skills/forslag/`, `.claude/skills/release/` | gå igenom förslag; göra en release. |
 | Design | `docs/superpowers/specs/`, `docs/superpowers/plans/` | specar och planer per version. |
 
-Moduler i `src/bok/` i korthet: `cli` (kommandona), `init` och `genererat` (skriva ramverket), `status` (var boken står), `graf` och `tid` (grafen, datum, åldrar), `validera` och `tics` (kontroller), `rapport` (rapporter och rundor), `mallar` (moduler), `forslag` (skicka förslag), `annotations` (Apple Böcker), `privat` (privata filer i `~/.config/bok`), `karta` (restider och gatubilder), `google` (nyckeln och anropen till Google Maps; det enda stället som ser nyckeln), `geo` (rutternas geometri), `platser` (platsargument och platsfiler), `bild` (tillfälliga bilder och `bok bild`).
+Moduler i `src/bok/` i korthet: `cli` (kommandona), `init` och `genererat` (skriva ramverket), `status` (var boken står), `graf` och `tid` (grafen, datum, åldrar), `validera` och `tics` (kontroller), `rost` (Röstlabbets mått: profil, drift och urval), `fron` (slumpade frön), `rapport` (rapporter och rundor), `mallar` (moduler), `forslag` (skicka förslag), `annotations` (Apple Böcker), `privat` (privata filer i `~/.config/bok`), `karta` (restider och gatubilder), `google` (nyckeln och anropen till Google Maps; det enda stället som ser nyckeln), `geo` (rutternas geometri), `platser` (platsargument och platsfiler), `bild` (tillfälliga bilder och `bok bild`).
 
 ### Viktigt att veta
 

@@ -31,7 +31,7 @@ Bokens egna filer rörs aldrig. Ramverkets filer i `.claude/` skrivs om; dina eg
 
 ## Hur det fungerar
 
-1. **Förberedelse i fritt samtal.** Koncept, karaktärer, plot, röst och kapitelplan, i vilken ordning som helst. I **stilverkstaden** visar du texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer. I **karaktärsverkstaden** prövas en person i korta scener under tryck, gärna med en verklig person som förlaga. Vid vägskäl ger **vägval** flera distinkta alternativ i stället för det första som dyker upp.
+1. **Förberedelse i fritt samtal.** Koncept, karaktärer, plot, röst och kapitelplan, i vilken ordning som helst. I **stilverkstaden** visar du texter du gillar, Claude provskriver en scen ur din bok i olika röster och du väljer. I **karaktärsverkstaden** prövas en person i korta scener under tryck, gärna med en verklig person som förlaga. Vid vägskäl ger **vägval** flera distinkta alternativ i stället för det första som dyker upp. Vill boken mer än ett hantverksmässigt språk söker **Röstlabbet** (`bok mall rostlabb`) bokens röst och form genom att ni väljer bland varianter, och håller den med mätbara ankare.
 2. **Skrivloopen per kapitel.** Scenkort (du säger ja), utkast, granskning av Redaktör och Språkgranskare, högst två revisioner, kontinuitet, och till sist din läsning.
 3. **Aktgränser.** Förläggaren läser varje akt och hela boken. När boken fått A läser Sensitivitetsläsaren den.
 
@@ -55,9 +55,10 @@ bok/              planen och minnet: koncept, karaktärer, plot, stil, värld,
 |---|---|
 | `bok init` | gör en mapp till ett bokrepo, eller uppgradera ramverket |
 | `bok status` | var boken står och nästa steg |
-| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad`, `tidslinje` |
+| `bok mall [modul]` | tillval: `spanning`, `serie`, `forlag`, `graf-extra`, `audiobook`, `marknad`, `tidslinje`, `rostlabb` |
 | `bok graph …` | frågor mot story-graph: `context`, `vem-vet`, `bagar`, `karaktar`, `var`, `tidslinje` |
 | `bok tics` | ord och vändningar som blivit vana |
+| `bok rost` | röstens profil, ett kapitels drift mot rösten och AI-genomsnittet, och provstycken till Writer (modulen rostlabb) |
 | `bok validate` | förbjudna namn och förlagor, tidslinjen och namn/åldrar att kontrollera |
 | `bok fron` | slumpade frön till vägval |
 | `bok rapport spara` | sparar granskningar och godkännanden |

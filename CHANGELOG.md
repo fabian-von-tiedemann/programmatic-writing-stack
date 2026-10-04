@@ -6,6 +6,15 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+### Lagt till
+- Röstlabbet (`bok mall rostlabb`): sök bokens röst och form genom att välja bland varianter i generationer, med recept av drag från förebilder och slumpade frön, en kontroll som visar AI-genomsnittet och pekningar på det som lever och det som är dött. Resultatet blir ett recept i `rost.md`, en provbank och en formlag.
+- `bok rost profil`, `bok rost drift` och `bok rost urval`: röstens profil, ett kapitel mätt mot rösten och AI-genomsnittet (och pastisch), och provstycken som Writer läser inför kapitlet.
+- `bok fron` har klasserna `rostdrag`, `formgrepp` och `kalla`.
+- Scenkortet har fälten `vagar` (vad kapitlet vågar) och `lage` (stilla eller under tryck).
+
+### Ändrat
+- Med Röstlabbet pekar författaren ut levande och döda ställen efter första granskningen. Levande ställen är låsta: `bok validate` stoppar kapitlet om de ändrats, och granskarna får inte kräva ändringar i dem. Granskarnas rapporter har avsnitten Mest levande och Mest döda.
+
 ## [2.4.0] — 2026-10-04
 
 ### Lagt till
