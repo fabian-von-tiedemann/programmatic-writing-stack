@@ -1,3 +1,4 @@
+import argparse
 import re
 from pathlib import Path
 
@@ -317,3 +318,32 @@ def test_bokfiler_2_4():
         assert (DATA / rel).is_file(), rel
     las_mig = (DATA / "bok/README.md").read_text(encoding="utf-8")
     assert "karaktärsverkstaden" in las_mig.lower() and "vägval" in las_mig.lower()
+
+
+def test_skillen_2_4():
+    text = _las("skills/bok/SKILL.md")
+    for fras in ("## Karaktärsverkstaden", "## Vägval", "uppdraget **porträtt**", "uppdraget **tryckprov**",
+                 "bok fron --json", "bok-vagval", "bok-idekritiker", "Välj aldrig åt henne",
+                 "`.claude/bok/hantverk/karaktarer.md`", "Ge aldrig `bok-writer` en förlaga"):
+        assert fras in text, fras
+
+
+def test_process_verktyg_och_hantverk_2_4():
+    process = _las("bok/process.md")
+    for fras in ("## Karaktärer och förlagor", "## Vägval", "Writer läser aldrig förlagor",
+                 "Verkliga händelser och personer", "| Vägval |", "| Idékritiker |"):
+        assert fras in process, fras
+    verktyg = _las("bok/verktyg.md")
+    assert "`bok fron" in verktyg and "förlagornas namn" in verktyg
+    hantverk = _las("bok/hantverk/karaktarer.md")
+    for fras in ("## Förlagor", "## Tryckprov", "Under tryck", "Öppet", "`bok/beslut.md`"):
+        assert fras in hantverk, fras
+
+
+def test_ramverkets_kommandon_finns():
+    from bok.cli import build_parser
+
+    sub = next(a for a in build_parser()._actions if isinstance(a, argparse._SubParsersAction))
+    text = "".join(_las(r) for r in ("skills/bok/SKILL.md", "bok/process.md", "bok/verktyg.md"))
+    for kommando in set(re.findall(r"`bok ([a-z]+)", text)):
+        assert kommando in sub.choices, kommando

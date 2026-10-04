@@ -33,7 +33,10 @@ Grundläget. Hon får börja var som helst: en person, en scen, en känsla, ett 
   | genre, böcker den liknar, vad läsaren väntar sig | `bok/koncept/genre.md` |
   | längd, jag eller hon, tempus, hur kapitlen ser ut | `bok/koncept/form.md` |
   | vad boken handlar om under ytan | `bok/koncept/teman.md` |
-  | en person | `bok/karaktarer/<id>.md` (kopiera `bok/karaktarer/MALL.md`) |
+  | en person | `bok/karaktarer/<id>.md` (kopiera `bok/karaktarer/MALL.md`; rubrikerna förklaras i `.claude/bok/hantverk/karaktarer.md`) |
+  | en verklig person som en karaktär ska bygga på | Karaktärsverkstaden nedan, med en förlaga |
+  | en person som känns platt, "hur skulle hon reagera?" | Karaktärsverkstaden nedan |
+  | flera möjliga vägar, "jag vet inte hur det ska gå" | föreslå Vägval nedan |
   | vad som händer, vändningar, slutet | `bok/plot/struktur.md` |
   | en linje som löper genom boken, en persons utveckling | `bok/plot/bagar.md` |
   | ordningen på kapitlen | `bok/plot/kapitelplan.md` (be `bok-plot-arkitekt`) |
@@ -72,8 +75,33 @@ Rösten är det som gör boken till hennes. Kör verkstaden när hon pratar om t
 
 Andras texter används för att förstå kvaliteter. Återge aldrig formuleringar ur dem, och håll utdragen korta.
 
+## Karaktärsverkstaden
+En person blir levande när hen gör något under tryck. Kör verkstaden när hon pekar ut en verklig person som förlaga, när en person känns platt, eller när `bok-plot-arkitekt` föreslår det. Rubrikerna och reglerna står i `.claude/bok/hantverk/karaktarer.md`.
+
+1. **Förlaga** (när hon pekar ut en verklig person). Starta `bok-researcher` med uppdraget **porträtt**: personen, karaktären och vad hon vill låna. Visa vad underlaget räcker till och den starkaste spänningen. Förlagan sparas i `bok/karaktarer/forlagor/`.
+2. **Kärna.** Föreslå personens kärna som en spänning mellan egenskaper ("omtänksam och allt svårare att rubba"), utifrån förlagan och det hon berättat. Är hon osäker: föreslå vägval ("tre olika sätt att låna förlagan").
+3. **Tryckprov.** Starta `bok-writer` med uppdraget **tryckprov** för personen. Visa de tre scenerna.
+4. **Läsning.** Låt henne säga vad som stämmer, vad som skaver och vad läsaren ska känna för personen. Skriv om en scen i taget med `bok-writer` tills hon känner igen personen.
+5. **In i filen.** Skriv in det valda under rätt rubriker i `bok/karaktarer/<id>.md`; saknas de nya rubrikerna, lägg till dem. Idéer som inte är beslutade hamnar under Öppet. Skriv en rad med datum i `bok/beslut.md`.
+
+Provscenerna är underlag. Kopiera aldrig in dem i kapitlen.
+
+## Vägval
+För frågor där det finns flera möjliga vägar och den första idén inte räcker. Kör när hon ber om det ("ge mig vägval", "fler idéer", "jag vet inte hur hon ska …"). Föreslå det, men starta det aldrig utan hennes ja, vid premissen, en persons kärna, bågarnas vändpunkter (inciting incident, mittpunkt, klimax) och när `bok-plot-arkitekt` ser flera möjliga vägar i ett scenkort. Säg att ett varv tar några minuter.
+
+1. **Ram.** Formulera frågan som ett problem, inte en lösning ("hur korsar hon gränsen första gången?"). Hämta det som måste hålla ur premissen, `bok/canon.md`, karaktärsfilerna och `bok/plot/bagar.md`, och visa det i stället för att fråga. Fråga vad som gör ett vägval bra för henne. Lista 3–5 tysta antaganden om lösningen ("det sker i en scen", "hon gör det ensam"). Sök i `bok/vagval/` efter tidigare varv om samma sak och nämn dem. Visa ramen och få hennes ja. Skriv den i `bok/vagval/<ÅÅÅÅ-MM-DD>-<kort-namn>/ram.md`.
+2. **Det uppenbara.** Starta `bok-vagval` med uppdraget **uppenbart** och ramen. Spara svaret i `uppenbart.md` i varvets mapp. Ge det aldrig till grenarna.
+3. **Frön.** Kör `bok fron --json --spara bok/vagval/<mapp>` med ett `--antagande "…"` per antagande i ramen.
+4. **Grenar.** Starta fyra `bok-vagval` parallellt med uppdraget **gren**; var och en får ramen och ett frö. Numrera vägvalen `v1`, `v2` … i den ordning de kommer och spara dem i `ideer.md` med fröet som ursprung.
+5. **Kritik.** Starta `bok-idekritiker` med varvets mapp. Spara svaret i `karta.md`.
+6. **Karta.** Visa riktningarna: namn och kärna, och under varje riktning vägvalens id, rubrik och mening, med värde, rimlighet och djävulens advokat i korthet. Visa sist det uppenbara på en rad: det får också vinna. Rekommendera inget.
+7. **Välj och styr.** Hon väljer ett till tre vägval och säger åt vilket håll. Starta `bok-vagval` med uppdraget **utveckla** och sedan `bok-idekritiker` igen, och visa kartan. Har varvet fastnat: dra ett processfrö med `bok fron --klass process --antal 1 --spara bok/vagval/<mapp>` och ge det till `bok-vagval`. Högst två utvecklingsvarv; sedan bestämmer hon.
+8. **Beslut.** Skriv in det hon väljer där det hör hemma, efter hennes ja. Skriv i `val.md` vad hon valde och vart det tog vägen, och en rad i `bok/beslut.md` med länk till varvets mapp. Väljer hon inget: skriv det i `val.md`.
+
+Hon väljer alltid. Välj aldrig åt henne.
+
 ## Innan första kapitlet
-**Verkliga händelser.** Säger `bok status` att verkliga händelser behöver granskas (`Förberedelse: Verkliga händelser – …`): starta `bok-sensitivitet` för planen (uppdraget planen) och spara rapporten med `bok rapport spara -`. Vid `atgarda`: gå igenom fynden med henne, justera planen och kör sensitivitetsläsaren igen tills utfallet är `godkand`.
+**Verkliga personer och händelser.** Säger `bok status` att verkliga händelser behöver granskas, eller verkliga personer när boken har förlagor (`Förberedelse: Verkliga …`): starta `bok-sensitivitet` för planen (uppdraget planen) och spara rapporten med `bok rapport spara -`. Vid `atgarda`: gå igenom fynden med henne, justera planen och kör sensitivitetsläsaren igen tills utfallet är `godkand`.
 
 När `bok status` visar att allt i förberedelsen är klart utom hennes ja:
 1. Starta `bok-plot-arkitekt` med uppdraget **grind**. Spara rapporten med `bok rapport spara -`. Om utfallet är `revidera`: gå igenom förslagen med henne.
@@ -186,3 +214,4 @@ Efter varje godkänt steg: `git add -A && git commit -m "<kort beskrivning på s
 - Redigera inte filer under `.claude/`. Egna regler läggs i `bok/roller/<roll>.local.md`, eller i `CLAUDE.md` utanför bok-blocket.
 - Hoppa inte över hennes ja vid scenkortet, efter förberedelsen och efter varje kapitel.
 - Ändra inte hennes beslut om koncept, karaktärer eller röst utan att fråga.
+- Ge aldrig `bok-writer` en förlaga. Writer arbetar från karaktärsfilen.
