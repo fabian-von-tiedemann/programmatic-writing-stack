@@ -432,3 +432,8 @@ def test_ramverket_2_5():
     assert "bok rost drift" in _las("agents/bok-sprakgranskare.md")
     assert "`vagar`" in _las("agents/bok-redaktor.md")
     assert "## Formlag" in _las("agents/bok-forlaggare.md")
+
+
+def test_labbet_skriver_generationsfilen_innan_kritiken():
+    labb = _las("skills/bok/SKILL.md").split("## Röstlabbet", 1)[1].split("\n## ", 1)[0]
+    assert labb.index("gen-NN.md") < labb.index("**Kritik.**")

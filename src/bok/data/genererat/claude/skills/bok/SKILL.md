@@ -83,9 +83,9 @@ Bara när `rostlabb` står i `moduler` i `bok.toml`; då ersätter labbet stilve
 1. **Rama in.** Fråga efter förebilder (texterna sparas i `bok/stil/exempel/` som i stilverkstaden) och vad boken inte får låta som. Skriv provscenerna och få hennes ja.
 2. **Frön.** Kör `bok fron --klass rostdrag --klass kalla --klass formgrepp --antal 8 --json --spara bok/stil/labb`.
 3. **Recept.** Fyra recept med 3–6 drag var, varje drag med sin källa (en förebild eller ett frö): två utgår från förebilderna med ett frö var, två huvudsakligen från frön. Formprov bygger på `formgrepp`, röstprov på `rostdrag` och `kalla`.
-4. **Varianter.** Starta fyra instanser parallellt, ett recept var (A–D), och en femte utan recept: kontrollen. Kontrollen får bara provet och premissen, aldrig `bok/stil/rost.md`.
+4. **Varianter.** Starta fyra instanser parallellt, ett recept var (A–D), och en femte utan recept: kontrollen. Kontrollen får bara provet och premissen, aldrig `bok/stil/rost.md`. Skriv recepten med källor och texterna i `bok/stil/labb/gen-NN.md` (röst) eller `bok/stil/labb/form-NN.md` (form).
 5. **Kritik.** Starta `bok-idekritiker` med uppdraget **röstprov** och generationsfilen.
-6. **Visa och peka.** Visa A–D och sist kontrollen, märkt som kontroll. Låt henne peka fritt: vad lever, vad är dött. Skriv recepten, texterna, kritiken och pekningarna i `bok/stil/labb/gen-NN.md` (röst) eller `bok/stil/labb/form-NN.md` (form).
+6. **Visa och peka.** Visa A–D och sist kontrollen, märkt som kontroll. Låt henne peka fritt: vad lever, vad är dött. Lägg kritiken och pekningarna under varje variant i generationsfilen.
 7. **Nästa generation.** Fyra nya recept ur pekningarna: korsa (levande drag från två varianter), mutera (byt ett drag mot ett nytt frö), förstärk (driv ett levande drag längre) och vild (ett helt nytt frö). Ny kontroll bara när provet byts. Efter femte generationen: fråga om rösten håller på att sätta sig eller om provscenen ska bytas.
 8. **Klart** när hon säger att det är boken. Efter hennes ja:
    - skriv om `bok/stil/rost.md` med rubrikerna `## Recept`, `## Antiröst` och `## Form`,
