@@ -180,7 +180,7 @@ bok rost urval --kapitel N [--antal 3] [--json]
 **`drift`** jämför kapitlet med provbanken (rösten) och kontrollen (AI-genomsnittet):
 
 - **Delta.** Burrows Delta på funktionsorden: z-poäng mot medel och standardavvikelse över provbank och kontroll, medelvärdet av absoluta skillnader mot provbankens centroid och mot kontrollens. Är avståndet till kontrollen mindre än till provbanken: varning "närmare AI-genomsnittet än rösten", med båda talen.
-- **Mått utanför spridningen.** Varje profilmått där kapitlet ligger utanför provbankens min–max med mer än 25 % av spannet listas med kapitlets värde och bankens spann.
+- **Mått utanför spridningen.** Varje profilmått där kapitlet ligger utanför provbankens min–max med mer än 25 % av spannet (25 % av medianen när spannet är noll) listas med kapitlets värde och bankens spann.
 - **Pastisch.** Sekvenser om minst 5 ord (gemener, utan skiljetecken) som kapitlet delar med en fil i provbanken eller i `bok/stil/exempel/` listas med källfil.
 - **För lite underlag.** Färre än 3 provstycken eller färre än 2 kontrollvarianter: meddelandet säger det, och bara pastischkontrollen körs.
 - Exitkod 0 med varningar; 2 vid fel (saknad fil, bok utan modulen), som andra kommandon.
