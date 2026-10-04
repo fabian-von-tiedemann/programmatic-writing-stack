@@ -6,6 +6,14 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.3.1] — 2026-10-04
+
+### Fixat
+- Guiden `docs/google-maps.md` följer hur Google Cloud faktiskt ser ut: projektnamn på minst 4 tecken, nyckeln som skapas automatiskt och ska begränsas, Street View som måste aktiveras för sig, budget med bara larm, provperioden och ett avsnitt om vad man gör när något inte fungerar.
+- `bok karta status` och de andra kommandona säger nu om ett API inte är aktiverat i projektet eller om nyckelns begränsningar stoppar det, i stället för ett gemensamt meddelande, och hänvisar till rätt steg i guiden.
+- `bok karta` kraschar inte längre på oväntade svar från Google eller på `--mellanrum nan`, och Ctrl-D eller Ctrl-C vid `bok karta nyckel` avbryter utan felutskrift.
+- Avbryts `bok karta gatuvy` av ett fel efter att några bilder hämtats visas var de ligger. `bok karta stada` räknar bara mappar som faktiskt togs bort.
+
 ## [2.3.0] — 2026-10-04
 
 ### Lagt till
@@ -137,7 +145,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.1...HEAD
+[2.3.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.1.1...v2.2.0

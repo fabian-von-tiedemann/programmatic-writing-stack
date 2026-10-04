@@ -291,3 +291,12 @@ def test_mallar_2_3():
         assert fras in platser, fras
     assert "plats-<id>.md" in (DATA / "bok/bok/varld/research/README.md").read_text(encoding="utf-8")
     assert "docs/google-maps.md" in (DATA / "bok/README.md").read_text(encoding="utf-8")
+
+
+def test_2_3_1_texter():
+    varld = _las("agents/bok-varldsbyggare.md")
+    gor = varld.split("## Gör", 1)[1].split("\n## ", 1)[0]
+    assert "`## Idag` och `## Rutter`" in gor and "uppdraget miljö" in gor
+    guide = (ROOT / "docs/google-maps.md").read_text(encoding="utf-8")
+    for fras in ("minst 4 tecken", "Maybe later", "Alerts only", "**Enable**", "Free trial", "## Om något inte fungerar"):
+        assert fras in guide, fras

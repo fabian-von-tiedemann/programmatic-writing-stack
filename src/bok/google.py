@@ -39,6 +39,8 @@ INGEN_NYCKEL = (f"Det finns ingen nyckel till Google Maps. Se guiden {GUIDE} "
                 "och kör bok karta nyckel i din egen terminal.")
 OGILTIG = "Google godkänner inte nyckeln. Kontrollera den i Google Cloud och kör bok karta nyckel igen."
 EJ_AKTIVERAT = "Nyckeln får inte använda {api}. Aktivera API:et och kontrollera nyckelns begränsningar ({guide})."
+INTE_AKTIVERAT = "{api} är inte aktiverat i projektet. Öppna API:et i Google Cloud och klicka Enable ({guide})."
+BEGRANSAD = "Nyckelns begränsningar tillåter inte {api}. Lägg till det under API restrictions på nyckeln ({guide})."
 TAK = "Dagens tak för {api} är nått. Försök i morgon, eller höj taket i Google Cloud."
 TRASIG_SIGNERING = ("Signeringshemligheten går inte att läsa. Kopiera den igen från Google Cloud "
                     "och kör bok karta nyckel --signering.")
@@ -154,6 +156,10 @@ def _http_fel(status: int, api: str, data: dict) -> KartaFel:
         return KartaFel(OGILTIG)
     if status == 429 or "RESOURCE_EXHAUSTED" in text:
         return KartaFel(TAK.format(api=api))
+    if "SERVICE_DISABLED" in text:
+        return KartaFel(INTE_AKTIVERAT.format(api=api, guide=GUIDE))
+    if "API_KEY_SERVICE_BLOCKED" in text:
+        return KartaFel(BEGRANSAD.format(api=api, guide=GUIDE))
     if status == 403 or "PERMISSION_DENIED" in text:
         return KartaFel(EJ_AKTIVERAT.format(api=api, guide=GUIDE))
     if status == 400:
@@ -194,8 +200,13 @@ def gatuvy_metadata(plats: str) -> dict:
     if status == "OVER_QUERY_LIMIT":
         raise KartaFel(TAK.format(api=STREET_VIEW))
     if status == "REQUEST_DENIED":
-        if "invalid" in str(data.get("error_message", "")).lower():
+        meddelande = str(data.get("error_message", "")).lower()
+        if "invalid" in meddelande:
             raise KartaFel(OGILTIG)
+        if "not activated" in meddelande or "project is not authorized" in meddelande:
+            raise KartaFel(INTE_AKTIVERAT.format(api=STREET_VIEW, guide=GUIDE))
+        if "key is not authorized" in meddelande:
+            raise KartaFel(BEGRANSAD.format(api=STREET_VIEW, guide=GUIDE))
         raise KartaFel(EJ_AKTIVERAT.format(api=STREET_VIEW, guide=GUIDE))
     raise KartaFel("Street View svarade oväntat.")
 

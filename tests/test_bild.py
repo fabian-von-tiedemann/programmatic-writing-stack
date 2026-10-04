@@ -105,3 +105,9 @@ def test_cli(server, capsys):
     assert main(["bild", server + "/bild.jpg"]) == 0
     ut = capsys.readouterr().out
     assert "bok-bild-" in ut and "bok karta stada" in ut
+
+
+def test_stada_raknar_bara_det_som_togs_bort(monkeypatch):
+    bild.ny_mapp("bok-bild-")
+    monkeypatch.setattr(bild.shutil, "rmtree", lambda *a, **k: None)
+    assert bild.stada() == 0

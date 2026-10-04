@@ -37,6 +37,15 @@ STATUS_FRAN = {"location": {"latLng": {"latitude": 59.3326, "longitude": 18.0649
 STATUS_TILL = {"location": {"latLng": {"latitude": 59.3340, "longitude": 18.0630}}}
 
 
+def _dict(v) -> dict:
+    """Ett objekt ur Googles svar; allt annat räknas som tomt."""
+    return v if isinstance(v, dict) else {}
+
+
+def _lista(v) -> list:
+    return v if isinstance(v, list) else []
+
+
 def _sek(v) -> int:
     if isinstance(v, str) and v.endswith("s"):
         try:
@@ -104,23 +113,23 @@ def _kollektivt(rutt: dict) -> str:
             delar.append(f"gå {round(gang / 60)} min")
         gang = 0
 
-    for leg in rutt.get("legs") or []:
-        for steg in (leg.get("steps") or []) if isinstance(leg, dict) else []:
+    for leg in _lista(rutt.get("legs")):
+        for steg in _lista(_dict(leg).get("steps")):
             if not isinstance(steg, dict):
                 continue
             detaljer = steg.get("transitDetails")
             if steg.get("travelMode") == "TRANSIT" and isinstance(detaljer, dict):
                 ga()
-                linje = detaljer.get("transitLine") or {}
-                fordon = str(((linje.get("vehicle") or {}).get("name") or {}).get("text") or "linje").lower()
+                linje = _dict(detaljer.get("transitLine"))
+                fordon = str(_dict(_dict(linje.get("vehicle")).get("name")).get("text") or "linje").lower()
                 text = f"{fordon} {linje.get('nameShort') or linje.get('name') or ''}".strip()
                 if detaljer.get("headsign"):
                     text += f" mot {detaljer['headsign']}"
                 if isinstance(detaljer.get("stopCount"), int):
                     text += f" ({detaljer['stopCount']} hållplatser)"
                 if avgang is None:
-                    lokalt = detaljer.get("localizedValues") or {}
-                    avgang = ((lokalt.get("departureTime") or {}).get("time") or {}).get("text")
+                    lokalt = _dict(detaljer.get("localizedValues"))
+                    avgang = _dict(_dict(lokalt.get("departureTime")).get("time")).get("text")
                 delar.append(text)
             else:
                 gang += _sek(steg.get("staticDuration"))
@@ -172,12 +181,16 @@ def _kor_nyckel(args: argparse.Namespace) -> int:
         return 0
     if not sys.stdin.isatty():
         raise KartaFel(f"Kör bok karta nyckel i din egen terminal, inte via Claude. Se guiden {google.GUIDE}")
+    try:
+        fraga = "Klistra in URL-signeringshemligheten (syns inte): " if args.signering else \
+            "Klistra in nyckeln till Google Maps (syns inte): "
+        varde = getpass.getpass(fraga).strip()
+    except (EOFError, KeyboardInterrupt):
+        raise KartaFel("Avbrutet; ingen nyckel sparades.") from None
     if args.signering:
-        varde = getpass.getpass("Klistra in URL-signeringshemligheten (syns inte): ").strip()
         google.spara_signering(varde)
         print("Signeringshemligheten är sparad.")
         return 0
-    varde = getpass.getpass("Klistra in nyckeln till Google Maps (syns inte): ").strip()
     if len(varde) < 20 or any(c.isspace() for c in varde):
         raise KartaFel("Det där ser inte ut som en nyckel. Kopiera den igen från Google Cloud.")
     google.spara_nyckel(varde)
@@ -203,7 +216,7 @@ def _kor_status() -> int:
         google.gatuvy_metadata("59.3326,18.0649")
         print(f"{google.STREET_VIEW}: fungerar.")
     except KartaFel as exc:
-        print(f"{google.STREET_VIEW}: {exc} (Street View är frivilligt; se steg 6 i guiden.)")
+        print(f"{google.STREET_VIEW}: {exc} (Street View är frivilligt; se steg 5 i guiden.)")
     return 0 if routes_ok else 1
 
 
@@ -262,6 +275,10 @@ def _kor(args: argparse.Namespace) -> int:
     return _gatuvy(fran, till, args.satt, args.antal, args.mellanrum)
 
 
+def _ingen_bild(etikett: str) -> str:
+    return f"  –       ingen gatubild           ({etikett})" if etikett else "  –       ingen gatubild"
+
+
 def _fotodatum(datum: list[str]) -> str:
     unika = sorted(set(datum))
     if not unika:
@@ -272,7 +289,7 @@ def _fotodatum(datum: list[str]) -> str:
 def _vyer_langs(fran: Plats, till: Plats, satt: str, antal: int, mellanrum: float) -> list[tuple[dict, float, str]]:
     kropp = {"origin": fran.routes(), "destination": till.routes(), "travelMode": SATT[satt][0]}
     rutt = _forsta_rutt(google.routes(kropp, POLY_FALT))
-    poly = ((rutt or {}).get("polyline") or {}).get("encodedPolyline")
+    poly = _dict(_dict(rutt).get("polyline")).get("encodedPolyline")
     if not isinstance(poly, str) or not poly:
         raise KartaFel(f"Ingen rutt hittades mellan {fran.namn} och {till.namn}.")
     try:
@@ -290,7 +307,7 @@ def _vyer_langs(fran: Plats, till: Plats, satt: str, antal: int, mellanrum: floa
 def _gatuvy(fran: Plats, till: Plats | None, satt: str, antal: int, mellanrum: float) -> int:
     if not 1 <= antal <= MAX_ANTAL:
         raise KartaFel(f"--antal ska vara mellan 1 och {MAX_ANTAL}.")
-    if mellanrum < 10:
+    if not mellanrum >= 10:  # fångar också nan
         raise KartaFel("--mellanrum ska vara minst 10 meter.")
     if till is None:
         meta = google.gatuvy_metadata(fran.streetview())
@@ -312,13 +329,13 @@ def _gatuvy(fran: Plats, till: Plats | None, satt: str, antal: int, mellanrum: f
             if till is not None and pano and pano == forra_pano:
                 continue
             if not isinstance(pano, str) or not pano:
-                rader.append(f"  –       ingen gatubild           {etikett}".rstrip())
+                rader.append(_ingen_bild(etikett))
                 continue
             forra_pano = pano
             try:
                 data = google.gatuvy_bild(pano, riktning)
             except google.IngenBild:
-                rader.append(f"  –       ingen gatubild           {etikett}".rstrip())
+                rader.append(_ingen_bild(etikett))
                 continue
             fil = f"{sum(1 for _ in mapp.iterdir()) + 1:02d}.jpg"
             (mapp / fil).write_bytes(data)
@@ -331,6 +348,8 @@ def _gatuvy(fran: Plats, till: Plats | None, satt: str, antal: int, mellanrum: f
     except BaseException:
         if forsta is None:
             shutil.rmtree(mapp, ignore_errors=True)
+        else:
+            print(f"Bilderna som hann hämtas ligger i {mapp}/ (rensa med bok karta stada).")
         raise
     if forsta is None:
         shutil.rmtree(mapp, ignore_errors=True)
@@ -339,7 +358,7 @@ def _gatuvy(fran: Plats, till: Plats | None, satt: str, antal: int, mellanrum: f
     print(f"Gatubilder (Google Street View) {rubrik} i {mapp}/")
     print("\n".join(rader))
     print(f"Fotograferat: {_fotodatum(datum)}. Hämtat {date.today().isoformat()}. Dagens värld, inte bokens tid.")
-    plats = forsta[0].get("location") or {}
+    plats = _dict(forsta[0].get("location"))
     lat, lng = plats.get("lat"), plats.get("lng")
     if isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
         print(f"Öppna i webbläsaren: https://www.google.com/maps/@?api=1&map_action=pano"
