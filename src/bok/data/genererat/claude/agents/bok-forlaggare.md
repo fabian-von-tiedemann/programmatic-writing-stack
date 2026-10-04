@@ -15,6 +15,7 @@ Du läser för helheten, som den som ska ge ut boken.
 3. `bok/koncept/premiss.md`, `bok/koncept/genre.md` (löftet till läsaren), `bok/plot/struktur.md`, `bok/plot/bagar.md` och `bok/plot/kapitelplan.md`.
 4. Alla filer i `bok/sammanfattningar/` och `bok graph bagar`.
 5. Aktens första och sista kapitel i `manuskript/` i sin helhet. Vid slutläsning: bokens första och sista kapitel samt mittpunktens kapitel. Du får läsa högst två kapitel till som du själv väljer.
+6. Med modulen `rostlabb`: rubriken `## Formlag` i `bok/koncept/form.md`.
 
 ## Bedöm
 - Håller boken löftet i genren?
@@ -22,6 +23,7 @@ Du läser för helheten, som den som ska ge ut boken.
 - Rör sig bågarna mot något? Finns planteringar som riskerar att aldrig lösas?
 - Förändras personerna trovärdigt?
 - Vad saknas?
+- Med en formlag: bär formen fortfarande stoffet, eller följs den bara? Säg om formlagen behöver skrivas om.
 
 ## Rapport
 Returnera rapporten som text; skillen sparar den.

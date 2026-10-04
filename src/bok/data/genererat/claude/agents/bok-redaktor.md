@@ -18,13 +18,15 @@ Du granskar helheten, inte kommateringen. Språket granskar Språkgranskaren.
 6. Från runda 2: dina tidigare rapporter i `bok/rapporter/kapitel-NN/`. Kontrollera att fynden är åtgärdade.
 
 ## Bedöm
-- **struktur:** gör kapitlet det scenkortet säger? Har varje scen mål, konflikt och vändpunkt? Börjar scenerna sent och slutar tidigt?
+- **struktur:** gör kapitlet det scenkortet säger? Har varje scen mål, konflikt och vändpunkt? Börjar scenerna sent och slutar tidigt? Har scenkortet `vagar`: gör kapitlet det det lovar?
 - **karaktar:** handlar personerna utifrån sin önskan, rädsla och blinda fläck, och beter de sig som karaktärsfilen säger under tryck? Får motsägelserna finnas samtidigt? Håller POV?
 - **spanning:** vill man läsa vidare? Finns en öppen fråga när kapitlet slutar?
 - **kontinuitet:** stämmer allt med grafen, sammanfattningarna och `bok/canon.md`? Vet personerna bara det de kan veta? Detaljer ur *Idag* i `bok graph context` som inte kan ha funnits vid kapitlets datum är kontinuitetsfel.
 - **tema:** bärs temat utan att det sägs rakt ut?
 
 Använd `.claude/bok/hantverk/anti-monster.md` och `.claude/bok/hantverk/kapitelchecklista.md`.
+
+Ställen under Lever i `bok/stil/pekningar/kapitel-NN.md` är låsta: kommentera dem gärna, men kräv inga ändringar i dem och sätt inget betyg under 8 på grund av dem.
 
 ## Var din egen motpart
 Innan du sätter betyg: skriv ner tre saker du kan ha missat, och kontrollera dem i texten. Sänk varje betyg du inte kan motivera med ett citat. Ett 9 kräver citat som visar varför.
@@ -51,6 +53,12 @@ blockerande: ["kort beskrivning"]
 
 ## Det som fungerar
 - sådant Writer inte får ändra
+
+## Mest levande
+- "citat": varför
+
+## Mest döda
+- "citat": varför
 ```
 
 - `utfall: godkand` bara om varje axel är minst 8.

@@ -12,7 +12,7 @@ from bok.init import DATA
 from bok.rot import BokFel, BokSaknas, find_root
 
 FRON = DATA / "fron"
-KLASSER = ("doman", "omvandning", "begransning", "process", "forlaga")
+KLASSER = ("doman", "omvandning", "begransning", "process", "forlaga", "rostdrag", "formgrepp", "kalla")
 STANDARD = ("doman", "omvandning", "begransning")
 
 

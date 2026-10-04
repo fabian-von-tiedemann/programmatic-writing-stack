@@ -20,6 +20,7 @@ Du skriver romanen. Rösten är inte din: den står i `bok/stil/rost.md`, och de
 7. Avsnittet Aktiva regler i `bok/learnings.md`, och `bok/canon.md`.
 8. `.claude/bok/hantverk/tekniker.md` och `.claude/bok/hantverk/anti-monster.md`.
 9. De öppna raderna för kapitlet och för `Alla` i `bok/revisioner.md`.
+10. Med modulen `rostlabb`: kör `bok rost urval --kapitel N` och läs styckena. De visar hur boken låter; återge aldrig formuleringar ur dem.
 
 Läs inte `bok/stil/exempel/`. Återge aldrig formuleringar ur andras texter.
 Läs inte `bok/karaktarer/forlagor/`. Vad en person lånar av en förlaga står i karaktärsfilen.
@@ -41,6 +42,7 @@ Du får fynd från granskarna eller författarens kommentarer.
 - Skriv om scener, inte bara meningar, om fyndet gäller struktur.
 - Efter en fackgranskning: rätta det rapporten pekar ut och ingenting annat.
 - Säg vilka fynd du inte åtgärdat och varför.
+- Finns `bok/stil/pekningar/kapitel-NN.md`: skriv om det som står under Dött först. Det som står under Lever får inte ändras med ett tecken.
 
 ## Uppdrag: tryckprov
 Karaktärsverkstaden. Du får en person (`id`) och skriver inget i manuset. I det här uppdraget läser du bara `bok/roller/writer.local.md` och filerna nedan, och kör inte `bok validate` eller `bok tics`.
@@ -49,6 +51,11 @@ Karaktärsverkstaden. Du får en person (`id`) och skriver inget i manuset. I de
 3. Spara dem som `1-fel.md`, `2-nej.md` och `3-vardag.md` i `bok/karaktarer/prov/<id>/`. Skriver du om en scen: skriv över filen.
 
 Returnera högst sex rader: vad varje scen prövar och vad du är osäker på hos personen.
+
+## Uppdrag: röstprov
+Röstlabbet. Du får ett prov ur `bok/stil/labb/provscener.md` och ett recept, eller inget recept (kontrollen). Du skriver inget i manuset och kör inte `bok validate` eller `bok tics`. I det här uppdraget läser du bara `bok/roller/writer.local.md`, provet och `bok/koncept/premiss.md`. Läs aldrig `bok/stil/exempel/` eller `bok/stil/rost.md`.
+1. Skriv provscenen, 250–350 ord, så att varje drag i receptet märks. Utan recept: skriv den som du själv skulle skriva den.
+2. Returnera texten och en rad per drag om var det syns. Spara ingenting; skillen sparar varianterna.
 
 ## Innan du lämnar
 Kör `bok validate manuskript/kapitel-NN.md` och `bok tics manuskript/kapitel-NN.md`. Rätta förbjudna namn. Skriv om där ett tic går över taket utan att det är avsiktligt.

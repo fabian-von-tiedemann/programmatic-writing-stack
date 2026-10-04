@@ -8,7 +8,7 @@ from pathlib import Path
 
 from bok.graf import Graf, namnformer, scenkort_om_finns
 from bok.forlagor import forlagor
-from bok.rot import find_root
+from bok.rot import BokFel, find_root
 from bok.tics import kapitelfiler, las_kapitel
 from bok.tid import Datum, alder, som_text, tolka
 
@@ -136,6 +136,46 @@ def _nummer(fil: Path) -> int | None:
     return int(m.group(1)) if m else None
 
 
+_CITATTECKEN = str.maketrans({"“": '"', "”": '"', "„": '"', "«": '"', "»": '"', "’": "'", "‘": "'"})
+
+
+# Ett citat i början av raden, eventuellt följt av skiljetecken och en kommentar efter kolon eller tankstreck:
+# - "citat": varför   - "citat".   - "Han sa "nej" och gick."
+_CITATRAD = re.compile(r'^"(.*?)"(?:[.,!?]*\s*(?:[:–—-]\s.*)?)$')
+
+
+def _norm(s: str) -> str:
+    return " ".join(s.translate(_CITATTECKEN).split())
+
+
+def lasta_stallen(root: Path, kapitel: int) -> list[str]:
+    """Citaten under ## Lever i bok/stil/pekningar/kapitel-NN.md, normaliserade. Inga om filen saknas."""
+    katalog = root / "bok" / "stil" / "pekningar"
+    path = next((p for p in sorted(katalog.glob("kapitel-*.md")) if _nummer(p) == kapitel), None)
+    if path is None:
+        return []
+    ut, i_lever = [], False
+    for rad in las_kapitel(path).lstrip("\ufeff").splitlines():
+        if rad.startswith("## "):
+            i_lever = re.match(r"lever\b", rad[3:].strip().lower()) is not None
+            continue
+        if i_lever and rad.lstrip().startswith("- "):
+            citat = _norm(rad.lstrip()[2:])
+            if m := _CITATRAD.match(citat):
+                citat = m.group(1).strip()
+            elif citat.startswith('"'):
+                citat = citat[1:].strip()
+            if citat:
+                ut.append(citat)
+    return ut
+
+
+def andrade_stallen(text: str, citat: list[str]) -> list[str]:
+    """Låsta citat som inte längre står ordagrant i texten (blanktecken och citattecken normaliserade)."""
+    ren = _norm(text)
+    return [c for c in citat if _norm(c) not in ren]
+
+
 def _kapitel_i_tid(root: Path, graf: Graf) -> list[tuple[int, Datum | None, bool]]:
     nummer = {n for f in kapitelfiler(root) if (n := _nummer(f))}
     nummer |= {n for f in (root / "bok" / "plot" / "kapitel").glob("kapitel-*.md") if (n := _nummer(f))}
@@ -188,7 +228,16 @@ def _kor(args: argparse.Namespace) -> int:
         forlagetraffar = blacklist_traffar(text, list(skydd))
         for nr, namn in forlagetraffar:
             print(f"  BLOCKERANDE rad {nr}: {namn} är förlaga ({skydd[namn]}) och får inte stå i manuset.")
-        stopp = stopp or bool(traffar) or bool(forlagetraffar)
+        andrade = []
+        if (n := _nummer(fil)):
+            try:
+                andrade = andrade_stallen(text, lasta_stallen(root, n))
+            except BokFel as exc:
+                print(f"  Pekningarna för kapitlet kunde inte läsas: {exc}")
+        for citat in andrade:
+            print(f'  BLOCKERANDE: låst ställe står inte längre ordagrant i kapitlet '
+                  f'(bok/stil/pekningar/): "{citat}"')
+        stopp = stopp or bool(traffar) or bool(forlagetraffar) or bool(andrade)
         if nya := okanda(text, kanda):
             lista = ", ".join(f"{n} (rad {nr})" for nr, n in nya)
             print(f"  Okända namn (lägg i grafen, eller i canon.md under kända namn): {lista}")
@@ -197,6 +246,6 @@ def _kor(args: argparse.Namespace) -> int:
             varningar = aldersvarningar(text, personer, d)
         for nr, rad in varningar:
             print(f"  Ålder att kontrollera rad {nr}: {rad}")
-        if not traffar and not forlagetraffar and not nya and not varningar:
+        if not traffar and not forlagetraffar and not andrade and not nya and not varningar:
             print("  Inga anmärkningar.")
     return 1 if stopp else 0

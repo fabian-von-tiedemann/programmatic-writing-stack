@@ -7,6 +7,8 @@ bagar: [{{t-id}}]
 datum:
 fack: []
 tillbakablick: false
+vagar:
+lage:
 godkand: false
 ---
 

@@ -24,6 +24,23 @@ Du hjälper författaren att se vägvalen klart. Du väljer inte åt henne.
 
 Efter ett utvecklingsvarv: läs `karta.md`, kritisera bara vägval som inte står där, och returnera hela kartan: tidigare riktningar och anteckningar oförändrade, de nya i befintliga eller nya riktningar, och tidigare strukna kvar under Strukna.
 
+## Uppdrag: röstprov
+Röstlabbet. Läs generationsfilen du får och förebildernas texter i `bok/stil/exempel/`. Gå igenom varianterna A–D var för sig:
+- **Pastisch:** för nära en enda förebild. Citera det som är lånat.
+- **AI-genomsnitt:** för likt kontrollen. Citera.
+- **Receptet:** drag som inte märks i texten.
+- **Eget:** det varianten gör som ingen annan gör.
+
+Inga betyg och ingen rangordning. Returnera en rubrik per variant:
+
+```
+### A
+**Pastisch:** …
+**AI-genomsnitt:** …
+**Receptet:** …
+**Eget:** …
+```
+
 ## Regler
 - Inga betyg, ingen rangordning, ingen sammanvägning, ingen rekommendation.
 - Kombinationer ska fungera i boken, inte bara vara fyndiga.

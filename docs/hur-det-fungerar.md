@@ -60,6 +60,12 @@ Ett lektörsbrev eller betaläsarnas kommentarer läggs i `inkorg/` eller klistr
 
 När det finns flera möjliga vägar och den första idén inte räcker kan du be om vägval. Claude ramar in frågan med dig, en roll listar det uppenbara för sig, `bok fron` drar slumpade frön ur listor som följer med verktyget, fyra roller tar ett frö var, och en kritiker sållar bort det uppenbara och det som bryter mot boken. Du får 4–6 riktningar med vad som är bra, vad som är rimligt och det starkaste skälet att avstå, men inga betyg. Du väljer och kan be om ett varv till. Varven sparas i `bok/vagval/`.
 
+### Röstlabbet
+
+För böcker som vill mer än ett korrekt språk: `bok mall rostlabb`. Labbet ersätter stilverkstaden. Ni skriver inte själva; ni väljer. Claude skriver fyra varianter av samma prov, var och en efter ett recept av drag som lånas från förebilder ni valt eller från slumpade frön (drag på meningsnivå, formgrepp, texter utanför litteraturen som protokoll och liturgi), och en femte utan recept som visar hur AI låter utan riktning. Ni pekar ut vad som lever och vad som är dött, och nästa generation korsar, muterar och förstärker det. Formprovet söker bokens form i en skiss av första akten; röstprovet söker rösten i två provscener.
+
+När ni känner igen boken blir rösten ett recept i `bok/stil/rost.md`, provstyckena en provbank och formen en formlag i `bok/koncept/form.md`. Under skrivandet läser Writer några provstycken inför varje kapitel, `bok rost drift` varnar när ett kapitel ligger närmare AI-genomsnittet än rösten, och ställen ni pekat ut som levande låses så att granskningen inte slipar bort dem.
+
 ## Rollerna
 
 | Roll | Gör |
@@ -97,7 +103,7 @@ När du har godkänt ett scenkort frågar Claude om miljön ska tas fram för pl
 
 ## Moduler
 
-Vissa delar läggs bara till när boken behöver dem: `bok mall tidslinje`, `serie`, `spanning`, `graf-extra`, och när boken är klar `forlag`, `audiobook`, `marknad`. Claude föreslår dem när det passar.
+Vissa delar läggs bara till när boken behöver dem: `bok mall tidslinje`, `serie`, `spanning`, `graf-extra`, `rostlabb` (Röstlabbet), och när boken är klar `forlag`, `audiobook`, `marknad`. Claude föreslår dem när det passar.
 
 ## Uppdateringar
 

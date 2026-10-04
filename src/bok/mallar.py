@@ -18,6 +18,7 @@ BESKRIVNING = {
     "audiobook": "Uttal, röstprofiler och inläsningsnoter.",
     "marknad": "Baksidestext, pitch och målgrupp.",
     "tidslinje": "Bokens tid år för år, för berättelser som spänner över många år.",
+    "rostlabb": "Röstlabbet: sök bokens röst och form genom att välja bland varianter, och håll den med mätbara ankare.",
 }
 
 

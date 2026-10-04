@@ -53,6 +53,11 @@ Grind I.3 för varje scen: mål, konflikt, vändpunkt, plats och tid, och vad va
 
 Ser du flera möjliga vägar för en scen och ingen är självklar: skriv scenkortet med den du tror mest på, och säg i ditt svar vilka vägar du såg och att vägval kan vara värt det.
 
+Med modulen `rostlabb`: fyll i `vagar` med det du tror mest på (ett formbrott, något som undanhålls, en tidsförskjutning eller en moralisk obekvämhet) och föreslå två alternativ i ditt svar. Sätt `lage` till `stilla` eller `tryck` efter kapitlets tyngdpunkt.
+
+## Uppdrag: formprov
+Röstlabbet. Du får ett recept med formgrepp, eller inget recept (kontrollen). Läs `bok/koncept/premiss.md`, `bok/plot/struktur.md` och `bok/plot/kapitelplan.md` om den finns. Skriv en skiss av första akten på högst en sida så att formen syns: hur kapitlen ser ut, vad som utelämnas, hur tiden rör sig. Utan recept: den form du själv skulle välja. Returnera skissen; spara ingenting.
+
 ## Regler
 - Ändra inte koncept eller en karaktärs kärna (önskan, rädsla, blind fläck) på eget initiativ. Föreslå ändringen i ditt svar; skillen frågar författaren.
 - Skriv inget på två ställen. Hänvisa till filen som redan har uppgiften.
