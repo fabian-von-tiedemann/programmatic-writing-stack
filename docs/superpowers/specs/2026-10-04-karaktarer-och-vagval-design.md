@@ -73,6 +73,8 @@ Nytt avsnitt i `bok-researcher`:
 
 `bok validate` läser `namn` och `alias` ur alla förlagor och behandlar dem som rader i `blacklist`: en träff i kapitlet blockerar (exitkod 1) med meddelandet "<namn> är förlaga (bok/karaktarer/forlagor/<slug>.md) och får inte stå i manuset." Ett namn som också står i `kanda-namn` i `canon.md` undantas, för boken där personen faktiskt förekommer.
 
+Träffen gäller även genitiv ("Cathie Woods"). Samma rättelse görs för `blacklist`, som i dag missar "Olof Palmes". En förlaga vars namn inte går att läsa (trasigt huvud, platshållare kvar) ger en varning i `bok validate`: namnet skyddas inte.
+
 ### 2.4 Sensitivitet
 
 Förlagor är levande eller verkliga personer. `bok-sensitivitet` läser `bok/karaktarer/forlagor/` i uppdraget *planen* och bedömer om karaktären blir igenkännbar som personen på ett sätt som riskerar förtal eller kränkning. Grinden "Verkliga händelser" i `bok status` utlöses också när det finns minst en förlaga (fil utöver `MALL.md` och `README.md`) och byter då namn till "Verkliga personer och händelser". Böcker utan förlagor och utan verkliga händelser påverkas inte.
@@ -95,7 +97,7 @@ Som med stilexemplen: Writer arbetar från karaktärsfilen. Förlagan läses av 
 | Vardag | humor, smak, vanor, det som gör personen till mer än sin funktion i handlingen |
 | Öppet | idéer som inte är beslutade |
 
-Allt ovanför **Öppet** är beslutat. Datum, "godkänt" och processanteckningar skrivs i `bok/beslut.md`, inte i karaktärsfilen.
+De nya rubrikerna har en kommentar (`<!-- … -->`) som ledtråd i stället för en platshållare `{{…}}`, så att de inte blir obligatoriska för POV-personer i `bok status`. Allt ovanför **Öppet** är beslutat. Datum, "godkänt" och processanteckningar skrivs i `bok/beslut.md`, inte i karaktärsfilen.
 
 Mallen är en bokfil och uppdateras inte i befintliga böcker. Därför beskrivs rubrikerna också i en ny ramverksfil, `.claude/bok/hantverk/karaktarer.md` (genererad, skrivs om vid uppgradering), som skillen, Plot-arkitekten och Redaktören läser. I en befintlig bok lägger skillen till de nya rubrikerna i en karaktärsfil när karaktärsverkstaden körs för den personen.
 
@@ -165,9 +167,10 @@ bok fron [--antal N] [--klass KLASS ...] [--antagande TEXT ...] [--slump TAL] [-
 - `--slump` utelämnat: ett tal väljs och skrivs ut, så att dragningen går att upprepa.
 - `--spara MAPP` skriver `MAPP/fron.md` med slumptalet, klasserna och fröna. Mappen skapas om den saknas.
 - `--json` för skillen: `{"slump": 4711, "fron": [{"klass": "doman", "text": "…", "antagande": null}, …]}`.
-- Samma frö dras inte två gånger i ett anrop. Är en lista tom eller saknas klassen: felmeddelande och exitkod 1.
+- Samma frö dras inte två gånger i ett anrop. Tar fröna slut, eller begärs `forlaga` i en bok utan förlagor: felmeddelande och exitkod 2, som andra fel i `bok`. Okänd klass avvisas av kommandoraden.
+- Fungerar även utanför en bok; då finns ingen `forlaga`.
 
-Listorna skrivs för `bok` på svenska, cirka 80–120 rader per klass utom `process` (cirka 40). Inga texter från Oblique Strategies eller andra skyddade kortlekar.
+Listorna skrivs för `bok` på svenska, minst 40 rader per klass (cirka 80 för `doman`, 70 för `begransning`, 50 för `omvandning`, 40 för `process`). Inga texter från Oblique Strategies eller andra skyddade kortlekar.
 
 ### 5.5 Rollerna
 
@@ -199,7 +202,7 @@ Båda är genererade ramverksfiler med versionshuvud och kan kompletteras med `b
 
 ## 7. Test
 
-- `bok fron`: samma `--slump` ger samma frön; standardfördelningen över klasser; `omvandning` paras med ett antagande; `forlaga` dras bara när förlagor finns och läser `namn`; inga dubbletter; okänd klass och tom lista ger exitkod 1; `--spara` skriver `fron.md`; `--json` har rätt form; varje lista i paketet har minst 40 frön och inga dubbletter.
+- `bok fron`: samma `--slump` ger samma frön; standardfördelningen över klasser; `omvandning` paras med ett antagande; `forlaga` dras bara när förlagor finns och läser `namn`; inga dubbletter; okänd klass avvisas och slut på frön ger exitkod 2; `--spara` lägger till i en befintlig `fron.md`; `--spara` skriver `fron.md`; `--json` har rätt form; varje lista i paketet har minst 40 frön och inga dubbletter.
 - `bok validate`: förlagans `namn` och `alias` blockerar; namn i `kanda-namn` undantas; `MALL.md` och `README.md` i `forlagor/` läses inte som förlagor; trasig frontmatter i en förlaga kraschar inte.
 - `bok status`: förlagor utlöser grinden med det nya namnet; utan förlagor och utan verkliga händelser syns ingen grind; filer i `karaktarer/forlagor/` och `karaktarer/prov/` räknas inte som karaktärer.
 - `bok init`: nya bokfiler skapas i en befintlig bok utan att röra befintliga; nya ramverksfiler skrivs med versionshuvud.
