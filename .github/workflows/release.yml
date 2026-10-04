@@ -1,0 +1,46 @@
+name: Release
+
+# När versionen i src/bok/__init__.py saknar tagg på main: skapa taggen och en
+# GitHub-release med versionens avsnitt ur CHANGELOG.md. Se docs/utveckla-och-releasa.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tagga och släpp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Läs versionen
+        id: version
+        run: |
+          version=$(python3 -c 'import re,pathlib; print(re.search(r"__version__ = \"([^\"]+)\"", pathlib.Path("src/bok/__init__.py").read_text()).group(1))')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "v$version finns redan; ingen release."
+            echo "ny=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ny=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Release-text ur CHANGELOG
+        if: steps.version.outputs.ny == 'true'
+        run: python3 scripts/changelog.py "${{ steps.version.outputs.version }}" > "$RUNNER_TEMP/notes.md"
+      - name: Skapa tagg och release
+        if: steps.version.outputs.ny == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "bok $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
