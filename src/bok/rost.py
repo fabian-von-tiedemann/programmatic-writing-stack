@@ -114,7 +114,7 @@ def krav_modul(root: Path) -> None:
 
 
 def texter(root: Path, mapp: str) -> list[tuple[Path, dict, str]]:
-    """Filerna i bok/stil/<mapp>/ utom README.md: (fil, huvud, ren text). Trasigt huvud ger {}."""
+    """Filerna i bok/stil/<mapp>/ utom README.md och filer utan ord: (fil, huvud, ren text). Trasigt huvud ger {}."""
     katalog = root / "bok" / "stil" / mapp
     ut = []
     for path in sorted(katalog.glob("*.md")):
@@ -125,7 +125,9 @@ def texter(root: Path, mapp: str) -> list[tuple[Path, dict, str]]:
             meta, _ = frontmatter.split(text)
         except frontmatter.FrontmatterFel:
             meta = {}
-        ut.append((path, meta, ren_text(text)))
+        ren = ren_text(text)
+        if ord_i(ren):
+            ut.append((path, meta, ren))
     return ut
 
 
@@ -211,15 +213,18 @@ def drift(root: Path, fil: Path) -> dict:
     krav_modul(root)
     text = ren_text(las_kapitel(fil))
     bank, kontroll = texter(root, "provbank"), texter(root, "kontroll")
-    kallor = [(p.relative_to(root).as_posix(), t) for p, _, t in bank + texter(root, "exempel")]
+    # Kapitlets egna levande ställen i provbanken (kalla: kapitel-NN) är inte pastisch i det kapitlet.
+    egna = [b for b in bank if str(b[1].get("kalla") or "").strip() != fil.stem]
+    kallor = [(p.relative_to(root).as_posix(), t) for p, _, t in egna + texter(root, "exempel")]
     ut = {
         "fil": fil.relative_to(root).as_posix() if fil.is_relative_to(root) else str(fil),
+        "ord": len(ord_i(text)),
         "underlag": {"provbank": len(bank), "kontroll": len(kontroll)},
         "delta": None,
         "utanfor": [],
         "pastisch": [{"text": s, "kalla": k} for s, k in pastisch(text, kallor)],
     }
-    if len(bank) >= MIN_BANK and len(kontroll) >= MIN_KONTROLL:
+    if ut["ord"] and len(bank) >= MIN_BANK and len(kontroll) >= MIN_KONTROLL:
         d_rost, d_kontroll = delta(text, [t for *_, t in bank], [t for *_, t in kontroll])
         ut["delta"] = {"rost": round(d_rost, 3), "kontroll": round(d_kontroll, 3),
                        "narmare_kontroll": d_kontroll < d_rost}
@@ -231,7 +236,9 @@ def drift(root: Path, fil: Path) -> dict:
 def som_text_drift(d: dict) -> str:
     u = d["underlag"]
     rader = [d["fil"], f"  Underlag: {u['provbank']} provstycken, {u['kontroll']} kontrollvarianter."]
-    if d["delta"] is None:
+    if not d["ord"]:
+        rader.append("  Kapitlet har inga ord än.")
+    elif d["delta"] is None:
         rader.append(f"  För lite underlag för rösten (minst {MIN_BANK} provstycken och {MIN_KONTROLL} "
                      "kontrollvarianter); bara pastischkontrollen körs.")
     elif d["delta"]["narmare_kontroll"]:

@@ -139,6 +139,11 @@ def _nummer(fil: Path) -> int | None:
 _CITATTECKEN = str.maketrans({"“": '"', "”": '"', "„": '"', "«": '"', "»": '"', "’": "'", "‘": "'"})
 
 
+# Ett citat i början av raden, eventuellt följt av skiljetecken och en kommentar efter kolon eller tankstreck:
+# - "citat": varför   - "citat".   - "Han sa "nej" och gick."
+_CITATRAD = re.compile(r'^"(.*?)"(?:[.,!?]*\s*(?:[:–—-]\s.*)?)$')
+
+
 def _norm(s: str) -> str:
     return " ".join(s.translate(_CITATTECKEN).split())
 
@@ -150,14 +155,14 @@ def lasta_stallen(root: Path, kapitel: int) -> list[str]:
     if path is None:
         return []
     ut, i_lever = [], False
-    for rad in las_kapitel(path).splitlines():
+    for rad in las_kapitel(path).lstrip("\ufeff").splitlines():
         if rad.startswith("## "):
-            i_lever = rad[3:].strip().lower() == "lever"
+            i_lever = re.match(r"lever\b", rad[3:].strip().lower()) is not None
             continue
         if i_lever and rad.lstrip().startswith("- "):
             citat = _norm(rad.lstrip()[2:])
-            if len(citat) >= 2 and citat[0] == citat[-1] == '"':
-                citat = citat[1:-1].strip()
+            if m := _CITATRAD.match(citat):
+                citat = m.group(1).strip()
             elif citat.startswith('"'):
                 citat = citat[1:].strip()
             if citat:

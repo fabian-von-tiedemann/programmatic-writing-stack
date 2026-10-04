@@ -85,8 +85,7 @@ def test_drift_tomt_kapitel(bok):
     labb(bok)
     kap = skriv(bok, "manuskript/kapitel-01.md", "# Kapitel 1\n")
     d = drift(bok, kap)
-    assert d["pastisch"] == []
-    assert isinstance(d["delta"]["rost"], float)
+    assert d["pastisch"] == [] and d["ord"] == 0
 
 
 def test_cli_drift(bok, capsys):
@@ -106,3 +105,27 @@ def test_cli_drift_fel(bok, capsys):
     assert main(["rost", "drift", "manuskript/kapitel-09.md"]) == 2  # filen saknas
     assert main(["rost", "drift", "manuskript/kapitel-01.md"]) == 0
     assert "För lite underlag" in capsys.readouterr().out
+
+
+def test_drift_tomt_kapitel_ger_inga_paheittade_varningar(bok):
+    labb(bok)
+    kap = skriv(bok, "manuskript/kapitel-01.md", "# Kapitel 1\n")
+    d = drift(bok, kap)
+    assert d["delta"] is None and d["utanfor"] == []
+
+
+def test_tomma_provstycken_raknas_inte(bok):
+    labb(bok)
+    skriv(bok, "bok/stil/provbank/tom.md", "---\nlage: stilla\n---\n")
+    kap = skriv(bok, "manuskript/kapitel-01.md", ROST[0] + "\n")
+    assert drift(bok, kap)["underlag"]["provbank"] == 3
+
+
+def test_kapitlets_egna_stallen_i_provbanken_ar_inte_pastisch(bok):
+    labb(bok)
+    stalle = "Han räknade stolarna två gånger innan han satte sig vid bordet."
+    skriv(bok, "bok/stil/provbank/k07.md", f"---\nlage: stilla\nkalla: kapitel-07\n---\n{stalle}\n")
+    kap7 = skriv(bok, "manuskript/kapitel-07.md", f"Det var kväll. {stalle}\n")
+    assert drift(bok, kap7)["pastisch"] == []
+    kap8 = skriv(bok, "manuskript/kapitel-08.md", f"Det var kväll. {stalle}\n")
+    assert [p["kalla"] for p in drift(bok, kap8)["pastisch"]] == ["bok/stil/provbank/k07.md"]
