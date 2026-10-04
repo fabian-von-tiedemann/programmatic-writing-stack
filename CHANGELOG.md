@@ -6,6 +6,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 
 ## [Unreleased]
 
+## [2.4.0] — 2026-10-04
+
 ### Lagt till
 - Förlagor: en karaktär kan bygga på en verklig person. Researcher tar fram ett porträtt ur intervjuer och vad andra säger, med källor, i `bok/karaktarer/forlagor/`. `bok validate` stoppar kapitel där förlagans namn står, och sensitivitetsläsaren läser planen när boken har förlagor.
 - Karaktärsverkstaden: personer prövas i tre korta scener under tryck. Karaktärsmallen har nya, frivilliga rubriker: förlaga, motsägelser, självbild och andras bild, det hen döljer, under tryck, vardag och öppet.
@@ -153,7 +155,8 @@ Formatet följer [Keep a Changelog](https://keepachangelog.com/sv/1.1.0/) och ve
 - Snitt 9.13/10 efter FAS 3-pass
 - NAGELFAREN-kalibrering: differens redaktör/verklighet sjönk 2.1 → <0.5
 
-[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.1...HEAD
+[Unreleased]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/fabian-von-tiedemann/programmatic-writing-stack/compare/v2.2.0...v2.2.1
