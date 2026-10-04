@@ -1,0 +1,12 @@
+# Personliga pronomen för måttet pronomenstart i bok rost. Ett ord per rad, gemener.
+jag
+du
+han
+hon
+hen
+den
+det
+vi
+ni
+de
+man
