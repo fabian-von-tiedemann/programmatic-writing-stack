@@ -118,3 +118,17 @@ def test_cli_utanfor_en_bok(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     assert main(["fron", "--slump", "1", "--antal", "1"]) == 0
     assert "1. doman: " in capsys.readouterr().out
+
+
+NYA = ("rostdrag", "formgrepp", "kalla")
+
+
+def test_nya_klasser_finns_men_dras_inte_som_standard():
+    assert set(NYA) <= set(KLASSER)
+    for slump in range(20):
+        assert not {f["klass"] for f in dra(antal=8, slump=slump)["fron"]} & set(NYA)
+
+
+def test_rostlabbets_dragning():
+    fron = dra(antal=6, klasser=list(NYA), slump=11)["fron"]
+    assert [f["klass"] for f in fron] == ["rostdrag", "formgrepp", "kalla"] * 2
