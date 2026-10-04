@@ -19,7 +19,7 @@ Fritt samtal, i vilken ordning som helst. För att börja skriva kapitel 1 kräv
 | Koncept | `bok/koncept/premiss.md`, `bok/koncept/genre.md`, `bok/koncept/form.md`, `bok/koncept/teman.md` | inga `{{…}}` kvar |
 | Karaktärer (grind I.1) | `bok/karaktarer/<id>.md` | varje fil anger `pov: true` eller `false`; minst en har `pov: true`; varje POV-karaktär är helt ifylld, med önskan, rädsla, blind fläck och språklig signatur |
 | Plot (grind I.2) | `bok/plot/struktur.md`, `bok/plot/bagar.md` | central fråga, inciting incident, mittpunkt, klimax och varje akts funktion |
-| Röst | `bok/stil/rost.md` | ifylld och godkänd i stilverkstaden |
+| Röst | `bok/stil/rost.md` | ifylld och godkänd i stilverkstaden eller Röstlabbet |
 | Kapitelplan | `bok/plot/kapitelplan.md` | åtminstone första akten |
 | Verkliga händelser och personer | blocket `verkliga-handelser` i `bok/canon.md`, förlagor i `bok/karaktarer/forlagor/` | bara om blocket har rader eller boken har förlagor: rapport `omfang: forberedelse`, `roll: sensitivitet`, `utfall: godkand` |
 | Hennes ja | rapport med `omfang: forberedelse`, `roll: forfattare`, `utfall: godkand` | efter en sammanfattning av boken på en skärm |
@@ -101,7 +101,7 @@ Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, k
 
 | Roll | Läser |
 |---|---|
-| Writer | scenkortet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md` om den finns (går före `bok/stil/rost.md`), öppna rader i `bok/revisioner.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md`, `.claude/bok/hantverk/`, aldrig `bok/karaktarer/forlagor/` |
+| Writer | scenkortet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md` om den finns (går före `bok/stil/rost.md`), öppna rader i `bok/revisioner.md`, `bok/koncept/form.md`, kapitlets karaktärsfiler, `bok graph context`, föregående kapitel i sin helhet, alla sammanfattningar, aktiva regler i `bok/learnings.md`, `bok/canon.md`, `.claude/bok/hantverk/`, aldrig `bok/karaktarer/forlagor/`; med modulen `rostlabb` också styckena ur `bok rost urval --kapitel N` och `bok/stil/pekningar/kapitel-NN.md` |
 | Redaktör | kapitlet, scenkortet, `bok graph context`, sammanfattningarna, premiss, genre, teman, bågar, canon, kapitlets karaktärsfiler, `.claude/bok/hantverk/` |
 | Språkgranskare | kapitlet, `bok/stil/rost.md`, `bok/stil/rost-<pov>.md`, kapitlets karaktärsfiler (språklig signatur), `bok tics`, hantverket |
 | Kontinuitet | kapitlet, scenkortet, hela grafen, `bok/canon.md` |
@@ -110,6 +110,9 @@ Brödtexten i en granskning har tre avsnitt: `## Blockerande` (citat, problem, k
 | Writer (tryckprov) | karaktärsfilen, rösten, premissen, `.claude/bok/hantverk/karaktarer.md`; aldrig förlagor |
 | Researcher (porträtt) | uppdraget, karaktärsfilen om den finns, `.claude/bok/hantverk/karaktarer.md`, källor |
 | Idékritiker | varvets `ram.md`, `uppenbart.md` och `ideer.md`, och `karta.md` efter ett utvecklingsvarv |
+| Writer (röstprov) | provet ur `bok/stil/labb/provscener.md`, receptet och premissen; kontrollen bara provet och premissen; aldrig `bok/stil/exempel/` |
+| Plot-arkitekt (formprov) | receptet, premissen, `bok/plot/struktur.md` och kapitelplanen om den finns |
+| Idékritiker (röstprov) | generationsfilen och `bok/stil/exempel/` |
 
 Varje roll läser först `bok/roller/<roll>.local.md` om den finns. Den går före allt annat.
 
@@ -132,6 +135,19 @@ Karaktärsverkstaden prövar en person i tre korta scener utanför handlingen (`
 ## Vägval
 
 Ett vägvalsvarv ger 4–6 distinkta riktningar för en fråga där den första idén inte räcker. Skillen ramar in frågan med författaren, `bok-vagval` listar det uppenbara i egen kontext, `bok fron` drar frön, fyra `bok-vagval` tar ett frö var, och `bok-idekritiker` sållar och grupperar. Grenarna ser aldrig det uppenbara. Kritikern ger inga betyg och rekommenderar inget; författaren väljer. Varvet sparas i `bok/vagval/`.
+
+## Röstlabbet
+
+Modulen `rostlabb` (`bok mall rostlabb`). Labbet ersätter stilverkstaden: formprov (`bok-plot-arkitekt`, uppdrag *formprov*) och röstprov (`bok-writer`, uppdrag *röstprov*) i generationer med fyra recept och en kontroll utan recept, kritik från `bok-idekritiker` (uppdrag *röstprov*) och författarens pekningar. Resultatet är `bok/stil/rost.md` i receptform, provbanken `bok/stil/provbank/`, kontrollerna `bok/stil/kontroll/` och formlagen i `bok/koncept/form.md`.
+
+I skrivloopen, med modulen:
+
+- scenkortet har `vagar` (vad kapitlet vågar) och `lage` (`stilla` eller `tryck`),
+- Writer läser stycken ur provbanken enligt `bok rost urval --kapitel N`,
+- steg 4 kör också `bok rost drift manuskript/kapitel-NN.md`; varningarna stoppar inget och går till Språkgranskaren,
+- granskarnas rapporter har avsnitten Mest levande och Mest döda,
+- före första revisionen pekar författaren ut levande och döda ställen i `bok/stil/pekningar/kapitel-NN.md`; det som lever är låst, `bok validate` stoppar om det ändrats, och granskarna får inte kräva ändringar i det eller sätta under 8 på grund av det,
+- vid aktgränsen läser Förläggaren mot formlagen, och receptet får revideras.
 
 ## Platser
 

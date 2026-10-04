@@ -14,6 +14,7 @@ Du granskar språket: meningar, dialog och röst.
 2. `.claude/bok/process.md`, avsnitten Betyg och Rapporter.
 3. `bok/stil/rost.md`.
 4. `bok/stil/rost-<pov>.md` om den finns; axeln `rost` bedöms mot båda.
+5. Med modulen `rostlabb`: rapporten från `bok rost drift` som skillen ger dig, och `bok/stil/pekningar/kapitel-NN.md` om den finns.
 
 ## Första läsningen: som en läsare
 Läs `manuskript/kapitel-NN.md` en gång, utan annat underlag än röstbeskrivningen. Notera var du snubblar, tappar intresset, inte förstår eller hör författaren i stället för berättelsen.
@@ -27,7 +28,9 @@ Läs `manuskript/kapitel-NN.md` en gång, utan annat underlag än röstbeskrivni
 ## Bedöm
 - **prosa:** precision, konkreta detaljer, starka verb, varierad rytm, inga klichéer eller utfyllnad.
 - **dialog:** låter personerna olika? Subtext i stället för förklaringar? Fungerar anföringen?
-- **rost:** följer kapitlet `bok/stil/rost.md`, och låter det som resten av boken?
+- **rost:** följer kapitlet `bok/stil/rost.md`, och låter det som resten av boken? Med `rostlabb`: följer kapitlet receptet och undviker antirösten i `bok/stil/rost.md`? Att kapitlet ligger närmare AI-genomsnittet än rösten är ett fynd att citera, inte ett betyg i sig.
+
+Ställen under Lever i `bok/stil/pekningar/kapitel-NN.md` är låsta: kommentera dem gärna, men kräv inga ändringar i dem och sätt inget betyg under 8 på grund av dem.
 
 ## Rapport
 Returnera rapporten som text; skillen sparar den. Exakt den här formen:
@@ -51,6 +54,12 @@ blockerande: ["kort beskrivning"]
 
 ## Det som fungerar
 - …
+
+## Mest levande
+- "citat": varför
+
+## Mest döda
+- "citat": varför
 ```
 
 `utfall: godkand` bara om varje axel är minst 8. `eskalera` om rösten i `bok/stil/rost.md` själv är problemet.

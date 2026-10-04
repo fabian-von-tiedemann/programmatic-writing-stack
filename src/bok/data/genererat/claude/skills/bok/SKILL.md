@@ -40,7 +40,7 @@ Grundläget. Hon får börja var som helst: en person, en scen, en känsla, ett 
   | vad som händer, vändningar, slutet | `bok/plot/struktur.md` |
   | en linje som löper genom boken, en persons utveckling | `bok/plot/bagar.md` |
   | ordningen på kapitlen | `bok/plot/kapitelplan.md` (be `bok-plot-arkitekt`) |
-  | hur det ska låta, texter hon gillar | Stilverkstaden nedan |
+  | hur det ska låta, texter hon gillar | Stilverkstaden nedan, eller Röstlabbet om `rostlabb` står i `moduler` i `bok.toml` |
   | tid, plats, världens regler, sakfrågor | `bok/varld/varld.md`, eller `bok-researcher` |
   | hur en plats ser ut, hur lång tid det tar mellan två platser | `bok/varld/platser/<id>.md` via `bok-varldsbyggare` (se Platser och miljöer) |
   | fakta som måste stämma, namn som inte får förekomma | `bok/canon.md` |
@@ -51,7 +51,7 @@ Grundläget. Hon får börja var som helst: en person, en scen, en känsla, ett 
 - **Föreslå, fråga inte tomt.** Inte "Vad är premissen?" utan "Utifrån det du berättat skulle premissen kunna vara: … Stämmer det, eller vill du vrida på det?"
 - **Fyll i, töm inte.** Ersätt `{{…}}` med hennes innehåll. Stryk inte rubriker.
 - **"Var är vi?"** Återge `bok status` i klartext: vad som finns, vad som saknas innan första kapitlet, och vad du föreslår härnäst.
-- **Genren styr tillvalen.** Spänning, deckare eller thriller: föreslå `bok mall spanning`. En serie: `bok mall serie`. Spänner boken över många år: föreslå `bok mall tidslinje`.
+- **Genren styr tillvalen.** Spänning, deckare eller thriller: föreslå `bok mall spanning`. En serie: `bok mall serie`. Spänner boken över många år: föreslå `bok mall tidslinje`. Pratar hon om ett eget språk, litterär höjd eller att texten låter som AI: föreslå `bok mall rostlabb` (Röstlabbet).
 
 ## Inkorgen
 Om `inkorg/` innehåller något annat än `README.md`, eller hon klistrar in chattar och anteckningar:
@@ -74,6 +74,28 @@ Rösten är det som gör boken till hennes. Kör verkstaden när hon pratar om t
 **En röst per person.** Har boken flera POV-personer och hon vill att någon låter annorlunda: kör verkstaden för den personen ("jobba med Sofias röst"). Provskriv ur personens perspektiv och skriv bara det som skiljer från `bok/stil/rost.md` i `bok/stil/rost-<id>.md`.
 
 Andras texter används för att förstå kvaliteter. Återge aldrig formuleringar ur dem, och håll utdragen korta.
+
+## Röstlabbet
+Bara när `rostlabb` står i `moduler` i `bok.toml`; då ersätter labbet stilverkstaden. Rösten och formen hittas genom att författaren väljer bland varianter, inte genom att skriva. Välj aldrig åt henne och rekommendera ingen variant. Hur filerna ser ut står i `bok/stil/labb/README.md`.
+
+**Två sorters prov.** Formprov: en skiss av första akten på en sida (`bok-plot-arkitekt`, uppdraget **formprov**). Röstprov: provscenerna i `bok/stil/labb/provscener.md`, 250–350 ord var, en stilla och en under tryck (`bok-writer`, uppdraget **röstprov**). Föreslå formen först, eftersom formen ofta bestämmer rösten; hon kan börja med rösten eller hoppa över formen.
+
+1. **Rama in.** Fråga efter förebilder (texterna sparas i `bok/stil/exempel/` som i stilverkstaden) och vad boken inte får låta som. Skriv provscenerna och få hennes ja.
+2. **Frön.** Kör `bok fron --klass rostdrag --klass kalla --klass formgrepp --antal 8 --json --spara bok/stil/labb`.
+3. **Recept.** Fyra recept med 3–6 drag var, varje drag med sin källa (en förebild eller ett frö): två utgår från förebilderna med ett frö var, två huvudsakligen från frön. Formprov bygger på `formgrepp`, röstprov på `rostdrag` och `kalla`.
+4. **Varianter.** Starta fyra instanser parallellt, ett recept var (A–D), och en femte utan recept: kontrollen. Kontrollen får bara provet och premissen, aldrig `bok/stil/rost.md`.
+5. **Kritik.** Starta `bok-idekritiker` med uppdraget **röstprov** och generationsfilen.
+6. **Visa och peka.** Visa A–D och sist kontrollen, märkt som kontroll. Låt henne peka fritt: vad lever, vad är dött. Skriv recepten, texterna, kritiken och pekningarna i `bok/stil/labb/gen-NN.md` (röst) eller `bok/stil/labb/form-NN.md` (form).
+7. **Nästa generation.** Fyra nya recept ur pekningarna: korsa (levande drag från två varianter), mutera (byt ett drag mot ett nytt frö), förstärk (driv ett levande drag längre) och vild (ett helt nytt frö). Ny kontroll bara när provet byts. Efter femte generationen: fråga om rösten håller på att sätta sig eller om provscenen ska bytas.
+8. **Klart** när hon säger att det är boken. Efter hennes ja:
+   - skriv om `bok/stil/rost.md` med rubrikerna `## Recept`, `## Antiröst` och `## Form`,
+   - spara de godkända provstyckena i `bok/stil/provbank/` och röstprovens kontroller i `bok/stil/kontroll/`, en fil per stycke med `lage`, `kalla` och `datum` i huvudet,
+   - skriv formlagen under `## Formlag` i `bok/koncept/form.md` om formprov gjorts: vad formen måste göra, vad den aldrig får göra och varför,
+   - skriv en rad i `bok/beslut.md` med länk till generationsfilen.
+
+**Pekning.** Före första revisionen av ett kapitel: visa granskarnas avsnitt Mest levande och Mest döda och fråga vad som lever och vad som är dött. Säger hon "kör": gå vidare. Annars skriv `bok/stil/pekningar/kapitel-NN.md` med `## Lever` och `## Dött`, ett citat per rad (`- "…"`), ordagrant ur kapitlet. Det som lever är låst: `bok validate` stoppar om det ändrats. Vill hon låsa upp något: flytta raden till `## Upplåst`. Ge pekningsfilen till `bok-writer` med fynden. Föreslå levande ställen till provbanken (högst 15 stycken).
+
+**Aktgränsen.** Fråga om receptet håller. Vill hon revidera: kör en generation på en scen ur akten, skriv om receptet och formlagen efter hennes ja, och rensa provbanken tillsammans med henne.
 
 ## Karaktärsverkstaden
 En person blir levande när hen gör något under tryck. Kör verkstaden när hon pekar ut en verklig person som förlaga, när en person känns platt, eller när `bok-plot-arkitekt` föreslår det. Rubrikerna och reglerna står i `.claude/bok/hantverk/karaktarer.md`.
@@ -127,12 +149,12 @@ RAPPORT
 | Utkast | Starta `bok-writer` med kapitel N. |
 | Fackgranskning | Starta `bok-researcher` med uppdraget **fackgranskning** för kapitel N. Spara rapporten med `bok rapport spara - --skriv-over`. |
 | Revision efter fackgranskning | Starta `bok-writer` med fynden ur fackgranskningen, och gå sedan direkt till en ny fackgranskning. |
-| Granskning | Kör `bok validate` och `bok tics` på kapitlet. BLOCKERANDE tidsfel från `bok validate` går till `bok-kontinuitet` (felet ligger i grafen) eller till scenkortet (`datum`, `tillbakablick`) och rättas före granskningen; åldersvarningar skickas med kapitlet till Redaktören. Starta bara den granskare vars rapport för runda R saknas (status nämner dem); finns ingen ännu, starta `bok-redaktor` och `bok-sprakgranskare` parallellt med kapitel N och runda R. Spara rapporterna med `bok rapport spara -`. |
-| Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till fackgranskning (om scenkortet har `fack`) och granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. |
+| Granskning | Kör `bok validate` och `bok tics` på kapitlet. Med modulen `rostlabb`: kör också `bok rost drift` på kapitlet och ge varningarna till `bok-sprakgranskare`. BLOCKERANDE tidsfel från `bok validate` går till `bok-kontinuitet` (felet ligger i grafen) eller till scenkortet (`datum`, `tillbakablick`) och rättas före granskningen; åldersvarningar skickas med kapitlet till Redaktören. Starta bara den granskare vars rapport för runda R saknas (status nämner dem); finns ingen ännu, starta `bok-redaktor` och `bok-sprakgranskare` parallellt med kapitel N och runda R. Spara rapporterna med `bok rapport spara -`. |
+| Revision | Starta `bok-writer` med kapitel N och fynden ur senaste rundans rapporter (eller hennes kommentarer). Gå sedan direkt vidare till fackgranskning (om scenkortet har `fack`) och granskning med runda R+1 (rundan står i nästa steg). Status visar revision tills de nya rapporterna är sparade. Med modulen `rostlabb`, före första revisionen: Pekning (se Röstlabbet). |
 | Du bestämmer | Visa de viktigaste fynden och båda alternativen. Hon godkänner som det är, eller skickar tillbaka med egna kommentarer. Sa en granskare `eskalera` (problemet ligger i planen): erbjud också att `bok-plot-arkitekt` reviderar scenkortet först. Vid ja: visa det nya scenkortet och få hennes ja innan kapitlet skrivs om. |
 | Kontinuitet | Starta `bok-kontinuitet` med kapitel N och runda R (senaste granskningsrundan). Spara rapporten med `bok rapport spara - --skriv-over` (en ny körning i samma runda ersätter den förra). Visa flaggorna. |
 | Hennes läsning | Säg att kapitlet ligger i `manuskript/kapitel-NN.md`, och erbjud en kort sammanfattning först. |
-| Aktgräns | Starta `bok-forlaggare` för akten. Spara rapporten och gå igenom åtgärderna med henne. Vid `atgarda`: åtgärda fynden med rätt roll och låt Förläggaren läsa akten igen. |
+| Aktgräns | Starta `bok-forlaggare` för akten. Spara rapporten och gå igenom åtgärderna med henne. Vid `atgarda`: åtgärda fynden med rätt roll och låt Förläggaren läsa akten igen. Med modulen `rostlabb`: fråga om receptet håller (se Röstlabbet). |
 | Slutläsning | När alla planerade kapitel är klara: fråga om fler kapitel ska planeras (`bok-plot-arkitekt`, uppdraget kapitelplan) eller om boken är färdig. Är den färdig: starta `bok-forlaggare` för hela boken (`omfang: bok`, utfall A, B eller C). Spara rapporten och gå igenom den med henne. Vid B eller C: arbeta igenom åtgärderna med rätt roll och låt Förläggaren läsa boken igen. |
 | Sensitivitet | När boken fått A: starta `bok-sensitivitet` för hela boken (`omfang: bok`). Spara rapporten och gå igenom fynden med henne. Vid `atgarda`: åtgärda fynden och låt sensitivitetsläsaren läsa igen. |
 | Tillval | När boken är klar: erbjud modulerna `bok mall forlag`, `bok mall audiobook` (sedan `bok-audiobook`) och `bok mall marknad` (sedan `bok-marknad`). |

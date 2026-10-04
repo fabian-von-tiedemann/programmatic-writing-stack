@@ -395,3 +395,40 @@ def test_bokfiler_2_5():
     bank = (DATA / "moduler/rostlabb/bok/stil/provbank/README.md").read_text(encoding="utf-8")
     for fras in ("lage:", "kalla:", "datum:", "15"):
         assert fras in bank, fras
+
+
+def test_ramverket_2_5():
+    skill = _las("skills/bok/SKILL.md")
+    assert "## Röstlabbet" in skill
+    labb = skill.split("## Röstlabbet", 1)[1].split("\n## ", 1)[0]
+    for fras in ("`rostlabb`", "uppdraget **formprov**", "uppdraget **röstprov**", "bok fron --klass rostdrag",
+                 "kontroll", "korsa", "mutera", "förstärk", "vild", "bok/stil/provbank/", "bok/stil/kontroll/",
+                 "## Formlag", "bok/stil/pekningar/kapitel-NN.md", "## Upplåst", "Välj aldrig åt"):
+        assert fras in labb, fras
+    assert "bok mall rostlabb" in skill.split("## Fritt samtal", 1)[1].split("\n## ", 1)[0]
+    rader = {r.split("|")[1].strip(): r for r in skill.splitlines() if r.startswith("| ")}
+    assert "bok rost drift" in rader["Granskning"]
+    assert "Pekning" in rader["Revision"]
+    assert "receptet" in rader["Aktgräns"]
+
+    process = _las("bok/process.md")
+    for fras in ("## Röstlabbet", "`vagar`", "`lage`", "bok rost urval", "bok rost drift", "Mest levande",
+                 "| Writer (röstprov) |", "| Plot-arkitekt (formprov) |", "| Idékritiker (röstprov) |"):
+        assert fras in process, fras
+    assert "bok rost" in _las("bok/verktyg.md")
+
+    writer = _las("agents/bok-writer.md")
+    for fras in ("## Uppdrag: röstprov", "bok rost urval --kapitel N", "Dött", "Lever"):
+        assert fras in writer, fras
+    plot = _las("agents/bok-plot-arkitekt.md")
+    assert "## Uppdrag: formprov" in plot and "`vagar`" in plot and "`lage`" in plot
+    kritik = _las("agents/bok-idekritiker.md")
+    for fras in ("## Uppdrag: röstprov", "**Pastisch:**", "**AI-genomsnitt:**", "**Receptet:**", "**Eget:**"):
+        assert fras in kritik, fras
+    for roll in ("sprakgranskare", "redaktor"):
+        text = _las(f"agents/bok-{roll}.md")
+        assert "## Mest levande" in text and "## Mest döda" in text, roll
+        assert "bok/stil/pekningar/kapitel-NN.md" in text, roll
+    assert "bok rost drift" in _las("agents/bok-sprakgranskare.md")
+    assert "`vagar`" in _las("agents/bok-redaktor.md")
+    assert "## Formlag" in _las("agents/bok-forlaggare.md")
